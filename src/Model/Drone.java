@@ -1,3 +1,5 @@
+package Model;
+
 public class Drone {
     private TelemetryData myDroneTelemetryData = new TelemetryData();
 

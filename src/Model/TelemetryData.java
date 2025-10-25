@@ -1,3 +1,5 @@
+package Model;
+
 public class TelemetryData {
     double myLatitude;
     double myLongitude;
