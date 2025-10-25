@@ -32,15 +32,15 @@ public class TelemetryData {
     /* SETTERS */
 
     public void setLatitude(final double theNewLatitude) {
-        myVelocity = theNewLatitude;
+        myLatitude = theNewLatitude;
     }
 
     public void setLongitude(final double theNewLongitude) {
-        myLatitude = theNewLongitude;
+        myLongitude = theNewLongitude;
     }
 
     public void setAltitude(final double theNewAltitude) {
-        myLatitude = theNewAltitude;
+        myAltitude = theNewAltitude;
     }
 
     public void setOrientation(final double theNewOrientation) {
