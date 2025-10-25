@@ -11,6 +11,13 @@ public class Drone {
 
     private static final int BATTERY_DECREASE = 10;
 
+    public Drone() {
+        myDroneTelemetryData = null;
+        myDroneID += 1;
+        myIsDroneOn = true;
+
+    }
+
     public Drone(TelemetryData droneTelemetryData) {
         myDroneTelemetryData = droneTelemetryData;
         myDroneID += 1;
@@ -34,7 +41,7 @@ public class Drone {
         myBattery = theNewBatteryLevel;
     }
 
-    private void decrementBattery() {
+    protected void decrementBattery() {
         myBattery -= BATTERY_DECREASE;
     }
 
