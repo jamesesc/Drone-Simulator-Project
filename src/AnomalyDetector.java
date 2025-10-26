@@ -35,6 +35,10 @@ public class AnomalyDetector {
      * Lower bound latitude, lower bound longitude, upper bound latitude, upper bound longitude.
      */
     final double[] OUT_OF_BOUNDS = {-1000.0, -1000.0, 1000.0, 1000.0};
+    /**
+     * MARGIN OF ERROR, percentage of current expected needs to pass
+     */
+    final double TELEPORT_MARGIN_OF_ERROR = 1.5;
 
     record Location(double lat, double lon) {}
 
@@ -61,13 +65,10 @@ public class AnomalyDetector {
                 + Math.pow(dY, 2));
         double actual_distance = Math.sqrt(Math.pow(aDX, 2)
                 + Math.pow(aDY, 2));
-
-        //MARGIN OF ERROR, percentage of theCurrent expected needs to pass
-        double marginOfError = 1.5;
         //Avoiding false positives from zero movement
         double minThreshold = 0.01;
 
-        double allowedDistance = Math.max(expected_distance * marginOfError, minThreshold);
+        double allowedDistance = Math.max(expected_distance * TELEPORT_MARGIN_OF_ERROR, minThreshold);
 
         return actual_distance > allowedDistance;
     }
@@ -78,7 +79,7 @@ public class AnomalyDetector {
      * @param theDrones The drones we are checking.
      * @return Whether a drone is inside another.
      */
-    public boolean sharingLocations(Drone[] theDrones) {
+    public boolean detectSharingLocations(Drone[] theDrones) {
         boolean result = false;
 
         Set<Location> seen = new HashSet<>();

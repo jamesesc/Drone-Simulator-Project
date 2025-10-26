@@ -12,6 +12,231 @@ public class AnomalyDetectorTest {
     final double TURN_THRESHOLD = 50.0;
     final double VELOCITY_THRESHOLD = 50.0;
     final double UPSIDE_DOWN = 360.0;
+    //Lower bound latitude, lower bound longitude, upper bound latitude, upper bound longitude.
+    final double[] OUT_OF_BOUNDS = {-1000.0, -1000.0, 1000.0, 1000.0};
+    final double TELEPORT_MARGIN_OF_ERROR = 1.5;
+
+    //TODO: Tests for boolean detectTeleport(TelemetryData thePrior, TelemetryData theCurrent, double theTimeStep)
+    @Test
+    void noTeleportingNoMovement() {
+        TelemetryData prior = new TelemetryData();
+        TelemetryData current = new TelemetryData();
+
+        prior.setLatitude(5.0);
+        prior.setLongitude(5.0);
+        prior.setOrientation(30);
+        prior.setVelocity(0.0);
+
+        current.setLatitude(5.0);
+        current.setLongitude(5.0);
+
+        boolean result = myAnomalyDetector.detectTeleport(prior, current, 2);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void teleporting() {
+        TelemetryData prior = new TelemetryData();
+        TelemetryData current = new TelemetryData();
+
+        prior.setLatitude(5.0);
+        prior.setLongitude(5.0);
+        prior.setOrientation(30);
+        prior.setVelocity(20.0);
+
+        current.setLatitude((5.0 + (20 * Math.cos((30 * Math.PI) / 180) * 2)) * TELEPORT_MARGIN_OF_ERROR * 2);
+        current.setLongitude(5.0 + (20 * Math.sin((30 * Math.PI) / 180) * 2) * TELEPORT_MARGIN_OF_ERROR * 2);
+
+        boolean result = myAnomalyDetector.detectTeleport(prior, current, 2);
+
+        Assertions.assertTrue(result);
+    }
+
+    @Test
+    void noTeleporting() {
+        TelemetryData prior = new TelemetryData();
+        TelemetryData current = new TelemetryData();
+
+        prior.setLatitude(5.0);
+        prior.setLongitude(5.0);
+        prior.setOrientation(30);
+        prior.setVelocity(20.0);
+
+        current.setLatitude(5.0 + (20 * Math.cos((30 * Math.PI) / 180) * 2));
+        current.setLongitude(5.0 + (20 * Math.sin((30 * Math.PI) / 180) * 2));
+
+        boolean result = myAnomalyDetector.detectTeleport(prior, current, 2);
+
+        Assertions.assertFalse(result);
+    }
+
+    //Tests for boolean sharingLocations(Drone[] theDrones)
+    @Test
+    void sharingLongitudeAndLatitude() {
+        Drone drone1 = new Drone();
+        TelemetryData data1 = new TelemetryData();
+        Drone drone2 = new Drone();
+        TelemetryData data2 = new TelemetryData();
+
+        data1.setLatitude(1.0);
+        data1.setLongitude(1.0);
+
+        data2.setLatitude(1.0);
+        data2.setLongitude(1.0);
+
+        drone1.updateTelemetryData(data1);
+        drone2.updateTelemetryData(data2);
+
+        Drone[] drones = {drone1, drone2};
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
+
+        Assertions.assertTrue(result);
+    }
+
+    @Test
+    void sharingLatitudeNotLongitude() {
+        Drone drone1 = new Drone();
+        TelemetryData data1 = new TelemetryData();
+        Drone drone2 = new Drone();
+        TelemetryData data2 = new TelemetryData();
+
+        data1.setLatitude(1.0);
+        data1.setLongitude(1.0);
+
+        data2.setLatitude(1.0);
+        data2.setLongitude(2.0);
+
+        drone1.updateTelemetryData(data1);
+        drone2.updateTelemetryData(data2);
+
+        Drone[] drones = {drone1, drone2};
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void sharingLongitudeNotLatitude() {
+        Drone drone1 = new Drone();
+        TelemetryData data1 = new TelemetryData();
+        Drone drone2 = new Drone();
+        TelemetryData data2 = new TelemetryData();
+
+        data1.setLatitude(1.0);
+        data1.setLongitude(1.0);
+
+        data2.setLatitude(2.0);
+        data2.setLongitude(1.0);
+
+        drone1.updateTelemetryData(data1);
+        drone2.updateTelemetryData(data2);
+
+        Drone[] drones = {drone1, drone2};
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void noSharingLocations() {
+        Drone drone1 = new Drone();
+        TelemetryData data1 = new TelemetryData();
+        Drone drone2 = new Drone();
+        TelemetryData data2 = new TelemetryData();
+
+        data1.setLatitude(1.0);
+        data1.setLongitude(1.0);
+
+        data2.setLatitude(2.0);
+        data2.setLongitude(2.0);
+
+        drone1.updateTelemetryData(data1);
+        drone2.updateTelemetryData(data2);
+
+        Drone[] drones = {drone1, drone2};
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
+
+        Assertions.assertFalse(result);
+    }
+
+    //Tests for boolean outOfBounds(TelemetryData theState)
+    @Test
+    void outOfBoundsAtLowerThreshold() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(OUT_OF_BOUNDS[0] - 100.0);
+        testData.setLongitude(OUT_OF_BOUNDS[1] - 100.0);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertTrue(result);
+    }
+
+    @Test
+    void outOfBoundsAtUpperThreshold() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(OUT_OF_BOUNDS[2] + 100.0);
+        testData.setLongitude(OUT_OF_BOUNDS[3] + 100.0);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertTrue(result);
+    }
+
+    @Test
+    void notOutOfBoundsAtUpperThreshold() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(OUT_OF_BOUNDS[2]);
+        testData.setLongitude(OUT_OF_BOUNDS[3]);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void notOutOfBoundsAtLowerThreshold() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(OUT_OF_BOUNDS[0]);
+        testData.setLongitude(OUT_OF_BOUNDS[1]);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void notOutOfBoundsLessThanLowerThreshold() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(OUT_OF_BOUNDS[0] / 2.0);
+        testData.setLongitude(OUT_OF_BOUNDS[1] / 2.0);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void notOutOfBoundsLessThanUpperThreshold() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(OUT_OF_BOUNDS[2] / 2.0);
+        testData.setLongitude(OUT_OF_BOUNDS[3] / 2.0);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertFalse(result);
+    }
+
+    @Test
+    void notOutOfBoundsAllZeroes() {
+        TelemetryData testData = new TelemetryData();
+        testData.setLatitude(0.0);
+        testData.setLongitude(0.0);
+
+        boolean result = myAnomalyDetector.outOfBounds(testData);
+
+        Assertions.assertFalse(result);
+    }
 
     //Tests for boolean isBatteryLow(theDrone)
     @Test
