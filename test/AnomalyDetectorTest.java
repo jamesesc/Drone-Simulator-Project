@@ -16,7 +16,7 @@ public class AnomalyDetectorTest {
     final double[] OUT_OF_BOUNDS = {-1000.0, -1000.0, 1000.0, 1000.0};
     final double TELEPORT_MARGIN_OF_ERROR = 1.5;
 
-    //TODO: Tests for boolean detectTeleport(TelemetryData thePrior, TelemetryData theCurrent, double theTimeStep)
+    //Tests for boolean detectTeleport(TelemetryData thePrior, TelemetryData theCurrent, double theTimeStep)
     @Test
     void noTeleportingNoMovement() {
         TelemetryData prior = new TelemetryData();
