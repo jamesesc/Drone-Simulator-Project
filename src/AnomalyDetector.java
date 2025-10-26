@@ -27,7 +27,6 @@ public class AnomalyDetector {
      * Assumed to be degrees and not radians.
      */
     final double UPSIDE_DOWN = 360.0;
-    //TODO: Make unit tests for each method
 
     /**
      * Using a drone's current data, determines whether a drone is flying backwards.
