@@ -5,7 +5,7 @@ public class Drone {
 
     private int myBattery;
 
-    private int myDroneID;
+    private static int myDroneID;
 
     private boolean myIsDroneOn;
 
@@ -47,5 +47,13 @@ public class Drone {
 
     public boolean isDroneOn() {
         return myIsDroneOn;
+    }
+
+    public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
+        myDroneTelemetryData = theNewTelemetryData;
+    }
+
+    public TelemetryData getMyDroneTelemetryData() {
+        return myDroneTelemetryData;
     }
 }
