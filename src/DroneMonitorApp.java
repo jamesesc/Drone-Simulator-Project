@@ -8,7 +8,7 @@ public class DroneMonitorApp {
 
     private final TelemetryGenerator myTelemetryGen = new TelemetryGenerator();
 
-    private final AnomalyDectector myAnomalyDectector = new AnomalyDectector();
+    private final AnomalyDetector myAnomalyDectector = new AnomalyDetector();
 
     private final AnomalyDB myAnomalyDB = new AnomalyDB();
 
