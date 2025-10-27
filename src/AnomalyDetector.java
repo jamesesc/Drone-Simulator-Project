@@ -1,10 +1,7 @@
 import Model.Drone;
 import Model.TelemetryData;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AnomalyDetector {
     /**
@@ -55,7 +52,8 @@ public class AnomalyDetector {
      */
     public AnomalyRecord[] analyzeDrones(TelemetryData[] thePrior, Drone[] theCurrent,
                                          double theTime, double theTimeStep) {
-        List<AnomalyRecord> returnList = List.of(analyzeDrones(thePrior, theCurrent, theTime));
+
+        List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(thePrior, theCurrent, theTime)));
 
         for (int i = 0; i < theCurrent.length; i++) {
             if (detectTeleport(thePrior[i], theCurrent[i].getMyDroneTelemetryData(), theTimeStep)) {
@@ -76,7 +74,7 @@ public class AnomalyDetector {
      * @return Any anomalies found in the form of anomaly records.
      */
     public AnomalyRecord[] analyzeDrones(TelemetryData[] thePrior, Drone[] theCurrent, double theTime) {
-        List<AnomalyRecord> returnList = List.of(analyzeDrones(theCurrent, theTime));
+        List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(theCurrent, theTime)));
 
         for (int i = 0; i < theCurrent.length; i++) {
             TelemetryData data = theCurrent[i].getMyDroneTelemetryData();
