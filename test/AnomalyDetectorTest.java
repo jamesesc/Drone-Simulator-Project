@@ -469,43 +469,6 @@ public class AnomalyDetectorTest {
         Assertions.assertFalse(result);
     }
 
-    //Tests for boolean isUpsideDown(TelemetryData)
-    @Test
-    void droneNotUpsideDown() {
-        TelemetryData testData = new TelemetryData();
-        testData.setOrientation(0.0);
-
-        boolean result = myAnomalyDetector.isUpsideDown(testData);
-        Assertions.assertFalse(result);
-    }
-
-    @Test
-    void droneUpsideDownThreshold() {
-        TelemetryData testData = new TelemetryData();
-        testData.setOrientation(UPSIDE_DOWN);
-
-        boolean result = myAnomalyDetector.isUpsideDown(testData);
-        Assertions.assertTrue(result);
-    }
-
-    @Test
-    void droneUpsideDownBeyondThreshold() {
-        TelemetryData testData = new TelemetryData();
-        testData.setOrientation(UPSIDE_DOWN + 100.0);
-
-        boolean result = myAnomalyDetector.isUpsideDown(testData);
-        Assertions.assertTrue(result);
-    }
-
-    @Test
-    void droneUpsideDownBeyondNegative() {
-        TelemetryData testData = new TelemetryData();
-        testData.setOrientation(-UPSIDE_DOWN - 100.0);
-
-        boolean result = myAnomalyDetector.isUpsideDown(testData);
-        Assertions.assertTrue(result);
-    }
-
     //Tests for boolean isFlyingBackwards(TelemetryData)
     @Test
     void droneBackwards() {

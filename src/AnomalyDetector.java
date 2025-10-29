@@ -116,9 +116,6 @@ public class AnomalyDetector {
             if (detectTooFast(data)) {
                 returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime));
             }
-            if (isUpsideDown(data)) {
-                returnList.add(new AnomalyRecord("isUpsideDown", drone.getDroneID(), theTime));
-            }
             if (isFlyingBackwards(data)) {
                 returnList.add(new AnomalyRecord("isFlyingBackwards", drone.getDroneID(), theTime));
             }
@@ -224,22 +221,6 @@ public class AnomalyDetector {
         return theState.getVelocity() < 0;
     }
 
-    /**
-     * Using a drone's current data, determines whether a drone is upside down.
-     *
-     * @param theState The state of the drone.
-     * @return Whether the drone is upside down.
-     */
-    public boolean isUpsideDown(TelemetryData theState) {
-        return Math.abs(theState.getOrientation()) >= UPSIDE_DOWN;
-    }
-    /**
-     * Using a drone's prior telemetry data, and it's current telemetry data, determines
-     * whether a drone is going way too fast.
-     *
-     * @param theState The state of the drone.
-     * @return Whether the drone is going too fast.
-     */
     public boolean detectTooFast(TelemetryData theState) {
         return Math.abs(theState.getVelocity()) >= VELOCITY_THRESHOLD;
     }
