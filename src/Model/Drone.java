@@ -10,13 +10,16 @@ package Model;
  */
 public class Drone {
 
-    /* FIEldS */
+    /* Fields */
 
     /** A telemetry data object class used to store all the drone Telemetry data */
-    private TelemetryData myDroneTelemetryData = new TelemetryData();
+    private TelemetryData myTelemetryData = new TelemetryData();
 
-    /** An int that represents the drone ID */
-    private static int myDroneID;
+    /** An int that is use as drone counter for all created drone objects */
+    private static int droneCounter = 0;
+
+    /** An int that represent the drone individual id */
+    private int myDroneID;
 
     /** An int that represents the Battery level the drone has */
     private int myBattery;
@@ -32,8 +35,9 @@ public class Drone {
 
     /** A non-arg constructor that initializes the drone id, and set the drone status to on */
     public Drone() {
-        myDroneID += 1;
+        myDroneID = droneCounter;
         myIsDroneOn = true;
+        droneCounter++;
     }
 
     /**
@@ -42,7 +46,7 @@ public class Drone {
      * @param droneTelemetryData represents the wanted telemetry data to assign to the drone.
      */
     public Drone(TelemetryData droneTelemetryData) {
-        myDroneTelemetryData = droneTelemetryData;
+        myTelemetryData = droneTelemetryData;
         myDroneID += 1;
         myIsDroneOn = true;
     }
@@ -62,7 +66,7 @@ public class Drone {
 
     /** A getter to get the drone Telemetry Data */
     public TelemetryData getDroneTelemetryData() {
-        return myDroneTelemetryData;
+        return myTelemetryData;
     }
 
     /** A getter to get whether the drone is on or not */
@@ -73,7 +77,8 @@ public class Drone {
 
     /* METHODS */
 
-    /** A setter to set the Drone Battery Level.
+    /**
+     * A setter to set the Drone Battery Level.
      *
      * @param theNewBatteryLevel represents the new drone battery level.
      */
@@ -86,11 +91,12 @@ public class Drone {
         myBattery -= BATTERY_DECREASE;
     }
 
-    /** A setter to update the drone Telemetry Data
+    /**
+     * A setter to update the drone Telemetry Data
      *
      * @param theNewTelemetryData represent the telemetry data that is going to update the drone telemetry data.
      */
     public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
-        myDroneTelemetryData = theNewTelemetryData;
+        myTelemetryData = theNewTelemetryData;
     }
 }
