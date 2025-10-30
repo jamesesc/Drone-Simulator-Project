@@ -78,6 +78,15 @@ public class Drone {
     /* SETTERS */
 
     /**
+     * A setter to set the Drone On status.
+     *
+     * @param theDroneStatus represent whether the drone is on or not.
+     */
+    public void setMyIsDroneOn(final boolean theDroneStatus) {
+        myIsDroneOn = theDroneStatus;
+    }
+
+    /**
      * A setter to set the Drone Battery Level.
      *
      * @param theNewBatteryLevel represents the new drone battery level.
