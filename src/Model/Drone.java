@@ -75,7 +75,7 @@ public class Drone {
     }
 
 
-    /* METHODS */
+    /* SETTERS */
 
     /**
      * A setter to set the Drone Battery Level.
@@ -84,11 +84,6 @@ public class Drone {
      */
     public void setBatteryLevel(final int theNewBatteryLevel) {
         myBattery = theNewBatteryLevel;
-    }
-
-    /** A method to handle in decrementing the battery */
-    protected void decrementBattery() {
-        myBattery -= BATTERY_DECREASE;
     }
 
     /**
@@ -100,6 +95,9 @@ public class Drone {
         myTelemetryData = theNewTelemetryData;
     }
 
+
+    /* METHODS */
+
     /** Method to update the drone Batter */
     public void updateDroneBattery() {
         /* Velocity Power => Battery Consumption Chart
@@ -109,10 +107,10 @@ public class Drone {
         0-10 m/s: Low (min = 1)
          */
 
-        double droneVelocity =  myTelemetryData.getVelocity();
-
         // Battery Decrease Formula
         int batteryDecrease = (int) (0.005 * Math.pow(myTelemetryData.getVelocity(), 2));
+
+        // Min Cap, and Max Cap
         if (batteryDecrease == 0) {
             batteryDecrease = 1;
         } else if (batteryDecrease > 32) {
@@ -121,11 +119,13 @@ public class Drone {
         myBattery -= batteryDecrease;
     }
 
+
+    /* MAIN METHOD */
+
     /* Main method to do various testing usage */
     public static void main(String[] args) {
         testUpdate();
     }
-
 
     /* Helper method to test the updateBattery */
     private static void testUpdate() {
