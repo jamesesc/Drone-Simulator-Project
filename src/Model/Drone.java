@@ -99,4 +99,55 @@ public class Drone {
     public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
         myTelemetryData = theNewTelemetryData;
     }
+
+    /** Method to update the drone Batter */
+    public void updateDroneBattery() {
+        /* Velocity Power => Battery Consumption Chart
+        60-100 m/s: High (Cap at 30)
+        30-60 m/s: Ranges...
+        10-30 m/s: Ranges...
+        0-10 m/s: Low (min = 1)
+         */
+
+        double droneVelocity =  myTelemetryData.getVelocity();
+
+        // Battery Decrease Formula
+        int batteryDecrease = (int) (0.005 * Math.pow(myTelemetryData.getVelocity(), 2));
+        if (batteryDecrease == 0) {
+            batteryDecrease = 1;
+        } else if (batteryDecrease > 32) {
+            batteryDecrease = 30;
+        }
+        myBattery -= batteryDecrease;
+    }
+
+    /* Main method to do various testing usage */
+    public static void main(String[] args) {
+        testUpdate();
+    }
+
+
+    /* Helper method to test the updateBattery */
+    private static void testUpdate() {
+        Drone[] droneTestArray = new Drone[100];
+        for (int i = 0; i < 100; i++) {
+            droneTestArray[i] = new Drone();
+            droneTestArray[i].setBatteryLevel(i);
+            droneTestArray[i].myTelemetryData.setVelocity(i);
+        }
+
+        for (Drone drone : droneTestArray) {
+            int beforeBatteryLevel = drone.getBatteryLevel();
+            System.out.println("BEFORE UPDATE");
+            System.out.println("Battery Level: " + beforeBatteryLevel + ", Velocity: " + drone.myTelemetryData.getVelocity());
+
+            drone.updateDroneBattery();
+
+            System.out.println("AFTER UPDATE");
+            System.out.println("Battery Decrease: " + (beforeBatteryLevel - drone.getBatteryLevel()));
+            System.out.println("Battery Level: " + drone.getBatteryLevel() + ", Velocity: " + drone.myTelemetryData.getVelocity());
+
+            System.out.println("\n\n\n");
+        }
+    }
 }
