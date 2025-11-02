@@ -1,8 +1,7 @@
 import Model.Drone;
 import Model.TelemetryData;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class AnomalyDetector {
     /**
@@ -26,11 +25,6 @@ public class AnomalyDetector {
      */
     final double VELOCITY_THRESHOLD = 50.0;
     /**
-     * The angle (>=) which constitutes a drone being upside down.
-     * Assumed to be degrees and not radians.
-     */
-    final double UPSIDE_DOWN = 360.0;
-    /**
      * The upper and lower bounds for latitude and longitude.
      * Lower bound latitude, lower bound longitude, upper bound latitude, upper bound longitude.
      */
@@ -41,6 +35,96 @@ public class AnomalyDetector {
     final double TELEPORT_MARGIN_OF_ERROR = 1.5;
 
     record Location(double lat, double lon) {}
+
+    /**
+     * Full analysis of drones and their possible anomalies.
+     *
+     * @param thePrior The prior states of the drones.
+     * @param theCurrent The current drones.
+     * @param theTime The current time.
+     * @param theTimeStep The time since we last checked.
+     * @return An array of all the anomalies in AnomalyRecord form
+     */
+    public AnomalyRecord[] analyzeDrones(TelemetryData[] thePrior, Drone[] theCurrent,
+                                         double theTime, double theTimeStep) {
+
+        List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(thePrior, theCurrent, theTime)));
+
+        for (int i = 0; i < theCurrent.length; i++) {
+            if (detectTeleport(thePrior[i], theCurrent[i].getMyDroneTelemetryData(), theTimeStep)) {
+                returnList.add(new AnomalyRecord("detectTeleport",
+                        theCurrent[i].getDroneID(), theTime));
+            }
+        }
+
+        return returnList.toArray(new AnomalyRecord[0]);
+    }
+
+    /**
+     * Analyzing a series of drones with all tests, without given the time step.
+     * Likely for debugging before implementing teleport tests.
+     * @param thePrior The prior states of the drones.
+     * @param theCurrent The current drones.
+     * @param theTime The time at which the anomaly would've happened.
+     * @return Any anomalies found in the form of anomaly records.
+     */
+    public AnomalyRecord[] analyzeDrones(TelemetryData[] thePrior, Drone[] theCurrent, double theTime) {
+        List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(theCurrent, theTime)));
+
+        for (int i = 0; i < theCurrent.length; i++) {
+            TelemetryData data = theCurrent[i].getMyDroneTelemetryData();
+
+            if (detectSuddenDropJump(thePrior[i], data)) {
+                returnList.add(new AnomalyRecord("detectSuddenDropJump",
+                        theCurrent[i].getDroneID(), theTime));
+            }
+            if (detectSharpTurns(thePrior[i], data)) {
+                returnList.add(new AnomalyRecord("detectSharpTurns",
+                        theCurrent[i].getDroneID(), theTime));
+            }
+        }
+
+        return returnList.toArray(new AnomalyRecord[0]);
+    }
+
+    /**
+     * Analyzing a series of drones with all tests, given there's no prior data.
+     * Will likely be used for an initial anomaly check.
+     * @param theDrones The drones we're checking.
+     * @param theTime The time at which the error would happen.
+     * @return Any anomalies found in the form of anomaly records.
+     */
+    public AnomalyRecord[] analyzeDrones(Drone[] theDrones, double theTime) {
+        List<AnomalyRecord> returnList = new ArrayList<>();
+
+        for (Drone drone : theDrones) {
+            if (isBatteryNegative(drone)) {
+                returnList.add(new AnomalyRecord("isBatteryNegative", drone.getDroneID(), theTime));
+            } else if (isBatteryEmpty(drone)) {
+                returnList.add(new AnomalyRecord("isBatteryEmpty", drone.getDroneID(), theTime));
+            } else if (isBatteryLow(drone)) {
+                returnList.add(new AnomalyRecord("isBatteryLow", drone.getDroneID(), theTime));
+            }
+
+            TelemetryData data = drone.getMyDroneTelemetryData();
+
+            if (detectTooFast(data)) {
+                returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime));
+            }
+            if (isFlyingBackwards(data)) {
+                returnList.add(new AnomalyRecord("isFlyingBackwards", drone.getDroneID(), theTime));
+            }
+            if (outOfBounds(data)) {
+                returnList.add(new AnomalyRecord("outOfBounds", drone.getDroneID(), theTime));
+            }
+        }
+
+        if (detectSharingLocations(theDrones)) {
+            returnList.add(new AnomalyRecord("detectSharingLocations", theTime));
+        }
+
+        return returnList.toArray(new AnomalyRecord[0]);
+    }
 
     /**
      * Detects any teleportation of a Drone. This method treats the drone as if
@@ -132,22 +216,6 @@ public class AnomalyDetector {
         return theState.getVelocity() < 0;
     }
 
-    /**
-     * Using a drone's current data, determines whether a drone is upside down.
-     *
-     * @param theState The state of the drone.
-     * @return Whether the drone is upside down.
-     */
-    public boolean isUpsideDown(TelemetryData theState) {
-        return Math.abs(theState.getOrientation()) >= UPSIDE_DOWN;
-    }
-    /**
-     * Using a drone's prior telemetry data, and it's current telemetry data, determines
-     * whether a drone is going way too fast.
-     *
-     * @param theState The state of the drone.
-     * @return Whether the drone is going too fast.
-     */
     public boolean detectTooFast(TelemetryData theState) {
         return Math.abs(theState.getVelocity()) >= VELOCITY_THRESHOLD;
     }
