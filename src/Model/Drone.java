@@ -65,7 +65,7 @@ public class Drone {
     }
 
     /** A getter to get the drone Telemetry Data */
-    public TelemetryData getDroneTelemetryData() {
+    public TelemetryData getDroneTelemetry() {
         return myTelemetryData;
     }
 
