@@ -1,4 +1,8 @@
 ## Drone Simulator Project
+https://github.com/jamesesc/Drone-Simulator-Project
+
+--Second Deliverable--
+Oisin Perkins-Gilbert: Still, the biggest issue I've had with this project has been fitting in the time to do it, as I've had Halloween plans, my job, and other classes during the time I could've spent working on this. Besides that, most of this deliverable has been spent with me googling how to do things in JavaFX, going through documentation and stack overflow forums.
 
 --First Deliverable--
 
