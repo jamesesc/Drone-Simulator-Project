@@ -51,7 +51,7 @@ public class AnomalyDetector {
         List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(thePrior, theCurrent, theTime)));
 
         for (int i = 0; i < theCurrent.length; i++) {
-            if (detectTeleport(thePrior[i], theCurrent[i].getMyDroneTelemetryData(), theTimeStep)) {
+            if (detectTeleport(thePrior[i], theCurrent[i].getDroneTelemetry(), theTimeStep)) {
                 returnList.add(new AnomalyRecord("detectTeleport",
                         theCurrent[i].getDroneID(), theTime));
             }
@@ -72,7 +72,7 @@ public class AnomalyDetector {
         List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(theCurrent, theTime)));
 
         for (int i = 0; i < theCurrent.length; i++) {
-            TelemetryData data = theCurrent[i].getMyDroneTelemetryData();
+            TelemetryData data = theCurrent[i].getDroneTelemetry();
 
             if (detectSuddenDropJump(thePrior[i], data)) {
                 returnList.add(new AnomalyRecord("detectSuddenDropJump",
@@ -106,7 +106,7 @@ public class AnomalyDetector {
                 returnList.add(new AnomalyRecord("isBatteryLow", drone.getDroneID(), theTime));
             }
 
-            TelemetryData data = drone.getMyDroneTelemetryData();
+            TelemetryData data = drone.getDroneTelemetry();
 
             if (detectTooFast(data)) {
                 returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime));
@@ -170,8 +170,8 @@ public class AnomalyDetector {
 
         for (Drone drone : theDrones) {
             Location loc = new Location(
-                    drone.getMyDroneTelemetryData().getLatitude(),
-                    drone.getMyDroneTelemetryData().getLongitude()
+                    drone.getDroneTelemetry().getLatitude(),
+                    drone.getDroneTelemetry().getLongitude()
             );
 
             if (seen.contains(loc)) {
