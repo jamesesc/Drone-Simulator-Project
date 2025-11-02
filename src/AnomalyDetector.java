@@ -25,11 +25,6 @@ public class AnomalyDetector {
      */
     final double VELOCITY_THRESHOLD = 50.0;
     /**
-     * The angle (>=) which constitutes a drone being upside down.
-     * Assumed to be degrees and not radians.
-     */
-    final double UPSIDE_DOWN = 360.0;
-    /**
      * The upper and lower bounds for latitude and longitude.
      * Lower bound latitude, lower bound longitude, upper bound latitude, upper bound longitude.
      */

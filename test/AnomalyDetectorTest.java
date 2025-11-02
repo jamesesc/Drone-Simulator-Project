@@ -11,7 +11,6 @@ public class AnomalyDetectorTest {
     final double JUMP_THRESHOLD = 70.0;
     final double TURN_THRESHOLD = 50.0;
     final double VELOCITY_THRESHOLD = 50.0;
-    final double UPSIDE_DOWN = 360.0;
     //Lower bound latitude, lower bound longitude, upper bound latitude, upper bound longitude.
     final double[] OUT_OF_BOUNDS = {-1000.0, -1000.0, 1000.0, 1000.0};
     final double TELEPORT_MARGIN_OF_ERROR = 1.5;
