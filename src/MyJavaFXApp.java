@@ -17,7 +17,7 @@ public class MyJavaFXApp extends Application {
     /**
      * Constructor of MyJavaFXApp, for Singleton stuff.
      */
-    private MyJavaFXApp() {}
+    public MyJavaFXApp() { instance = this; }
 
     /**
      * Getter for the singleton instance of the Java Application.
