@@ -3,11 +3,12 @@ import Model.TelemetryData;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
+import java.util.Objects;
 
 public class MyJavaFXApp extends Application {
     private TextArea anomalyText;
@@ -42,9 +43,10 @@ public class MyJavaFXApp extends Application {
      */
     public void addAnomalyText(AnomalyRecord theRecord) {
         Platform.runLater(() -> {
-            String add = "\nTime: " + theRecord.getTime() +
+            String add = "Time: " + theRecord.getTime() +
                     "\nMethod check failed: " + theRecord.getMethod() +
-                    "\nID for drone (null if multiple): " + theRecord.getID() + "\n";
+                    "\nID for drone (null if multiple): " + theRecord.getID() +
+                    "\n=======================\n";
             anomalyText.appendText(add);
         });
     }
@@ -57,8 +59,7 @@ public class MyJavaFXApp extends Application {
     public void updateStatsText(Drone theDrone) {
         Platform.runLater(() -> {
             TelemetryData data = theDrone.getMyDroneTelemetryData();
-            String replace = "Drone Statistics:" +
-                    "\nID: " + theDrone.getDroneID() +
+            String replace = "ID: " + theDrone.getDroneID() +
                     "\nBattery: " + theDrone.getBatteryLevel() +
                     "\nLongitude: " + data.getLongitude() +
                     "\nLatitude: " + data.getLatitude() +
@@ -76,52 +77,75 @@ public class MyJavaFXApp extends Application {
      */
     @Override
     public void start(Stage thePrimaryStage) {
-        anomalyText = new TextArea("Anomalies detected: ");
+        // Editing text for anomalies and stats
+        anomalyText = new TextArea();
         anomalyText.setWrapText(true);
         anomalyText.setEditable(false);
+        anomalyText.getStyleClass().add("dark-text-area");
+        anomalyText.setFont(Font.font("Helvetica", 14));
 
-        statsText = new TextArea("Drone Statistics: ");
+        statsText = new TextArea();
         statsText.setWrapText(true);
         statsText.setEditable(false);
+        statsText.getStyleClass().add("dark-text-area");
+        statsText.setFont(Font.font("Helvetica", 14));
 
-        //Main container
+        // Main content HBox
         HBox mainBox = new HBox(10);
+        mainBox.getStyleClass().add("main-box");
 
-        //Drone display
+        // Drone display
         Region droneDisplay = new Region();
-        droneDisplay.setStyle("-fx-background-color: red;");
+        droneDisplay.getStyleClass().add("drone-display");
         HBox.setHgrow(droneDisplay, Priority.ALWAYS);
 
-        //Container for right 2 regions
+        // Right side container
         VBox rightSide = new VBox(10);
         rightSide.setPrefWidth(275);
 
-        //Regions for right hand side
         VBox anomalyBox = new VBox();
-        anomalyBox.setStyle("-fx-background-color: white;");
-        BorderStroke anomalyBorderStroke = new BorderStroke(
-                Color.RED, BorderStrokeStyle.SOLID,
-                new CornerRadii(0), new BorderWidths(2));
-        Border anomalyBorder = new Border(anomalyBorderStroke);
-        anomalyBox.setBorder(anomalyBorder);
-        anomalyBox.setPrefHeight(450);
-        VBoxSetup(anomalyBox, anomalyText);
+        anomalyBox.getStyleClass().add("rounded-box");
+        VBoxSetup(anomalyBox, "Anomaly Reports", anomalyText);
 
         VBox statsBox = new VBox();
-        statsBox.setStyle("-fx-background-color: white;");
-        BorderStroke statsBorderStroke = new BorderStroke(
-                Color.BLUE, BorderStrokeStyle.SOLID,
-                new CornerRadii(0), new BorderWidths(2));
-        Border statsBorder = new Border(statsBorderStroke);
-        statsBox.setBorder(statsBorder);
-        VBoxSetup(statsBox, statsText);
+        statsBox.setPrefHeight(200);
+        statsBox.setMinHeight(Control.USE_PREF_SIZE);
+        statsBox.setMaxHeight(Control.USE_PREF_SIZE);
+        statsBox.getStyleClass().add("rounded-box");
+        VBoxSetup(statsBox, "Drone Statistics", statsText);
 
-        //Adding children to their parents
         rightSide.getChildren().addAll(anomalyBox, statsBox);
         mainBox.getChildren().addAll(droneDisplay, rightSide);
 
-        //Making a scene and configuring it
-        Scene scene = new Scene(mainBox, 800, 600);
+        // MenuBar setup
+        MenuBar menuBar = new MenuBar();
+
+        Menu fileMenu = new Menu("File");
+        MenuItem clearItem = new MenuItem("Clear");
+        MenuItem closeItem = new MenuItem("Close Sim.");
+        MenuItem exitItem = new MenuItem("Exit");
+        exitItem.setOnAction(_ -> thePrimaryStage.close());
+
+        Menu pauseMenu = new Menu("Pause");
+        /*
+        doActionMenu.setOnShowing(e -> {
+            doSomething();
+        });
+         */
+        Menu endMenu = new Menu("End");
+
+        fileMenu.getItems().addAll(clearItem, closeItem, exitItem);
+        menuBar.getMenus().addAll(fileMenu, pauseMenu, endMenu);
+
+        // Wrap shit in a BorderPane
+        BorderPane root = new BorderPane();
+        root.setTop(menuBar);
+        root.setCenter(mainBox);
+
+        Scene scene = new Scene(root, 800, 600);
+        scene.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource("Odark_theme.css")).toExternalForm()
+        );
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
@@ -135,13 +159,9 @@ public class MyJavaFXApp extends Application {
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
-
             TelemetryData data = new TelemetryData();
-            data.setLatitude(1.0);
-            data.setLongitude(2.0);
-            data.setAltitude(3.0);
-            data.setVelocity(4.0);
-            data.setOrientation(5.0);
+            data.setLatitude(1.0); data.setLongitude(2.0); data.setAltitude(3.0);
+            data.setVelocity(4.0); data.setOrientation(5.0);
             Drone drone = new Drone(data);
             updateStatsText(drone);
         });
@@ -150,19 +170,24 @@ public class MyJavaFXApp extends Application {
     /**
      * Setup for some of our VBoxes, method used to reduce duplicate code.
      *
-     * @param anomalyBox The vbox you're setting up.
-     * @param anomalyText The text you're using in the setup.
+     * @param theVBox The vbox you're setting up.
+     * @param theTextArea The text you're using in the setup.
      */
-    private void VBoxSetup(VBox anomalyBox, TextArea anomalyText) {
-        VBox.setVgrow(anomalyBox, Priority.ALWAYS);
+    private void VBoxSetup(VBox theVBox, String theHeaderText, TextArea theTextArea) {
+        VBox.setVgrow(theVBox, Priority.ALWAYS);
 
-        ScrollPane anomalyScrollPane = new ScrollPane();
-        anomalyScrollPane.setContent(anomalyText);
-        anomalyScrollPane.setFitToHeight(true);
-        anomalyScrollPane.setFitToWidth(true);
-        VBox.setVgrow(anomalyScrollPane, Priority.ALWAYS);
+        Label header = new Label(theHeaderText);
+        header.getStyleClass().add("box-header");
 
-        anomalyBox.getChildren().addAll(anomalyScrollPane);
+        ScrollPane sPane = new ScrollPane();
+        sPane.getStyleClass().add("dark-scroll-pane");
+
+        sPane.setContent(theTextArea);
+        sPane.setFitToHeight(true);
+        sPane.setFitToWidth(true);
+        VBox.setVgrow(sPane, Priority.ALWAYS);
+
+        theVBox.getChildren().addAll(header, sPane);
     }
 
     public static void main(String[] args) {
