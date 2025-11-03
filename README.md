@@ -7,6 +7,9 @@ Oisin Perkins-Gilbert: Still, the biggest issue I've had with this project has b
 
 James Escudero: For this 2nd iteration, there wasn't any major issues. The only thing that we needed as a team to discuss is just the technical procedures and structure of how we want our drone to operate in the simulation, particularly like the telemetry generator. Additionally, I was able to figure out this long and painful issue in developing a realistic velocity generator. In a very simple and short form, I was able to design where we take account of the current drone velocity, where the velocity closer to the original would have a higher chance to be generated then the ones thats like +50 away.
 
+Mankirat Mann: For this second deliverable, I worked on learning the basics of JavaFX to get ready for building the drone project’s user interface. I also looked into Scene Builder and FXML to see how design and code work together. This week was really busy with other classes and other personal things, so I didn’t have much time, but I still learned more about how to make the UI interactive for next time.
+
+
 --First Deliverable--
 
 Oisin Perkins-Gilbert: The biggest issue I've had with this project has been trying to find the time to fit 10 hours of project work. I think the most difficult class I had to implement was the one that checks for teleportation, as I had to brush up on my physics and use actual formulas. Making JUnit tests also took a very long time, and probably accounted for half if not more of the time I spent developing this.
