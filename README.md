@@ -5,6 +5,8 @@ https://github.com/jamesesc/Drone-Simulator-Project
 
 Oisin Perkins-Gilbert: Still, the biggest issue I've had with this project has been fitting in the time to do it, as I've had Halloween plans, my job, and other classes during the time I could've spent working on this. Besides that, most of this deliverable has been spent with me googling how to do things in JavaFX, going through documentation and stack overflow forums.
 
+James Escudero: For this 2nd iteration, there wasn't any major issues. The only thing that we needed as a team to discuss is just the technical procedures and structure of how we want our drone to operate in the simulation, particularly like the telemetry generator. Additionally, I was able to figure out this long and painful issue in developing a realistic velocity generator. In a very simple and short form, I was able to design where we take account of the current drone velocity, where the velocity closer to the original would have a higher chance to be generated then the ones thats like +50 away.
+
 --First Deliverable--
 
 Oisin Perkins-Gilbert: The biggest issue I've had with this project has been trying to find the time to fit 10 hours of project work. I think the most difficult class I had to implement was the one that checks for teleportation, as I had to brush up on my physics and use actual formulas. Making JUnit tests also took a very long time, and probably accounted for half if not more of the time I spent developing this.
