@@ -33,7 +33,7 @@ public class Drone {
     private static final int BATTERY_DECREASE = 10;
 
     /** Random generator to help generate random battery level */
-    Random randomNumGen = new Random();
+    private static final Random randomNumGen = new Random();
 
 
     /* CONSTRUCTORS */
