@@ -55,8 +55,9 @@ public class MyJavaFXApp extends Application {
      * What drone you are showing the stats for.
      *
      * @param theDrone The drone whose stats you want to display.
+     * @param theTimer The time duration of the simulator
      */
-    public void updateStatsText(Drone theDrone) {
+    public void updateStatsText(Drone theDrone, int theTimer) {
         Platform.runLater(() -> {
             TelemetryData data = theDrone.getDroneTelemetry();
             String replace = "ID: " + theDrone.getDroneID() +
@@ -65,7 +66,8 @@ public class MyJavaFXApp extends Application {
                     "\nLatitude: " + data.getLatitude() +
                     "\nAltitude: " + data.getAltitude() +
                     "\nVelocity: " + data.getVelocity() +
-                    "\nOrientation: " + data.getOrientation();
+                    "\nOrientation: " + data.getOrientation()+
+                    "\nTime:" + theTimer; // Added this timer to see if it works
             statsText.setText(replace);
         });
     }
@@ -150,6 +152,9 @@ public class MyJavaFXApp extends Application {
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
 
+        // Get the backend of drone simulator to get started
+        DroneMonitorApp droneMonitor = new DroneMonitorApp();
+
         //Examples for right hand side
         Platform.runLater(() -> {
             addAnomalyText(new AnomalyRecord("Test1", 0, 0.0));
@@ -159,11 +164,11 @@ public class MyJavaFXApp extends Application {
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
-            TelemetryData data = new TelemetryData();
-            data.setLatitude(1.0); data.setLongitude(2.0); data.setAltitude(3.0);
-            data.setVelocity(4.0); data.setOrientation(5.0);
-            Drone drone = new Drone(data);
-            updateStatsText(drone);
+//            TelemetryData data = new TelemetryData();
+//            data.setLatitude(1.0); data.setLongitude(2.0); data.setAltitude(3.0);
+//            data.setVelocity(4.0); data.setOrientation(5.0);
+//            Drone drone = new Drone(data);
+//            updateStatsText(drone);
         });
     }
 
