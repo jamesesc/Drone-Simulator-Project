@@ -112,7 +112,7 @@ public class Drone {
 
     /* METHODS */
 
-    /** Method that randomly weight the drone battery level when first initalize */
+    /** Method that randomly weight the drone battery level when first initialize */
     private void initializeDroneSetting() {
         // The range that battery can randomly generate
         final int[][] batteryLevelRange = {
@@ -249,7 +249,7 @@ public class Drone {
             }
         }
 
-        // Printing the probability to see if its right
+        // Printing the probability to see if it's right
         System.out.println("Low (0-19)   " + low + "  =  " + String.format("%.1f", low * 100.0 / testNum) + "%");
         System.out.println("Medium (20-49):        " + medium + "  =  " + String.format("%.1f", medium * 100.0 / testNum) + "%");
         System.out.println("High (50 - 100):   " + high + "  =  " + String.format("%.1f", high * 100.0 / testNum) + "%");
