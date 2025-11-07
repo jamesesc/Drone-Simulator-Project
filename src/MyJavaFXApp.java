@@ -1,19 +1,52 @@
-import Model.Drone;
-import Model.TelemetryData;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import javafx.scene.control.Tooltip;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import Model.Drone;
+import Model.TelemetryData;
 
 public class MyJavaFXApp extends Application {
     private TextArea anomalyText;
     private TextArea statsText;
     private volatile static MyJavaFXApp instance;
+    private Pane droneDisplay;
+    private final Image droneImg = new Image(Objects.requireNonNull(
+            getClass().getResourceAsStream("drone_image.png")));
+    private final Map<Integer, ImageView> droneViews = new ConcurrentHashMap<>();
+    private static final double MIN_LONGITUDE = -1000;
+    private static final double MAX_LONGITUDE = 1000;
+    private static final double MIN_LATITUDE = -1000;
+    private static final double MAX_LATITUDE = 1000;
+    private static final double SIZE_SCALER = 30;
 
     /**
      * Constructor of MyJavaFXApp, for Singleton stuff.
@@ -34,6 +67,81 @@ public class MyJavaFXApp extends Application {
             }
         }
         return instance;
+    }
+
+    /**
+     * Refresh the drone display with the drones you want shown.
+     *
+     * @param drones Drones you are showing
+     */
+    public void refreshDroneDisplay(Drone[] drones) {
+        Platform.runLater(() -> {
+            //Remove images that don't exist anymore (just in case)
+            Set<Integer> activeIds = new HashSet<>();
+            for (Drone drone : drones) {
+                activeIds.add(drone.getDroneID());
+            }
+            droneViews.keySet().removeIf(id -> {
+                if (!activeIds.contains(id)) {
+                    droneDisplay.getChildren().remove(droneViews.get(id));
+                    return true;
+                }
+                return false;
+            });
+
+            //Getting width and height of drone display for size and location shit
+            double displayWidth = droneDisplay.getWidth();
+            double displayHeight = droneDisplay.getHeight();
+
+            //Iterate through all the drones
+            for (Drone drone : drones) {
+                TelemetryData data = drone.getMyDroneTelemetryData();
+                if (data == null) continue;
+
+                //If a drone with the given ID isn't in our map, we make one with it
+                ImageView droneView = droneViews.computeIfAbsent(drone.getDroneID(), id -> {
+                    ImageView view = new ImageView(droneImg);
+                    view.setPreserveRatio(true);
+                    Tooltip.install(view, new Tooltip("Drone " + id));
+                    view.setOnMouseClicked(_ -> updateStatsText(drone));
+                    droneDisplay.getChildren().add(view);
+
+                    //Our starting values for location, size, rotation
+                    view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
+                            * displayWidth - (data.getAltitude() + SIZE_SCALER) / 2);
+                    view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
+                            * displayHeight - (data.getAltitude() + SIZE_SCALER) / 2);
+                    view.setFitWidth(data.getAltitude() + SIZE_SCALER);
+                    view.setFitHeight(data.getAltitude() + SIZE_SCALER);
+                    view.setScaleX(1);
+                    view.setScaleY(1);
+                    view.setRotate(data.getOrientation());
+
+                    return view;
+                });
+
+                //Where we want the drone to end up (size, location, angle)
+                double targetSize = data.getAltitude() + SIZE_SCALER;
+                double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
+                        * displayWidth - targetSize / 2;
+                double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
+                        * displayHeight - targetSize / 2;
+                double targetAngle = data.getOrientation();
+
+                //Interpolating ourselves to our target shit
+                Timeline timeline = new Timeline(
+                        new KeyFrame(Duration.seconds(1),
+                                new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
+                                new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
+                                new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
+                                new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
+                                new KeyValue(droneView.rotateProperty(), targetAngle, Interpolator.EASE_BOTH)
+                        )
+                );
+
+                timeline.play();
+            }
+        });
     }
 
     /**
@@ -95,9 +203,18 @@ public class MyJavaFXApp extends Application {
         mainBox.getStyleClass().add("main-box");
 
         // Drone display
-        Region droneDisplay = new Region();
+        droneDisplay = new Pane();
         droneDisplay.getStyleClass().add("drone-display");
         HBox.setHgrow(droneDisplay, Priority.ALWAYS);
+
+
+        //Make sure drone display's children is hid behind it
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.setArcWidth(12);  // match CSS corner radius
+        clip.setArcHeight(12);
+        clip.widthProperty().bind(droneDisplay.widthProperty());
+        clip.heightProperty().bind(droneDisplay.heightProperty());
+        droneDisplay.setClip(clip);
 
         // Right side container
         VBox rightSide = new VBox(10);
@@ -160,10 +277,21 @@ public class MyJavaFXApp extends Application {
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
             addAnomalyText(new AnomalyRecord("Test4", 2.0));
             TelemetryData data = new TelemetryData();
-            data.setLatitude(1.0); data.setLongitude(2.0); data.setAltitude(3.0);
-            data.setVelocity(4.0); data.setOrientation(5.0);
-            Drone drone = new Drone(data);
-            updateStatsText(drone);
+            data.setLatitude(0.0); data.setLongitude(0.0); data.setAltitude(0.0);
+            data.setVelocity(4.0); data.setOrientation(90.0);
+            Drone drone1 = new Drone(data);
+
+            Drone[] drones = {drone1};
+            refreshDroneDisplay(drones);
+
+            PauseTransition pause = new PauseTransition(Duration.seconds(5));
+            pause.setOnFinished(_ -> {
+                data.setLatitude(500.0); data.setLongitude(100.0); data.setAltitude(10.0);
+                data.setVelocity(4.0); data.setOrientation(180.0);
+                drone1.updateTelemetryData(data);
+                refreshDroneDisplay(drones);
+            });
+            pause.play();
         });
     }
 
