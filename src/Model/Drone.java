@@ -113,7 +113,7 @@ public class Drone {
     /* METHODS */
 
     /** Method that randomly weight the drone battery level when first initialize */
-    private void initializeDroneSetting() {
+    private void initializeDroneBattery() {
         // The range that battery can randomly generate
         final int[][] batteryLevelRange = {
                 {0, 19}, // Low
