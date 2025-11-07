@@ -106,8 +106,8 @@ public class DroneMonitorApp {
     /* Create the # of drones' base on the constant DRONE_COUNT,
        and then add the newly created Drone Object to the Drone Fleet Array.
      */
-    private void createDroneObject() {
-        for (int i = 1; i <= DRONE_COUNT; i++) {
+    private void createDrones() {
+        for (int i = 0; i <= DRONE_COUNT; i++) {
             myDroneFleet[i] = new Drone();
         }
     }
