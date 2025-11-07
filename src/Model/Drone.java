@@ -27,7 +27,7 @@ public class Drone {
     private int myBattery;
 
     /** A boolean that represent whether the drone is on or no */
-    private boolean myIsDroneOn;
+    private boolean myDroneStatus;
 
     /** Constant that represent the amount of power the Battery */
     private static final int BATTERY_DECREASE = 10;
@@ -41,7 +41,7 @@ public class Drone {
     /** A non-arg constructor that initializes the drone id, and set the drone status to on */
     public Drone() {
         myDroneID = droneCounter;
-        myIsDroneOn = true;
+        myDroneStatus = true;
         droneCounter++;
     }
 
@@ -53,7 +53,7 @@ public class Drone {
     public Drone(TelemetryData droneTelemetryData) {
         myTelemetryData = droneTelemetryData;
         myDroneID += 1;
-        myIsDroneOn = true;
+        myDroneStatus = true;
     }
 
 
@@ -76,7 +76,7 @@ public class Drone {
 
     /** A getter to get whether the drone is on or not */
     public boolean isDroneOn() {
-        return myIsDroneOn;
+        return myDroneStatus;
     }
 
 
@@ -87,8 +87,8 @@ public class Drone {
      *
      * @param theDroneStatus represent whether the drone is on or not.
      */
-    public void setMyIsDroneOn(final boolean theDroneStatus) {
-        myIsDroneOn = theDroneStatus;
+    public void setDroneStatus(final boolean theDroneStatus) {
+        myDroneStatus = theDroneStatus;
     }
 
     /**
