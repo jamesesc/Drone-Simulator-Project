@@ -18,13 +18,13 @@ public class DroneMonitorApp {
     /* Object Classes */
 
     /** Represent a TelemetryGenerator Object to use */
-    private final TelemetryGenerator myTelemetryGen = new TelemetryGenerator();
+    private static final TelemetryGenerator myTelemetryGen = new TelemetryGenerator();
 
     /** Represent a AnomalyDetector object to use */
-    private final AnomalyDetector myAnomalyDetector = new AnomalyDetector();
+    private static final AnomalyDetector myAnomalyDetector = new AnomalyDetector();
 
     /** Represent a AnomalyDB object to use */
-    private final AnomalyDB myAnomalyDB = new AnomalyDB();
+    private static final AnomalyDB myAnomalyDB = new AnomalyDB();
 
 
     /* VARIABLES */
@@ -36,6 +36,10 @@ public class DroneMonitorApp {
     private static boolean mySimRunning = false;
 
 
+    /** Represent like a stopwatch of the time that sim has been running for */
+    private static int elapsedTimeInSeconds;
+
+
     /* CONSTANT */
 
     /** Represent the Time interval to update for drone telemetry data */
@@ -43,6 +47,8 @@ public class DroneMonitorApp {
 
     /** Represent the # of drones to create */
     private static final int DRONE_COUNT = 3;
+
+
 
 
     /* TIME */
@@ -83,10 +89,18 @@ public class DroneMonitorApp {
     // Helper method to help handle the running stop watch
     private static void runStopWatch() {
         long end = System.currentTimeMillis();
-        double elapsedTimeInSeconds = (end - myStart) / 1000.0;
+        elapsedTimeInSeconds = (int) ((int) (end - myStart) / 1000.0);
 
-        // Print to show the time running working correctly and accurately
-        System.out.println("Elapsed time: " + (int) elapsedTimeInSeconds + " seconds");
+//        // Print to show the time running working correctly and accurately
+//        System.out.println("Elapsed time: " + (int) elapsedTimeInSeconds + " seconds");
+//        System.out.println(LocalTime.now());
+//        System.out.println(LocalTime.now(ZoneId.of("America/Los_Angeles")));
+//
+//
+//
+//        LocalDateTime now = LocalDateTime.now();
+//        String formatted = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+//        System.out.println(formatted);
     }
 
     /* Create the # of drones' base on the constant DRONE_COUNT,
