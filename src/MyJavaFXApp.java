@@ -58,7 +58,7 @@ public class MyJavaFXApp extends Application {
      */
     public void updateStatsText(Drone theDrone) {
         Platform.runLater(() -> {
-            TelemetryData data = theDrone.getMyDroneTelemetryData();
+            TelemetryData data = theDrone.getDroneTelemetry();
             String replace = "ID: " + theDrone.getDroneID() +
                     "\nBattery: " + theDrone.getBatteryLevel() +
                     "\nLongitude: " + data.getLongitude() +
