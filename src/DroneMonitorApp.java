@@ -281,14 +281,10 @@ public class DroneMonitorApp {
 
     // Just testing out the configuration between Drone, TelemetryData, and TelemetryGenerator
     public static void main(String[] args) {
-//        DroneMonitorApp app = new DroneMonitorApp();
-//
-//        printDroneData(app);
-//
-//        app.updateDroneTelemetry();
-//
-//        System.out.println("\n");
-//        printDroneData(app);
+        DroneMonitorApp app = new DroneMonitorApp();
+        for (int i = 0; i < 21; i++) {
+            printDroneData(app);
+        }
     }
 
     // Helper method to verify and test the accurate of the data
