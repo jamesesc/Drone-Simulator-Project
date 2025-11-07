@@ -188,9 +188,13 @@ public class Drone {
         testUpdate();
     }
 
-    /* Helper method to test the updateBattery */
+    /* Helper method to test the updateBattery, seeing the decrease of battery for each level */
     private static void testUpdate() {
+        // An array of drones to test on
         Drone[] droneTestArray = new Drone[100];
+
+        /* Looping through the array, initializing the drone, battery level, velocity and then seeing the difference
+        when we called the updateBatterLevel */
         for (int i = 0; i < 100; i++) {
             droneTestArray[i] = new Drone();
             droneTestArray[i].setBatteryLevel(i);
