@@ -35,7 +35,7 @@ public class TelemetryGenerator {
         theTelemetryData.setLongitude(randomLongitude);
     }
 
-    public TelemetryData initializeAltitude() {
+    public TelemetryData generateStartAltitude() {
         TelemetryData droneSetupTelemetry = new TelemetryData();
 
         // attitude generates between 25-75 feet.
