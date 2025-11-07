@@ -185,7 +185,10 @@ public class Drone {
 
     /* Main method to do various testing usage */
     public static void main(String[] args) {
-        testUpdate();
+        // Testing Decrement
+        // testUpdate();
+
+
     }
 
     /* Helper method to test the updateBattery, seeing the decrease of battery for each level */
@@ -214,5 +217,41 @@ public class Drone {
 
             System.out.println("\n\n\n");
         }
+    }
+
+
+    private static void testBatteryProb() {
+        // Storing all ranges categories to count them up
+        int low = 0, medium = 0, high = 0;
+        // The number of tests to do
+        int testNum = 1000000;
+
+        /* Looping through until the numTest.
+          For each loop, generate a new drone, and see what batter level it generated.
+          From there, add it up to the appropriate category it belongs.
+          */
+        for (int i = 0; i < testNum; i++) {
+            Model.Drone droneTest = new Model.Drone();
+
+            // Seeing the individual battery level for each new drone
+            // System.out.println(newTest.getBatteryLevel());
+
+            // Storing the current drone battery level
+            int batteryLvl = droneTest.getBatteryLevel();
+
+            // Assigning the new generated batter to its correct range
+            if (batteryLvl < 20) {
+                low++;
+            } else if (batteryLvl < 50) {
+                medium++;
+            } else {
+                high++;
+            }
+        }
+
+        // Printing the probability to see if its right
+        System.out.println("Low (0-19)   " + low + "  =  " + String.format("%.1f", low * 100.0 / testNum) + "%");
+        System.out.println("Medium (20-49):        " + medium + "  =  " + String.format("%.1f", medium * 100.0 / testNum) + "%");
+        System.out.println("High (50 - 100):   " + high + "  =  " + String.format("%.1f", high * 100.0 / testNum) + "%");
     }
 }
