@@ -2,10 +2,15 @@ import Model.Drone;
 import Model.TelemetryData;
 import Simulation.TelemetryGenerator;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * A class that handles, manage and manipulate the drone to act and behave their functionality.
@@ -34,11 +39,7 @@ public class DroneMonitorApp {
     private final static Drone[] myDroneFleet = new Drone[3];;
 
     /** Represent the state of the sim */
-    private static boolean mySimRunning = false;
-
-
-    /** Represent like a stopwatch of the time that sim has been running for */
-    private static int elapsedTimeInSeconds;
+    private static String mySimStatus;
 
 
     /* CONSTANT */
@@ -46,9 +47,11 @@ public class DroneMonitorApp {
     /** Represent the Time interval to update for drone telemetry data */
     private static final int UPDATE_INTERVAL = 3;
 
+    /** Represent the Time Interval for the timer */
+    private static final int TIMER_INTERVAL = 1;
+
     /** Represent the # of drones to create */
     private static final int DRONE_COUNT = 3;
-
 
 
     /* TIME */
@@ -57,101 +60,121 @@ public class DroneMonitorApp {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     /** Represents the time when the simulation started */
-    private static final long myStart = System.currentTimeMillis();
+    private static long myStart;
 
+    /** Represent te timer when the simulation is paused */
+    private static long myPausedTime = 0;
 
-    /* CONSTRUCTOR */
+    /* TEST */
 
-    /**
-     * Constructor for the DroneMonitorApp.
-     * Initialize the structure of the simulation.
-     */
-    public DroneMonitorApp() {
-        // Tracking the running time when sim started
-        //startSim();
-        testSim();
-        //endSim();
-    }
+    /* METHODS: Sim different phases */
 
-    /* METHODS */
-
-    // Helper method to handle starting the sim
-    private static void startSim() {
-        mySimRunning = true;
+    /* Method to start the sim */
+    public static void startSim() {
+        mySimStatus = "Running";
+        myStart = System.currentTimeMillis();
         createDrones();
-        scheduler.scheduleAtFixedRate(DroneMonitorApp::updateDroneSim, 1, 3, TimeUnit.SECONDS);
-        scheduler.scheduleAtFixedRate(DroneMonitorApp::runStopWatch, 0, 1, TimeUnit.SECONDS);
-        scheduler.scheduleAtFixedRate(DroneMonitorApp::tellDisplay, 1, 1, TimeUnit.SECONDS);
+
+        // This to update the time every second
+        scheduler.scheduleAtFixedRate(DroneMonitorApp::getElapsedTime, 0, TIMER_INTERVAL, TimeUnit.SECONDS);
+
+        // To initialize drone attitude at the 3-second marks
+        scheduler.schedule(DroneMonitorApp::initializeDroneAltitude, UPDATE_INTERVAL, TimeUnit.SECONDS);
+
+        // Update base on the update interval of the drone
+        scheduler.scheduleAtFixedRate(DroneMonitorApp::updateDrone, UPDATE_INTERVAL * 2, UPDATE_INTERVAL, SECONDS);
+
+
+        scheduler.scheduleAtFixedRate(DroneMonitorApp::updateDisplay, 0, 1, SECONDS);
+
+
     }
 
-
-    private static void tellDisplay() {
-        Drone newDrone = new Drone();
-        MyJavaFXApp.getInstance().updateStatsText(newDrone, elapsedTimeInSeconds);
+    /** Method to pause the sim */
+    public static void pausedSim() {
+        if (!"Running".equals(mySimStatus)) return;
+        mySimStatus = "Paused";
+        myPausedTime = System.currentTimeMillis();
     }
 
-    private static void setup() {
-        myTelemetryGen.generateStartAltitude();
+    public static void continueSim() {
+        if (!"Paused".equals(mySimStatus)) return;
+        mySimStatus = "Running";
     }
 
+    /** Method to end the sim */
+    private void stopSim() {
+        if ("End".equals(mySimStatus)) return;
+        mySimStatus = "End";
+    }
 
+    /** Method start a testSim */
+    public static void testSimContinuous() {
+        mySimStatus = "Test";
+        myStart = System.currentTimeMillis();
 
+        // Task every second for the timer
+        scheduler.scheduleAtFixedRate(DroneMonitorApp::getElapsedTime, 0, TIMER_INTERVAL, SECONDS);
 
-
-
-
-
-    private static void testSim() {
-        mySimRunning = true;
-        scheduler.scheduleAtFixedRate(DroneMonitorApp::runStopWatch, 0, 1, TimeUnit.SECONDS);
         // Schedule the display update task with an initial delay of 0 seconds
-        scheduler.scheduleAtFixedRate(() -> tellDisplayTest(DroneMonitorApp.sequence()), 0, 1, TimeUnit.SECONDS);
-
-//
-//        scheduler.schedule(() -> {
-//            Drone droneUpdate = DroneMonitorApp.singleUpdate();
-//            tellDisplayTest(droneUpdate);
-//        }, 0, TimeUnit.SECONDS);
-//
-//
-//        scheduler.scheduleAtFixedRate(() -> tellDisplayTest(DroneMonitorApp.multipleUpdate()), 6, 1, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> updateDisplayTester(DroneMonitorApp.sequenceTest()), 0, 1, SECONDS);
     }
 
-    private static Drone sequence() {
-        Drone startDrone = new Drone();
 
-        if (elapsedTimeInSeconds < 1) {
-            startDrone = new Drone();
-            startDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
-            return startDrone;
-        } else if (elapsedTimeInSeconds >= 6) {
-            Drone newDrone = new Drone();
-            startDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
-            TelemetryData newTelem = myTelemetryGen.generateTelemetryData(newDrone.getDroneTelemetry());
+    /* Helper Method to set up sim */
 
-            newDrone.updateTelemetryData(newTelem);
-            return newDrone;
-        } else {
-            startDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
-            return startDrone;
+    /* TIMER SETUP */
+    // Helper method to help handle the running stop watch
+    private static int getElapsedTime() {
+        long now = System.currentTimeMillis();
+        long elapsedTime = now - myStart;
+
+        if (mySimStatus.equals("Paused")) {
+            elapsedTime -= (now - myPausedTime);
+        }
+
+        return (int) (elapsedTime / 1000);
+
+    }
+
+    private static void differentTypesOfDate() {
+        // Print to show the time running working correctly and accurately
+        System.out.println("Elapsed time: " + (int) getElapsedTime() + " seconds");
+        System.out.println(LocalTime.now());
+        System.out.println(LocalTime.now(ZoneId.of("America/Los_Angeles")));
+
+
+        LocalDateTime now = LocalDateTime.now();
+        String formatted = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        System.out.println(formatted);
+    }
+
+    /* DRONE SETUP */
+
+    // Helper method to initialize drone objects in our drone fleet array
+    private static void createDrones() {
+        for (int i = 0; i < DRONE_COUNT; i++) {
+            myDroneFleet[i] = new Drone();
         }
     }
 
-
-    private static void tellDisplayTest(Drone theDrone) {
-        MyJavaFXApp.getInstance().updateStatsText(theDrone, elapsedTimeInSeconds);
+    // Helper method to initialize each drone altitude (Getting drone in the air)
+    private static void initializeDroneAltitude() {
+        for (Drone indivDrone : myDroneFleet) {
+            indivDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
+        }
     }
 
+    // Helper method to update the drone task (The logic for the update in each interval)
+    private static void updateDrone() {
+        // An array of new telemetry data for each drone, which will be passed to anomaly detector
+        TelemetryData[] droneNewTelemetry = new TelemetryData[DRONE_COUNT];
 
-
-    private static void updateDroneSim() {
-        TelemetryData[] droneNewTelemetry = new TelemetryData[3];
-
+        // Used to track the array count
         int counter = 0;
 
-
         for (Drone indivDrone : myDroneFleet) {
-            // Passing over current drone telemetry so we get a new one
+            // Passing over current drone telemetry so we get a new one for the drone
             TelemetryData newDroneTelemetry = myTelemetryGen.generateTelemetryData(indivDrone.getDroneTelemetry());
 
             // Adding the new telemetry generated to an array
@@ -160,122 +183,62 @@ public class DroneMonitorApp {
             counter++;
         }
 
+        // Passing: new Telemetry, drone fleet, current time elapsed, and time interval
+        AnomalyRecord[] anomalyList = myAnomalyDetector.analyzeDrones(droneNewTelemetry, myDroneFleet, getElapsedTime(), UPDATE_INTERVAL);
 
-
-        AnomalyRecord[] anomalyList = myAnomalyDetector.analyzeDrones(droneNewTelemetry, myDroneFleet, elapsedTimeInSeconds, 3);
-
+        // TODO: Handling the storing of anomaly to DB
         if (anomalyList.length != 0) {
             // add it to the anomaly db
         }
 
-        System.out.println("IS THIS updaTEING?");
+        // Assigning the new telemetry data to the drone
+        // Reset the counter
+        counter = 0;
+
+        for (Drone indivDrone : myDroneFleet) {
+            indivDrone.updateTelemetryData(droneNewTelemetry[counter]);
+        }
+
+        // After updating each drone telemetry data, send it the dispaly the new values
+        updateDisplay();
     }
 
-
-
-
-//    private static Drone singleUpdate() {
-//        Drone newDrone = new Drone();
-//        newDrone.updateTelemetryData(myTelemetryGen.initalizeDroneSetup());
-//        return newDrone;
-//    }
-//
-//    private static Drone multipleUpdate() {
-//        Drone newDrone = singleUpdate();
-//        TelemetryData newTelem = myTelemetryGen.generateTelemetryData(newDrone.getDroneTelemetry());
-//
-//        newDrone.updateTelemetryData(newTelem);
-//
-//
-//        return newDrone;
-//    }
-
-
-    // Helper method to handle ending the sim
-    private void endSim() {
-        mySimRunning = false;
+    // Helper method to send new data to the front end
+    private static void updateDisplay() {
+        // TODO: Temp solution in passing just the first drone in the drone fleet array
+        MyJavaFXApp.getInstance().updateStatsText(myDroneFleet[0], getElapsedTime());
     }
 
+    /* TESTER  METHODS */
 
-    // Helper method to help handle the running stop watch
-    private static void runStopWatch() {
-        long end = System.currentTimeMillis();
-        elapsedTimeInSeconds = (int) ((int) (end - myStart) / 1000.0);
+    // Test method that generates new drone setup
+    private static Drone sequenceTest() {
+        Drone startDrone = new Drone();
 
-//        // Print to show the time running working correctly and accurately
-//        System.out.println("Elapsed time: " + (int) elapsedTimeInSeconds + " seconds");
-//        System.out.println(LocalTime.now());
-//        System.out.println(LocalTime.now(ZoneId.of("America/Los_Angeles")));
-//
-//
-//
-//        LocalDateTime now = LocalDateTime.now();
-//        String formatted = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-//        System.out.println(formatted);
-    }
+        int elapsedTime = getElapsedTime();
 
-    /* Create the # of drones' base on the constant DRONE_COUNT,
-       and then add the newly created Drone Object to the Drone Fleet Array.
-     */
-    private static void createDrones() {
-        for (int i = 0; i <= DRONE_COUNT; i++) {
-            myDroneFleet[i] = new Drone();
+        if (elapsedTime < 1) {
+            startDrone = new Drone();
+            startDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
+            return startDrone;
+        } else if (elapsedTime >= 6) {
+            Drone newDrone = new Drone();
+            newDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
+            TelemetryData newTelemetry = myTelemetryGen.generateTelemetryData(newDrone.getDroneTelemetry());
+
+            newDrone.updateTelemetryData(newTelemetry);
+            return newDrone;
+        } else {
+            startDrone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
+            return startDrone;
         }
     }
 
-    /* Helper method to update each Drone in the array of its telemetry data.
-       Generate a new telemetry data object from telemetry generator, and
-       then pass it through the drone method to update its telemetry data.
-    */
-    private void updateDroneTelemetry() {
-
-        TelemetryData[] droneCurrTelemetry = new TelemetryData[3];
-
-
-        for (int i = 0; i < 3; i++) {
-            // Grabbing the current drone telemetry data
-            TelemetryData currentTelemetry = myDroneFleet[i].getDroneTelemetry();
-            droneCurrTelemetry[i] = currentTelemetry;
-            // Generate new telemetry data for each drone
-            TelemetryData newTelemetry = myTelemetryGen.generateTelemetryData(currentTelemetry);
-
-            int droneID = myDroneFleet[i].getDroneID();
-            int droneBatteryLevel = myDroneFleet[i].getBatteryLevel();
-
-            // My thinking, One method that does analyze drone, then you handle all the analyzing,
-            // I shouldn't be tracking to what detection I should be doing...
-            // Anomaly detection should be doing all of that inside, plus, its good idea not for me to
-            // know the process of AnomalyDetector
-
-            // What im passing, Current Telemetry Data, New Telemetry Data, Drone ID, Battery
-            // TODO: FIX the parameter passing
-
-            //List<AnomalyRecord> newRecord = myAnomalyDetector.analyzeDrones(droneCurrTelemetry, newTelemetry, 5, 4);
-
-        }
-
-
-
-//      other ideas to handle the updateDrone
-//        for (Drone drone : myDroneFleet) {
-//            for (TelemetryData telemetryData : myNewTelemetryData) {
-//               drone.updateTelemetryData(telemetryData);
-//            }
-//        }
-//
-//        for (int i = 0; i < 3; i++) {
-//            Drone currDrone = myDroneFleet[i];
-//            TelemetryData currTelemetryData = myNewTelemetryData[i];
-//            currDrone.updateTelemetryData(currTelemetryData);
-//
-//        }
+    // Helper method to send over to the display the newly created drone
+    private static void updateDisplayTester(final Drone theNewDroneTest) {
+        MyJavaFXApp.getInstance().updateStatsText(theNewDroneTest, getElapsedTime());
     }
 
-    // TODO
-    // Case holder to add the anomaly record to the Database
-    private void addToDB(List<AnomalyRecord> theAnomalyRecord) {
-
-    }
 
     /* MAIN */
 
@@ -289,7 +252,7 @@ public class DroneMonitorApp {
 
     // Helper method to verify and test the accurate of the data
     private static void printDroneData(final DroneMonitorApp myDroneApp) {
-        for (Drone droneData : myDroneApp.myDroneFleet) {
+        for (Drone droneData : myDroneFleet) {
             TelemetryData droneTelemetryData = droneData.getDroneTelemetry();
             System.out.println("Drone ID: " + droneData.getDroneID());
             System.out.println("Altitude: " + droneTelemetryData.getAltitude());
