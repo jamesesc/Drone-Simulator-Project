@@ -130,7 +130,7 @@ public class MyJavaFXApp extends Application {
 
             //Iterate through all the drones
             for (Drone drone : drones) {
-                TelemetryData data = drone.getMyDroneTelemetryData();
+                TelemetryData data = drone.getDroneTelemetry();
                 if (data == null) continue;
 
                 //If a drone with the given ID isn't in our map, we make one with it
@@ -208,6 +208,7 @@ public class MyJavaFXApp extends Application {
                     "\nLatitude: " + data.getLatitude() +
                     "\nAltitude: " + data.getAltitude() +
                     "\nVelocity: " + data.getVelocity() +
+                    "\nOrientation: " + data.getOrientation() +
                     "\nOrientation: " + data.getOrientation();
             myStatsText.setText(replace);
         });
@@ -300,6 +301,9 @@ public class MyJavaFXApp extends Application {
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
+
+        // TODO: This is where the monitor is being used and handling the update
+        DroneMonitorApp.testSimContinuous();
 
         //Examples for right hand side
         Platform.runLater(() -> {

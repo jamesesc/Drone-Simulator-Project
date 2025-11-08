@@ -22,6 +22,7 @@ public class TelemetryGenerator {
         generateVelocity(theTelemetryData, currentTelemetry);
     }
 
+
     private void generateLatitude(final TelemetryData theTelemetryData) {
         // Random class generate 0.0 to 1.0, we need * 100 to generate 0 to 100
         // This double is randomly generating a number between 0 and 100
@@ -32,6 +33,16 @@ public class TelemetryGenerator {
     private void generateLongitude(final TelemetryData theTelemetryData) {
         final double randomLongitude = randomNumGenerator.nextDouble() * 100;
         theTelemetryData.setLongitude(randomLongitude);
+    }
+
+    public TelemetryData generateStartAltitude() {
+        TelemetryData droneSetupTelemetry = new TelemetryData();
+
+        // attitude generates between 25-75 feet.
+        int altitude = randomNumGenerator.nextInt(51) + 25; // 51 = 75 - 25 + 1
+        droneSetupTelemetry.setAltitude(altitude);
+
+        return droneSetupTelemetry;
     }
 
     private void generateAltitude(final TelemetryData theNewTelemetry, final TelemetryData theCurrentTelemetry) {
