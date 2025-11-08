@@ -206,7 +206,7 @@ public class DroneMonitorApp {
     // Helper method to send new data to the front end
     private static void updateDisplay() {
         // TODO: Temp solution in passing just the first drone in the drone fleet array
-        MyJavaFXApp.getInstance().updateStatsText(myDroneFleet[0], getElapsedTime());
+        MyJavaFXApp.getInstance().updateStatsText(myDroneFleet[0]);
     }
 
     /* TESTER  METHODS */
@@ -236,7 +236,7 @@ public class DroneMonitorApp {
 
     // Helper method to send over to the display the newly created drone
     private static void updateDisplayTester(final Drone theNewDroneTest) {
-        MyJavaFXApp.getInstance().updateStatsText(theNewDroneTest, getElapsedTime());
+        MyJavaFXApp.getInstance().updateStatsText(theNewDroneTest);
     }
 
 
