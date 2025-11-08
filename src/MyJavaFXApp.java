@@ -67,7 +67,7 @@ public class MyJavaFXApp extends Application {
                     "\nAltitude: " + data.getAltitude() +
                     "\nVelocity: " + data.getVelocity() +
                     "\nOrientation: " + data.getOrientation()+
-                    "\nTime:" + theTimer; // Added this timer to see if it works
+                    "\nTime: " + theTimer; // Added this timer to see if it works
             statsText.setText(replace);
         });
     }
@@ -152,8 +152,8 @@ public class MyJavaFXApp extends Application {
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
 
-        // Get the backend of drone simulator to get started
-        DroneMonitorApp droneMonitor = new DroneMonitorApp();
+        // TODO: This is where the monitor is being used and handling the update
+        DroneMonitorApp.testSimContinuous();
 
         //Examples for right hand side
         Platform.runLater(() -> {
