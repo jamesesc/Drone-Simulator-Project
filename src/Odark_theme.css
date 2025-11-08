@@ -58,7 +58,7 @@ Dark text areas
     -fx-border-width: 0;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-padding: 0 0 0 0;
+    -fx-padding: 0;
     -fx-highlight-fill: derive(-fx-base-dark, 20%);
     -fx-highlight-text-fill: white;
 }
@@ -76,10 +76,7 @@ ScrollPane & Scrollbar styling
 .dark-scroll-pane > .viewport {
     -fx-background-color: transparent;
 }
-.scroll-bar:vertical,
-.scroll-bar:horizontal {
-    -fx-background-color: -fx-base-medium;
-}
+.scroll-bar { -fx-background-color: -fx-base-medium; }
 .scroll-bar .thumb {
     -fx-background-color: -fx-base-gray;
     -fx-background-radius: 8;
@@ -126,16 +123,10 @@ MenuBar, Menu, MenuItem
 .menu-item {
     -fx-background-color: -fx-base-dark;
 }
-.menu-item:hover {
+.menu-item:hover, .menu-item:armed {
     -fx-background-color: -fx-base-medium;
 }
-.menu-item .label {
-    -fx-text-fill: white;
-}
-.menu-item:armed {
-    -fx-background-color: -fx-base-medium;
-}
-.menu-item:armed .label {
+.menu-item .label, .menu-item:hover .label, .menu-item:armed .label {
     -fx-text-fill: white;
 }
 .separator {
