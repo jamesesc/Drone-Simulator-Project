@@ -43,6 +43,7 @@ public class Drone {
         myDroneID = droneCounter;
         myDroneStatus = true;
         droneCounter++;
+        initializeDroneBattery();
     }
 
     /**
