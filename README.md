@@ -4,7 +4,7 @@ https://github.com/jamesesc/Drone-Simulator-Project
 
 --Third Deliverable--
 
-Oisin Perkins-Gilbert:
+Oisin Perkins-Gilbert: I'd say the most difficult thing about this week's deliverable has been having to go back and fix something I thought I already finished, or make it better and more efficient. I'd often do something one way, then find another way to do it a different way, and pray that it wouldn't cause any bugs trying to make it work.
 
 James Escudero: For this third deliverable, the only issues that I want to discuss my team is the whole idea of 
 what data should droneMonitor be sending over to the front end. Additionally, im curious if it is okay for the front end 
