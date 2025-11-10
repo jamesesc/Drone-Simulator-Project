@@ -9,7 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="25" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" scope="TEST">
       <library name="JUnit4">
@@ -37,7 +37,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library name="SQLite JDBC">
         <CLASSES>
           <root url="jar://$USER_HOME$/Desktop/sqlite-jdbc-3.50.3.0.jar!/" />
@@ -49,5 +49,6 @@
     <orderEntry type="library" name="lib" level="project" />
     <orderEntry type="library" name="javafx" level="project" />
     <orderEntry type="library" name="javafx-swt" level="project" />
+    <orderEntry type="library" name="lib1" level="project" />
   </component>
 </module>

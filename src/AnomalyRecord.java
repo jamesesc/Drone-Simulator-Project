@@ -1,3 +1,5 @@
+import Model.TelemetryData;
+
 public class AnomalyRecord {
     /**
      * Name of method you had an error in.
@@ -11,6 +13,11 @@ public class AnomalyRecord {
      * Time that the error happened.
      */
     private double myTime;
+    /**
+     * Telemetry data for anomaly
+     */
+    private TelemetryData myTelemetry;
+
 
     //Constructors
     public AnomalyRecord() {
@@ -29,6 +36,13 @@ public class AnomalyRecord {
         myTime = theTime;
     }
 
+    public AnomalyRecord(String theMethod, int theID, double theTime, TelemetryData theTelemetry) {
+        myMethod = theMethod;
+        myID = theID;
+        myTime = theTime;
+        myTelemetry = theTelemetry;
+    }
+
     // Getters
     public String getMethod() {
         return myMethod;
@@ -42,6 +56,9 @@ public class AnomalyRecord {
         return myTime;
     }
 
+    public TelemetryData getTelemetryData() {return myTelemetry; }
+
+
     // Setters
     public void setMethod(String theMethod) {
         myMethod = theMethod;
@@ -54,4 +71,6 @@ public class AnomalyRecord {
     public void setTime(double theTime) {
         myTime = theTime;
     }
+
+    public void setTelemetryData(TelemetryData theTelemetry) { myTelemetry = theTelemetry; }
 }
