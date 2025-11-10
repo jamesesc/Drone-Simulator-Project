@@ -1,15 +1,6 @@
 ## Drone Simulator Project
 https://github.com/jamesesc/Drone-Simulator-Project
 
---Fourth Deliverable--
-
-Oisin Perkins-Gilber:
-
-James Escudero:
-
-Mankirat Mann: I think the most difficult part this week was dealing with dependency and Jdbc driver issues. For some reason I had to re add the things into the project. But overall things went smoothly after.
-
-
 
 --Third Deliverable--
 
@@ -21,7 +12,7 @@ to use the drone methods like getBattery, or even the telemetry getters method. 
 mostly progressing more on connecting the frontend to the backend (droneMonitor). This is especially true as I 
 refactored and implemented more structure in the droneMonitor to handle the overall logic for the simulation.
 
-Mankirat Mann:
+Mankirat Mann: I think the most difficult part this week was dealing with dependency and Jdbc driver issues. For some reason I had to re add the things into the project. But overall things went smoothly after.
 
 --Second Deliverable--
 
