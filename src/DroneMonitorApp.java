@@ -36,7 +36,7 @@ public class DroneMonitorApp {
     /* VARIABLES */
 
     /** Represent the current drone being sim on */
-    private final static Drone[] myDroneFleet = new Drone[3];;
+    private final static Drone[] myDroneFleet = new Drone[3];
 
     /** Represent the state of the sim */
     private static String mySimStatus;
