@@ -36,13 +36,6 @@ public class AnomalyRecord {
         myTime = theTime;
     }
 
-    public AnomalyRecord(String theMethod, int theID, double theTime, TelemetryData theTelemetry) {
-        myMethod = theMethod;
-        myID = theID;
-        myTime = theTime;
-        myTelemetry = theTelemetry;
-    }
-
     // Getters
     public String getMethod() {
         return myMethod;
