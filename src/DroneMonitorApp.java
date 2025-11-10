@@ -36,7 +36,7 @@ public class DroneMonitorApp {
     /* VARIABLES */
 
     /** Represent the current drone being sim on */
-    private final static Drone[] myDroneFleet = new Drone[3];;
+    private final static Drone[] myDroneFleet = new Drone[3];
 
     /** Represent the state of the sim */
     private static String mySimStatus;
@@ -188,18 +188,18 @@ public class DroneMonitorApp {
 
         // TODO: Handling the storing of anomaly to DB
         if (anomalyList.length != 0) {
-            // add it to the anomaly db
+            myAnomalyDB.saveAnomalies(anomalyList);
         }
-
-        // Assigning the new telemetry data to the drone
+        for (AnomalyRecord anomalyRecord : anomalyList) {
+            MyJavaFXApp.getInstance().addAnomalyText(anomalyRecord);
+        }
         // Reset the counter
         counter = 0;
 
         for (Drone indivDrone : myDroneFleet) {
             indivDrone.updateTelemetryData(droneNewTelemetry[counter]);
+            counter++;
         }
-
-        // After updating each drone telemetry data, send it the dispaly the new values
         updateDisplay();
     }
 
@@ -207,6 +207,7 @@ public class DroneMonitorApp {
     private static void updateDisplay() {
         // TODO: Temp solution in passing just the first drone in the drone fleet array
         MyJavaFXApp.getInstance().updateStatsText(myDroneFleet[0]);
+
     }
 
     /* TESTER  METHODS */
@@ -242,13 +243,14 @@ public class DroneMonitorApp {
 
     /* MAIN */
 
-    // Just testing out the configuration between Drone, TelemetryData, and TelemetryGenerator
+    //Just testing out the configuration between Drone, TelemetryData, and TelemetryGenerator
     public static void main(String[] args) {
         DroneMonitorApp app = new DroneMonitorApp();
         for (int i = 0; i < 21; i++) {
             printDroneData(app);
         }
     }
+
 
     // Helper method to verify and test the accurate of the data
     private static void printDroneData(final DroneMonitorApp myDroneApp) {
