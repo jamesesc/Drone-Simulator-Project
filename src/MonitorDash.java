@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import Model.Drone;
 import Model.TelemetryData;
 
-public class MyJavaFXApp extends Application {
+public class MonitorDash extends Application {
     /**
      * The text area showing Drone anomalies.
      */
@@ -46,7 +46,7 @@ public class MyJavaFXApp extends Application {
     /**
      * Singleton variable for our JavaFX App instance.
      */
-    private volatile static MyJavaFXApp myInstance;
+    private volatile static MonitorDash myInstance;
     /**
      * Where the drones will be displayed.
      */
@@ -79,25 +79,28 @@ public class MyJavaFXApp extends Application {
     private static final double MAX_LATITUDE = 1000;
     /**
      * How much we're multiplying the drone size by, in case
-     * we wanna make it bigger or smaller.
+     * we want to make it bigger or smaller.
      */
     private static final double SIZE_SCALER = 20;
-
+    /**
+     * Minimum size a drone can be in our GUI.
+     */
+    private static final double MIN_DRONE_SIZE = 10;
     /**
      * Constructor of MyJavaFXApp, for Singleton stuff.
      */
-    public MyJavaFXApp() { myInstance = this; }
+    public MonitorDash() { myInstance = this; }
 
     /**
      * Getter for the singleton instance of the Java Application.
      *
      * @return Singleton instance of Java application.
      */
-    public static MyJavaFXApp getInstance() {
+    public static MonitorDash getInstance() {
         if (myInstance == null) {
-            synchronized (MyJavaFXApp.class) {
+            synchronized (MonitorDash.class) {
                 if (myInstance == null) {
-                    myInstance = new MyJavaFXApp();
+                    myInstance = new MonitorDash();
                 }
             }
         }
@@ -107,13 +110,21 @@ public class MyJavaFXApp extends Application {
     /**
      * Refresh the drone display with the drones you want shown.
      *
-     * @param drones Drones you are showing
+     * @param myDrones Drones you are showing
      */
-    public void refreshDroneDisplay(Drone[] drones) {
+    public void refreshDroneDisplay(final Drone[] myDrones) {
+        //Checking for anything invalid in our array of drones
+        for (int i = 0; i < myDrones.length; i++) {
+            if (myDrones[i] == null || myDrones[i].getMyDroneTelemetryData() == null) {
+                throw new IllegalArgumentException("Illegal Argument Exception " +
+                        "in refreshDroneDisplay: Element " + i + " of the array " +
+                        "is null, or has null TelemetryData");
+            }
+        }
         Platform.runLater(() -> {
             //Remove images that don't exist anymore (just in case)
             Set<Integer> activeIds = new HashSet<>();
-            for (Drone drone : drones) {
+            for (Drone drone : myDrones) {
                 activeIds.add(drone.getDroneID());
             }
             myDroneViews.keySet().removeIf(id -> {
@@ -124,12 +135,12 @@ public class MyJavaFXApp extends Application {
                 return false;
             });
 
-            //Getting width and height of drone display for size and location shit
+            //Getting width and height of drone display for size and location
             double displayWidth = myDroneDisplay.getWidth();
             double displayHeight = myDroneDisplay.getHeight();
 
             //Iterate through all the drones
-            for (Drone drone : drones) {
+            for (Drone drone : myDrones) {
                 TelemetryData data = drone.getMyDroneTelemetryData();
                 if (data == null) continue;
 
@@ -143,11 +154,11 @@ public class MyJavaFXApp extends Application {
 
                     //Our starting values for location, size, rotation
                     view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                            * displayWidth - Math.max(10, data.getAltitude() * SIZE_SCALER) / 2);
+                            * displayWidth - Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER) / 2);
                     view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                            * displayHeight - Math.max(10, data.getAltitude() * SIZE_SCALER) / 2);
-                    view.setFitWidth(Math.max(10, data.getAltitude() * SIZE_SCALER));
-                    view.setFitHeight(Math.max(10, data.getAltitude() * SIZE_SCALER));
+                            * displayHeight - Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER) / 2);
+                    view.setFitWidth(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER));
+                    view.setFitHeight(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER));
                     view.setScaleX(1);
                     view.setScaleY(1);
                     view.setRotate(data.getOrientation());
@@ -156,14 +167,14 @@ public class MyJavaFXApp extends Application {
                 });
 
                 //Where we want the drone to end up (size, location, angle)
-                double targetSize = Math.max(10, data.getAltitude() * SIZE_SCALER);
+                double targetSize = Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER);
                 double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
                         * displayWidth - targetSize / 2;
                 double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
                         * displayHeight - targetSize / 2;
                 double targetAngle = data.getOrientation();
 
-                //Interpolating ourselves to our target shit
+                //Interpolating ourselves to our target state
                 Timeline timeline = new Timeline(
                         new KeyFrame(Duration.seconds(1),
                                 new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
@@ -184,7 +195,11 @@ public class MyJavaFXApp extends Application {
      *
      * @param theRecord What record you want info from to add to the field.
      */
-    public void addAnomalyText(AnomalyRecord theRecord) {
+    public void addAnomalyText(final AnomalyRecord theRecord) {
+        if (theRecord == null) {
+            throw new IllegalArgumentException("Illegal Argument in " +
+                    "addAnomalyText: Passed AnomalyRecord is null");
+        }
         Platform.runLater(() -> {
             String add = "Time: " + theRecord.getTime() +
                     "\nMethod check failed: " + theRecord.getMethod() +
@@ -199,7 +214,13 @@ public class MyJavaFXApp extends Application {
      *
      * @param theDrone The drone whose stats you want to display.
      */
-    public void updateStatsText(Drone theDrone) {
+    public void updateStatsText(final Drone theDrone) {
+        //Checking for invalid arguments
+        if (theDrone == null ||
+                theDrone.getMyDroneTelemetryData() == null) {
+            throw new IllegalArgumentException("Illegal Argument Exception: " +
+                    "updateStatsText (invalid Drone/Drone has null TelemetryData)");
+        }
         Platform.runLater(() -> {
             TelemetryData data = theDrone.getMyDroneTelemetryData();
             String replace = "ID: " + theDrone.getDroneID() +
@@ -219,7 +240,7 @@ public class MyJavaFXApp extends Application {
      * @param thePrimaryStage Our primary JavaFX stage.
      */
     @Override
-    public void start(Stage thePrimaryStage) {
+    public void start(final Stage thePrimaryStage) {
         // Editing text for anomalies and stats
         myAnomalyText = new TextArea();
         myAnomalyText.setWrapText(true);
@@ -288,7 +309,7 @@ public class MyJavaFXApp extends Application {
         fileMenu.getItems().addAll(clearItem, closeItem, exitItem);
         menuBar.getMenus().addAll(fileMenu, pauseMenu, endMenu);
 
-        // Wrap shit in a BorderPane
+        // Wrap stuff in a BorderPane
         BorderPane root = new BorderPane();
         root.setTop(menuBar);
         root.setCenter(mainBox);
@@ -303,13 +324,6 @@ public class MyJavaFXApp extends Application {
 
         //Examples for right hand side
         Platform.runLater(() -> {
-            addAnomalyText(new AnomalyRecord("Test1", 0, 0.0));
-            addAnomalyText(new AnomalyRecord("Test2", 1, 1.0));
-            addAnomalyText(new AnomalyRecord("Test3", 2, 2.0));
-            addAnomalyText(new AnomalyRecord("Test4", 2.0));
-            addAnomalyText(new AnomalyRecord("Test4", 2.0));
-            addAnomalyText(new AnomalyRecord("Test4", 2.0));
-            addAnomalyText(new AnomalyRecord("Test4", 2.0));
             TelemetryData data = new TelemetryData();
             data.setLatitude(0.0); data.setLongitude(0.0); data.setAltitude(0.0);
             data.setVelocity(4.0); data.setOrientation(90.0);
@@ -335,7 +349,8 @@ public class MyJavaFXApp extends Application {
      * @param theVBox The vbox you're setting up.
      * @param theTextArea The text you're using in the setup.
      */
-    private void VBoxSetup(VBox theVBox, String theHeaderText, TextArea theTextArea) {
+    private void VBoxSetup(final VBox theVBox,
+                           final String theHeaderText, final TextArea theTextArea) {
         VBox.setVgrow(theVBox, Priority.ALWAYS);
 
         Label header = new Label(theHeaderText);
@@ -352,7 +367,7 @@ public class MyJavaFXApp extends Application {
         theVBox.getChildren().addAll(header, sPane);
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    public static void main(final String[] theArgs) {
+        launch(theArgs);
     }
 }
