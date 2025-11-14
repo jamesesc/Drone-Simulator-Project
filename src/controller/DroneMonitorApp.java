@@ -243,29 +243,4 @@ public class DroneMonitorApp {
     private static void updateDisplayTester(final Drone theNewDroneTest) {
         MyJavaFXApp.getInstance().updateStatsText(theNewDroneTest);
     }
-
-
-    /* MAIN */
-
-    //Just testing out the configuration between Drone, TelemetryData, and TelemetryGenerator
-    public static void main(String[] args) {
-        DroneMonitorApp app = new DroneMonitorApp();
-        for (int i = 0; i < 21; i++) {
-            printDroneData(app);
-        }
-    }
-
-
-    // Helper method to verify and test the accurate of the data
-    private static void printDroneData(final DroneMonitorApp myDroneApp) {
-        for (Drone droneData : myDroneFleet) {
-            TelemetryData droneTelemetryData = droneData.getDroneTelemetry();
-            System.out.println("Drone ID: " + droneData.getDroneID());
-            System.out.println("Altitude: " + droneTelemetryData.getAltitude());
-            System.out.println("Longitude: " + droneTelemetryData.getLongitude());
-            System.out.println("Orientation: " + droneTelemetryData.getOrientation());
-            System.out.println("Velocity: " + droneTelemetryData.getVelocity());
-            System.out.println("Latitude: " + droneTelemetryData.getLatitude());
-        }
-    }
 }
