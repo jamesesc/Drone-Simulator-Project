@@ -1,40 +1,73 @@
 package Model;
 
-import static Model.Drone.randomNumGen;
+import java.util.Random;
 
+/**
+ * A battery object class that has a composite relationship with the drone object.
+ * It is used to handle all the functionality and logic for the drone battery.
+ *
+ * @author James Escudero
+ * @version Autumn 2025
+ */
 public class Battery {
 
-    private static int myBattery;
+    /* FIELDS */
+
+    /** Random generator to help generate random battery level */
+    static final Random randomNumGen = new Random();
+
+    /** Represent the Battery Level of the Drone */
+    private int myBattery;
+
+
+    /* CONSTANTS */
+
+    /* The range that battery can randomly generate */
+    static final int[][] BATTERY_LEVEL_RANGE = {
+            {0, 19}, // Low
+            {20, 49}, // Medium
+            {50, 100} // Full
+    };
+
+    /** The probability for each range to occur (related to BATTERY_LEVEL_RANGE) */
+    static final int[] PROB_BATTERY_LEVEL = {1, 14, 85};
+
+
+    /* CONSTRUCTOR */
+
+    /**
+     * Emptiness constructor for the Battery Object.
+     * It first initializes starting battery level.
+     */
+    public Battery() {
+        initializeBatteryLevel();
+    }
 
 
     /* GETTERS */
+
+    /** Getter method to get the battery level */
     public int getLevel() {
         return myBattery;
     }
 
+
+    /* SETTER */
+
+    /** Setter method to set the level of the battery level */
     public void setLevel(final int theNewBattery) {
         myBattery = theNewBattery;
     }
 
-    /* METHODS */
+    /* LOGIC */
 
     /** Method that randomly weight the drone battery level when first initialize */
-    public void initializeBatteryLevel() {
-        // The range that battery can randomly generate
-        final int[][] batteryLevelRange = {
-                {0, 19}, // Low
-                {20, 49}, // Medium
-                {50, 100} // Full
-        };
-
-        // The probability for each range to occur (related to the above array)
-        final int[] probBatteryLevel = {1, 14, 85};
-
+    private void initializeBatteryLevel() {
         // Represent the total probability (should be 100)
         int totalProb = 0;
 
         // Loop through the probability array and add up the probability
-        for (int probabilityWeight : probBatteryLevel) {
+        for (int probabilityWeight : PROB_BATTERY_LEVEL) {
             totalProb += probabilityWeight;
         }
 
@@ -45,8 +78,8 @@ public class Battery {
 
         /* Going through a probability array, subtracting the prob level until its below 0
          and assign rangeIndex to the range we found*/
-        for (int i = 0; i < probBatteryLevel.length; i++) {
-            randomLevel -= probBatteryLevel[i];
+        for (int i = 0; i < PROB_BATTERY_LEVEL.length; i++) {
+            randomLevel -= PROB_BATTERY_LEVEL[i];
 
             if (randomLevel < 0) {
                 selectedRangeIndex = i;
@@ -55,8 +88,8 @@ public class Battery {
         }
 
         // Storing the range min and max
-        int min = batteryLevelRange[selectedRangeIndex][0];
-        int max = batteryLevelRange[selectedRangeIndex][1];
+        int min = BATTERY_LEVEL_RANGE[selectedRangeIndex][0];
+        int max = BATTERY_LEVEL_RANGE[selectedRangeIndex][1];
 
         // Base on the right category, just choose a random num between those bounds
         // +1 because random(19) only includes 0-18... so we need to be one higher

@@ -34,7 +34,6 @@ public class Drone {
         myDroneID = myDroneCounter;
         myDroneCounter++;
         myDroneStatus = true;
-        myBattery.initializeBatteryLevel();
     }
 
     /**
