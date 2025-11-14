@@ -14,8 +14,11 @@ public class Drone {
 
     /* Fields */
 
-    /** A telemetry data object class used to store all the drone Telemetry data */
+    /** A Telemetry Data object class used to store all the drone Telemetry data */
     private TelemetryData myTelemetryData = new TelemetryData();
+
+    /** A Battery object class used to handle the drone battery functionality */
+    private final Battery myBattery = new Battery();
 
     /** An int that is use as drone counter for all created drone objects */
     private static int droneCounter = 0;
@@ -23,24 +26,20 @@ public class Drone {
     /** An int that represent the drone individual id */
     private int myDroneID;
 
-    /** An int that represents the Battery level the drone has */
-    private int myBattery;
-
     /** A boolean that represent whether the drone is on or no */
     private boolean myDroneStatus;
 
     /** Random generator to help generate random battery level */
-    private static final Random randomNumGen = new Random();
-
+    static final Random randomNumGen = new Random();
 
     /* CONSTRUCTORS */
 
     /** A non-arg constructor that initializes the drone id, and set the drone status to on */
     public Drone() {
         myDroneID = droneCounter;
-        myDroneStatus = true;
         droneCounter++;
-        initializeDroneBattery();
+        myDroneStatus = true;
+        myBattery.initializeBatteryLevel();
     }
 
     /**
@@ -54,12 +53,11 @@ public class Drone {
         myDroneStatus = true;
     }
 
-
     /* GETTERS */
 
     /** A getter to get the drone battery level */
     public int getBatteryLevel() {
-        return myBattery;
+        return myBattery.getLevel();
     }
 
     /** A getter to get the drone ID */
@@ -95,7 +93,11 @@ public class Drone {
      * @param theNewBatteryLevel represents the new drone battery level.
      */
     public void setBatteryLevel(final int theNewBatteryLevel) {
-        myBattery = theNewBatteryLevel;
+        myBattery.setLevel(theNewBatteryLevel);
+    }
+
+    public void simulateBatteryDrain() {
+        myBattery.drain(myTelemetryData.getVelocity());
     }
 
     /**
@@ -105,77 +107,5 @@ public class Drone {
      */
     public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
         myTelemetryData = theNewTelemetryData;
-    }
-
-
-    /* METHODS */
-
-    /** Method that randomly weight the drone battery level when first initialize */
-    private void initializeDroneBattery() {
-        // The range that battery can randomly generate
-        final int[][] batteryLevelRange = {
-                {0, 19}, // Low
-                {20, 49}, // Medium
-                {50, 100} // Full
-        };
-
-        // The probability for each range to occur (related to the above array)
-        final int[] probBatteryLevel = {1, 14, 85};
-
-        // Represent the total probability (should be 100)
-        int totalProb = 0;
-
-        // Loop through the probability array and add up the probability
-        for (int probabilityWeight : probBatteryLevel) {
-            totalProb += probabilityWeight;
-        }
-
-        // Choosing a random number between the total probability
-        int randomLevel = randomNumGen.nextInt(totalProb);
-        // Used to know which range we are in that we randomly generated
-        int selectedRangeIndex = 0;
-
-        /* Going through a probability array, subtracting the prob level until its below 0
-         and assign rangeIndex to the range we found*/
-        for (int i = 0; i < probBatteryLevel.length; i++) {
-            randomLevel -= probBatteryLevel[i];
-
-            if (randomLevel < 0) {
-                selectedRangeIndex = i;
-                break;
-            }
-        }
-
-        // Storing the range min and max
-        int min = batteryLevelRange[selectedRangeIndex][0];
-        int max = batteryLevelRange[selectedRangeIndex][1];
-
-        // Base on the right category, just choose a random num between those bounds
-        // +1 because random(19) only includes 0-18... so we need to be one higher
-        int batterLevel = min + randomNumGen.nextInt(max - min + 1); // Inclusive
-
-        // Setting the battery level to the new generated batter level
-        setBatteryLevel(batterLevel);
-    }
-
-    /** Method to update the drone Batter */
-    public void updateDroneBattery() {
-        /* Velocity Power => Battery Consumption Chart
-        60-100 m/s: High (Cap at 30)
-        30-60 m/s: Ranges...
-        10-30 m/s: Ranges...
-        0-10 m/s: Low (min = 1)
-         */
-
-        // Battery Decrease Formula
-        int batteryDecrease = (int) (0.005 * Math.pow(myTelemetryData.getVelocity(), 2));
-
-        // Min Cap, and Max Cap
-        if (batteryDecrease == 0) {
-            batteryDecrease = 1;
-        } else if (batteryDecrease > 32) {
-            batteryDecrease = 30;
-        }
-        myBattery -= batteryDecrease;
     }
 }
