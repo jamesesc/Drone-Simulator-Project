@@ -1,3 +1,7 @@
+package view;
+
+import Model.AnomalyRecord;
+import controller.DroneMonitorApp;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -55,7 +59,7 @@ public class MyJavaFXApp extends Application {
      * What each drone will look like.
      */
     private final Image myDroneImage = new Image(Objects.requireNonNull(
-            getClass().getResourceAsStream("drone_image.png")));
+            getClass().getResourceAsStream("/drone_image.png")));
     /**
      * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
      * singleton stuff makes us gotta worry about multiple threads.

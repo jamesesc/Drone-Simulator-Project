@@ -1,6 +1,10 @@
+package controller;
+
+import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
-import Simulation.TelemetryGenerator;
+import database.AnomalyDB;
+import view.MyJavaFXApp;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -26,10 +30,10 @@ public class DroneMonitorApp {
     /** Represent a TelemetryGenerator Object to use */
     private static final TelemetryGenerator myTelemetryGen = new TelemetryGenerator();
 
-    /** Represent a AnomalyDetector object to use */
+    /** Represent a controller.AnomalyDetector object to use */
     private static final AnomalyDetector myAnomalyDetector = new AnomalyDetector();
 
-    /** Represent a AnomalyDB object to use */
+    /** Represent a database.AnomalyDB object to use */
     private static final AnomalyDB myAnomalyDB = new AnomalyDB();
 
 

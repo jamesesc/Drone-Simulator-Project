@@ -1,3 +1,6 @@
+package database;
+
+import Model.AnomalyRecord;
 import Model.TelemetryData;
 import java.sql.*;
 

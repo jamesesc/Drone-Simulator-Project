@@ -1,4 +1,4 @@
-import Model.TelemetryData;
+package Model;
 
 public class AnomalyRecord {
     /**

@@ -1,4 +1,4 @@
-package Simulation;
+package controller;
 
 import Model.TelemetryData;
 
@@ -389,7 +389,7 @@ public class TelemetryGenerator {
         /* used to set the current velocity */
         oldTelemetryData.setVelocity(50);
 
-        Simulation.TelemetryGenerator telemetryGenTest = new Simulation.TelemetryGenerator();
+        TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
         // for the # of test
         int testNum = 1000000;
