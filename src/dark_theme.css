@@ -23,6 +23,10 @@ General layout
     -fx-padding: 8;
     -fx-effect: none;
 }
+.time-label .text{
+    -fx-fill: white;
+    -fx-font-size: 18;
+}
 
 /* --------------------
 Rounded VBox containers

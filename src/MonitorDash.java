@@ -57,6 +57,10 @@ public class MonitorDash extends Application {
     private final Image myDroneImage = new Image(Objects.requireNonNull(
             getClass().getResourceAsStream("drone_image.png")));
     /**
+     * A label representing how much time's gone on in the simulation.
+     */
+    private final Label myTimeLabel = new Label("Time: ");
+    /**
      * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
      * singleton stuff makes us gotta worry about multiple threads.
      */
@@ -86,6 +90,11 @@ public class MonitorDash extends Application {
      * Minimum size a drone can be in our GUI.
      */
     private static final double MIN_DRONE_SIZE = 10;
+
+    /*======================
+    INTERACTING WITH THE GUI
+     =======================*/
+
     /**
      * Constructor of MyJavaFXApp, for Singleton stuff.
      */
@@ -235,79 +244,39 @@ public class MonitorDash extends Application {
     }
 
     /**
+     * Updates the label that shows the player what time the simulation is in.
+     * Note for devs: Be sure to update timeUnits if needed
+     *
+     * @param theTime The time it currently is.
+     */
+    public void updateTimeText(final double theTime) {
+        String timeUnits = "Seconds";
+        myTimeLabel.setText("Time: " + theTime + " " + timeUnits);
+    }
+
+
+    /* =====================
+    BUILDING THE APPLICATION
+    ========================*/
+
+    /**
      * Initial setup for our application.
      *
      * @param thePrimaryStage Our primary JavaFX stage.
      */
     @Override
     public void start(final Stage thePrimaryStage) {
-        // Editing text for anomalies and stats
-        myAnomalyText = new TextArea();
-        myAnomalyText.setWrapText(true);
-        myAnomalyText.setEditable(false);
-        myAnomalyText.getStyleClass().add("dark-text-area");
-        myAnomalyText.setFont(Font.font("Helvetica", 14));
-
-        myStatsText = new TextArea();
-        myStatsText.setWrapText(true);
-        myStatsText.setEditable(false);
-        myStatsText.getStyleClass().add("dark-text-area");
-        myStatsText.setFont(Font.font("Helvetica", 14));
-
         // Main content HBox
         HBox mainBox = new HBox(10);
         mainBox.getStyleClass().add("main-box");
 
-        // Drone display
-        myDroneDisplay = new Pane();
-        myDroneDisplay.getStyleClass().add("drone-display");
-        HBox.setHgrow(myDroneDisplay, Priority.ALWAYS);
-
-        //Make sure drone display's children is hid behind it
-        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
-        clip.setArcWidth(12);  // match CSS corner radius
-        clip.setArcHeight(12);
-        clip.widthProperty().bind(myDroneDisplay.widthProperty());
-        clip.heightProperty().bind(myDroneDisplay.heightProperty());
-        myDroneDisplay.setClip(clip);
-
-        // Right side container
-        VBox rightSide = new VBox(10);
-        rightSide.setPrefWidth(275);
-
-        VBox anomalyBox = new VBox();
-        anomalyBox.getStyleClass().add("rounded-box");
-        VBoxSetup(anomalyBox, "Anomaly Reports", myAnomalyText);
-
-        VBox statsBox = new VBox();
-        statsBox.setPrefHeight(200);
-        statsBox.setMinHeight(Control.USE_PREF_SIZE);
-        statsBox.setMaxHeight(Control.USE_PREF_SIZE);
-        statsBox.getStyleClass().add("rounded-box");
-        VBoxSetup(statsBox, "Drone Statistics", myStatsText);
-
-        rightSide.getChildren().addAll(anomalyBox, statsBox);
-        mainBox.getChildren().addAll(myDroneDisplay, rightSide);
+        // Making each side
+        VBox leftSide = buildLeftSide();
+        VBox rightSide = buildRightSide();
+        mainBox.getChildren().addAll(leftSide, rightSide);
 
         // MenuBar setup
-        MenuBar menuBar = new MenuBar();
-
-        Menu fileMenu = new Menu("File");
-        MenuItem clearItem = new MenuItem("Clear");
-        MenuItem closeItem = new MenuItem("Close Sim.");
-        MenuItem exitItem = new MenuItem("Exit");
-        exitItem.setOnAction(_ -> thePrimaryStage.close());
-
-        Menu pauseMenu = new Menu("Pause");
-        /*
-        doActionMenu.setOnShowing(e -> {
-            doSomething();
-        });
-         */
-        Menu endMenu = new Menu("End");
-
-        fileMenu.getItems().addAll(clearItem, closeItem, exitItem);
-        menuBar.getMenus().addAll(fileMenu, pauseMenu, endMenu);
+        MenuBar menuBar = buildMenuBar(thePrimaryStage);
 
         // Wrap stuff in a BorderPane
         BorderPane root = new BorderPane();
@@ -316,7 +285,7 @@ public class MonitorDash extends Application {
 
         Scene scene = new Scene(root, 800, 600);
         scene.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource("Odark_theme.css")).toExternalForm()
+                Objects.requireNonNull(getClass().getResource("dark_theme.css")).toExternalForm()
         );
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(scene);
@@ -334,13 +303,123 @@ public class MonitorDash extends Application {
 
             PauseTransition pause = new PauseTransition(Duration.seconds(5));
             pause.setOnFinished(_ -> {
-                data.setLatitude(500.0); data.setLongitude(100.0); data.setAltitude(1.0);
+                data.setLatitude(1000.0); data.setLongitude(1000.0); data.setAltitude(1.0);
                 data.setVelocity(4.0); data.setOrientation(180.0);
                 drone1.updateTelemetryData(data);
                 refreshDroneDisplay(drones);
+                updateTimeText(2.0);
             });
             pause.play();
         });
+    }
+
+    /**
+     * Setup for the GUI's menu bar.
+     *
+     * @param thePrimaryStage The primary stage of the JavaFX GUI.
+     * @return The GUI's menu bar.
+     */
+    private MenuBar buildMenuBar(final Stage thePrimaryStage) {
+        MenuBar menuBar = new MenuBar();
+
+        //File Menu and its Items
+        Menu fileMenu = new Menu("File");
+        MenuItem clearItem = new MenuItem("Clear");
+        MenuItem closeItem = new MenuItem("Close Sim.");
+        MenuItem exitItem = new MenuItem("Exit");
+        exitItem.setOnAction(_ -> thePrimaryStage.close());
+        fileMenu.getItems().addAll(clearItem, closeItem, exitItem);
+
+        //Pause Menu
+        Menu pauseMenu = new Menu("Pause");
+        /*
+        doActionMenu.setOnShowing(e -> {
+            doSomething();
+        });
+         */
+
+        //End Menu
+        Menu endMenu = new Menu("End");
+
+        //Adding menus to the MenuBar
+        menuBar.getMenus().addAll(fileMenu, pauseMenu, endMenu);
+
+        return menuBar;
+    }
+
+    /**
+     * Setup for the right side of the GUI.
+     *
+     * @return VBox containing the elements of the right side.
+     */
+    private VBox buildRightSide() {
+        VBox rightSide = new VBox(10);
+        rightSide.setPrefWidth(275);
+
+        //Setup for the Anomaly and Stats text
+        myAnomalyText = new TextArea();
+        myAnomalyText.setWrapText(true);
+        myAnomalyText.setEditable(false);
+        myAnomalyText.getStyleClass().add("dark-text-area");
+        myAnomalyText.setFont(Font.font("Helvetica", 14));
+
+        myStatsText = new TextArea();
+        myStatsText.setWrapText(true);
+        myStatsText.setEditable(false);
+        myStatsText.getStyleClass().add("dark-text-area");
+        myStatsText.setFont(Font.font("Helvetica", 14));
+
+        //Setup for the Anomaly and Stats boxes
+        VBox anomalyBox = new VBox();
+        anomalyBox.getStyleClass().add("rounded-box");
+        buildVBox(anomalyBox, "Anomaly Reports", myAnomalyText);
+
+        VBox statsBox = new VBox();
+        statsBox.setPrefHeight(200);
+        statsBox.setMinHeight(Control.USE_PREF_SIZE);
+        statsBox.setMaxHeight(Control.USE_PREF_SIZE);
+        statsBox.getStyleClass().add("rounded-box");
+        buildVBox(statsBox, "Drone Statistics", myStatsText);
+
+        rightSide.getChildren().addAll(anomalyBox, statsBox);
+
+        return rightSide;
+    }
+
+    /**
+     * Setup for the left side of the GUI.
+     *
+     * @return VBox containing the elements of the left side.
+     */
+    private VBox buildLeftSide() {
+        // Drone display
+        myDroneDisplay = new Pane();
+        myDroneDisplay.getStyleClass().add("drone-display");
+
+        //Make sure drone display's children is hid behind it
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.setArcWidth(12);  // match CSS corner radius
+        clip.setArcHeight(12);
+        clip.widthProperty().bind(myDroneDisplay.widthProperty());
+        clip.heightProperty().bind(myDroneDisplay.heightProperty());
+        myDroneDisplay.setClip(clip);
+
+        VBox leftSide = new VBox();
+        HBox.setHgrow(leftSide, Priority.ALWAYS);
+        VBox.setVgrow(myDroneDisplay, Priority.ALWAYS);
+
+        //Box to hold our time label
+        HBox timeBox = new HBox();
+        timeBox.setPrefHeight(20);
+        timeBox.getStyleClass().add("rounded-box");
+
+        //Making our time label
+        myTimeLabel.getStyleClass().add("time-label");
+        timeBox.getChildren().add(myTimeLabel);
+
+        leftSide.getChildren().addAll(myDroneDisplay, timeBox);
+
+        return leftSide;
     }
 
     /**
@@ -349,7 +428,7 @@ public class MonitorDash extends Application {
      * @param theVBox The vbox you're setting up.
      * @param theTextArea The text you're using in the setup.
      */
-    private void VBoxSetup(final VBox theVBox,
+    private void buildVBox(final VBox theVBox,
                            final String theHeaderText, final TextArea theTextArea) {
         VBox.setVgrow(theVBox, Priority.ALWAYS);
 
@@ -358,7 +437,6 @@ public class MonitorDash extends Application {
 
         ScrollPane sPane = new ScrollPane();
         sPane.getStyleClass().add("dark-scroll-pane");
-
         sPane.setContent(theTextArea);
         sPane.setFitToHeight(true);
         sPane.setFitToWidth(true);
