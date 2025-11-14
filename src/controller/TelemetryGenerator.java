@@ -15,24 +15,27 @@ public class TelemetryGenerator {
     }
 
     private void generateAll(final TelemetryData theTelemetryData, TelemetryData currentTelemetry) {
-        generateLatitude(theTelemetryData);
-        generateLongitude(theTelemetryData);
+        generateLatitude(theTelemetryData, currentTelemetry);
+        generateLongitude(theTelemetryData, currentTelemetry);
         generateAltitude(theTelemetryData, currentTelemetry);
         generateOrientation(theTelemetryData, currentTelemetry);
         generateVelocity(theTelemetryData, currentTelemetry);
     }
 
+    // latitude = y, Vertical
+    // longitude = x, Horizontal
 
-    private void generateLatitude(final TelemetryData theTelemetryData) {
+    private void generateLatitude(final TelemetryData theTelemetryData, final TelemetryData theCurrentTelemetry) {
         // Random class generate 0.0 to 1.0, we need * 100 to generate 0 to 100
         // This double is randomly generating a number between 0 and 100
-        final double randomLatitude  = randomNumGenerator.nextDouble() * 100;
-        theTelemetryData.setLatitude(randomLatitude);
+
+        final double newLatitudePosition = theCurrentTelemetry.getVelocity() * Math.cos(theCurrentTelemetry.getOrientation());
+        theTelemetryData.setLatitude(newLatitudePosition);
     }
 
-    private void generateLongitude(final TelemetryData theTelemetryData) {
-        final double randomLongitude = randomNumGenerator.nextDouble() * 100;
-        theTelemetryData.setLongitude(randomLongitude);
+    private void generateLongitude(final TelemetryData theTelemetryData, final TelemetryData theCurrentTelemetry) {
+        final double newLongitudePosition = theCurrentTelemetry.getVelocity() * Math.cos(theCurrentTelemetry.getOrientation());
+        theTelemetryData.setLongitude(newLongitudePosition);
     }
 
     public TelemetryData generateStartAltitude() {
@@ -284,18 +287,5 @@ public class TelemetryGenerator {
 
         // Assigning new Velocity to the newTelemetry
         theNewTelemetry.setVelocity(Math.round(newVelocity));
-
-        /*  1st edition
-        Using a 2D int array for velocityRange
-
-        int[][] velocityRange = {
-                {0,10},
-                {11, 30},
-                {31, 60},
-                {61, 101}
-        };
-
-        int[] velocityRangeWeight = {15, 45, 35, 5};
-        */
     }
 }
