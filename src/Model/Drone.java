@@ -1,7 +1,5 @@
 package Model;
 
-import java.util.Random;
-
 /**
  * A class that represents the drone that we're simulating on.
  * Uses another object called Telemetry Data which acts as the storage
@@ -21,7 +19,7 @@ public class Drone {
     private final Battery myBattery = new Battery();
 
     /** An int that is use as drone counter for all created drone objects */
-    private static int droneCounter = 0;
+    private static int myDroneCounter = 0;
 
     /** An int that represent the drone individual id */
     private int myDroneID;
@@ -29,15 +27,12 @@ public class Drone {
     /** A boolean that represent whether the drone is on or no */
     private boolean myDroneStatus;
 
-    /** Random generator to help generate random battery level */
-    static final Random randomNumGen = new Random();
-
     /* CONSTRUCTORS */
 
     /** A non-arg constructor that initializes the drone id, and set the drone status to on */
     public Drone() {
-        myDroneID = droneCounter;
-        droneCounter++;
+        myDroneID = myDroneCounter;
+        myDroneCounter++;
         myDroneStatus = true;
         myBattery.initializeBatteryLevel();
     }
@@ -48,9 +43,8 @@ public class Drone {
      * @param droneTelemetryData represents the wanted telemetry data to assign to the drone.
      */
     public Drone(TelemetryData droneTelemetryData) {
+        super();
         myTelemetryData = droneTelemetryData;
-        myDroneID += 1;
-        myDroneStatus = true;
     }
 
     /* GETTERS */
@@ -96,10 +90,6 @@ public class Drone {
         myBattery.setLevel(theNewBatteryLevel);
     }
 
-    public void simulateBatteryDrain() {
-        myBattery.drain(myTelemetryData.getVelocity());
-    }
-
     /**
      * A setter to update the drone Telemetry Data
      *
@@ -107,5 +97,15 @@ public class Drone {
      */
     public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
         myTelemetryData = theNewTelemetryData;
+    }
+
+
+    /* LOGIC */
+
+    /**
+     * A method that handles the battery drain simulation
+     */
+    public void simulateBatteryDrain() {
+        myBattery.drain(myTelemetryData.getVelocity());
     }
 }
