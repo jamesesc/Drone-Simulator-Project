@@ -29,9 +29,6 @@ public class Drone {
     /** A boolean that represent whether the drone is on or no */
     private boolean myDroneStatus;
 
-    /** Constant that represent the amount of power the Battery */
-    private static final int BATTERY_DECREASE = 10;
-
     /** Random generator to help generate random battery level */
     private static final Random randomNumGen = new Random();
 
@@ -180,79 +177,5 @@ public class Drone {
             batteryDecrease = 30;
         }
         myBattery -= batteryDecrease;
-    }
-
-    /* MAIN METHOD */
-
-    /* Main method to do various testing usage */
-    public static void main(String[] args) {
-        // Testing Decrement
-        // testUpdate();
-
-
-    }
-
-    /* Helper method to test the updateBattery, seeing the decrease of battery for each level */
-    private static void testUpdate() {
-        // An array of drones to test on
-        Drone[] droneTestArray = new Drone[100];
-
-        /* Looping through the array, initializing the drone, battery level, velocity and then seeing the difference
-        when we called the updateBatterLevel */
-        for (int i = 0; i < 100; i++) {
-            droneTestArray[i] = new Drone();
-            droneTestArray[i].setBatteryLevel(i);
-            droneTestArray[i].myTelemetryData.setVelocity(i);
-        }
-
-        for (Drone drone : droneTestArray) {
-            int beforeBatteryLevel = drone.getBatteryLevel();
-            System.out.println("BEFORE UPDATE");
-            System.out.println("Battery Level: " + beforeBatteryLevel + ", Velocity: " + drone.myTelemetryData.getVelocity());
-
-            drone.updateDroneBattery();
-
-            System.out.println("AFTER UPDATE");
-            System.out.println("Battery Decrease: " + (beforeBatteryLevel - drone.getBatteryLevel()));
-            System.out.println("Battery Level: " + drone.getBatteryLevel() + ", Velocity: " + drone.myTelemetryData.getVelocity());
-
-            System.out.println("\n\n\n");
-        }
-    }
-
-
-    private static void testBatteryProb() {
-        // Storing all ranges categories to count them up
-        int low = 0, medium = 0, high = 0;
-        // The number of tests to do
-        int testNum = 1000000;
-
-        /* Looping through until the numTest.
-          For each loop, generate a new drone, and see what batter level it generated.
-          From there, add it up to the appropriate category it belongs.
-          */
-        for (int i = 0; i < testNum; i++) {
-            Model.Drone droneTest = new Model.Drone();
-
-            // Seeing the individual battery level for each new drone
-            // System.out.println(newTest.getBatteryLevel());
-
-            // Storing the current drone battery level
-            int batteryLvl = droneTest.getBatteryLevel();
-
-            // Assigning the new generated batter to its correct range
-            if (batteryLvl < 20) {
-                low++;
-            } else if (batteryLvl < 50) {
-                medium++;
-            } else {
-                high++;
-            }
-        }
-
-        // Printing the probability to see if it's right
-        System.out.println("Low (0-19)   " + low + "  =  " + String.format("%.1f", low * 100.0 / testNum) + "%");
-        System.out.println("Medium (20-49):        " + medium + "  =  " + String.format("%.1f", medium * 100.0 / testNum) + "%");
-        System.out.println("High (50 - 100):   " + high + "  =  " + String.format("%.1f", high * 100.0 / testNum) + "%");
     }
 }
