@@ -22,6 +22,29 @@ public class TelemetryGenerator {
         generateVelocity(theTelemetryData, currentTelemetry);
     }
 
+
+    public TelemetryData generateStartPosition() {
+        // The Area where it can spawn is in a circle
+
+        TelemetryData returnTelemetry = new TelemetryData();
+
+        int radius = 50; // 50 Feet
+
+        int spawnArea = (int) (Math.PI * Math.pow(radius, 2));
+
+        double randomAngle = randomNumGenerator.nextDouble() * 2 * Math.PI; // For 0 to 2pi raidens
+        double randomDistance = randomNumGenerator.nextDouble() * 50; // 0 to 50 units
+
+        double latOffset = randomDistance * Math.cos(randomAngle);
+        double longOffset = randomDistance * Math.sin(randomAngle);
+
+        returnTelemetry.setLatitude(latOffset);
+        returnTelemetry.setLongitude(longOffset);
+
+        return returnTelemetry;
+    }
+
+
     // latitude = y, Vertical
     // longitude = x, Horizontal
 
