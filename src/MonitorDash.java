@@ -474,6 +474,33 @@ public class MonitorDash extends Application {
     }
 
     /**
+     * Swaps between displaying the small stats boxes and the big stats box.
+     *
+     * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
+     */
+    private void swapRightPanel(boolean theBigStatsBox) {
+        if (theBigStatsBox == myShowingStats) return;
+
+        myShowingStats = theBigStatsBox;
+
+        //Hide the correct box
+        if (theBigStatsBox) {
+            myLiveTelemetry.setVisible(false);
+            myStatsText.setVisible(true);
+        } else {
+            myStatsText.setVisible(false);
+            myLiveTelemetry.setVisible(true);
+        }
+    }
+
+    /* ====================================
+    BUILDING OUT SPECIFIC SECTIONS
+
+    (made these helpers so start() wouldn't
+    be an infernal hellscape of code)
+     ====================================*/
+
+    /**
      * Helper method for start(), builds the top-left of the GUI.
      *
      * @return Returns a VBox containing the top-left of the GUI.
@@ -616,26 +643,6 @@ public class MonitorDash extends Application {
     }
 
     /**
-     * Swaps between displaying the small stats boxes and the big stats box.
-     *
-     * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
-     */
-    private void swapRightPanel(boolean theBigStatsBox) {
-        if (theBigStatsBox == myShowingStats) return;
-
-        myShowingStats = theBigStatsBox;
-
-        //Hide the correct box
-        if (theBigStatsBox) {
-            myLiveTelemetry.setVisible(false);
-            myStatsText.setVisible(true);
-        } else {
-            myStatsText.setVisible(false);
-            myLiveTelemetry.setVisible(true);
-        }
-    }
-
-    /**
      * Setup for the GUI's menu bar.
      *
      * @param thePrimaryStage The primary stage of the JavaFX GUI.
@@ -669,6 +676,7 @@ public class MonitorDash extends Application {
         return menuBar;
     }
 
+    //Start the application
     public static void main(final String[] theArgs) {
         launch(theArgs);
     }
