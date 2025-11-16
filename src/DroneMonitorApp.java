@@ -70,7 +70,7 @@ public class DroneMonitorApp {
 
     private static void printDroneData(final DroneMonitorApp myDroneApp) {
         for (Drone droneData : myDroneApp.myDroneFleet) {
-            TelemetryData droneTelemetryData = droneData.getMyDroneTelemetryData();
+            TelemetryData droneTelemetryData = droneData.getDroneTelemetry();
             System.out.println("Drone ID: " + droneData.getDroneID());
             System.out.println("Altitude: " + droneTelemetryData.getAltitude());
             System.out.println("Longitude: " + droneTelemetryData.getLongitude());

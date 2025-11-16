@@ -1,70 +1,27 @@
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.PauseTransition;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import javafx.scene.control.Tooltip;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import Model.Drone;
 import Model.TelemetryData;
 
 public class MonitorDash extends Application {
-    /**
-     * The text area showing Drone anomalies.
-     */
-    private TextArea myAnomalyText;
-    /**
-     * The text area showing Drone statistics.
-     */
-    private TextArea myStatsText;
-    /**
-     * Singleton variable for our JavaFX App instance.
-     */
-    private volatile static MonitorDash myInstance;
-    /**
-     * Where the drones will be displayed.
-     */
-    private Pane myDroneDisplay;
-    /**
-     * What each drone will look like.
-     */
-    private final Image myDroneImage = new Image(Objects.requireNonNull(
-            getClass().getResourceAsStream("drone_image.png")));
-    /**
-     * A label representing how much time's gone on in the simulation.
-     */
-    private final Label myTimeLabel = new Label("Time: ");
-    /**
-     * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
-     * singleton stuff makes us gotta worry about multiple threads.
-     */
-    private final Map<Integer, ImageView> myDroneViews = new ConcurrentHashMap<>();
+    /* ============================
+    CONSTANTS - You can edit these
+     ==============================*/
+
     /**
      * Minimum bound for longitude.
      */
@@ -85,11 +42,127 @@ public class MonitorDash extends Application {
      * How much we're multiplying the drone size by, in case
      * we want to make it bigger or smaller.
      */
-    private static final double SIZE_SCALER = 20;
+    private static final double SIZE_SCALER = 10;
     /**
      * Minimum size a drone can be in our GUI.
      */
     private static final double MIN_DRONE_SIZE = 10;
+    /**
+     * Maximum size a drone can be in our GUI.
+     */
+    private static final double MAX_DRONE_SIZE = 40;
+    /**
+     * How many drone stats are we going to have to display in the top-right.
+     * NOTE: Constant for now, but in the future I want to be able to adjust for
+     * adjustable drone counts (in case we simulate a drone crashing or something).
+     */
+    private final int DRONE_COUNT = 4;
+
+    /* ===============================
+    FIELDS FOR GUI ELEMENTS - Generally don't touch them
+     ================================= */
+
+    /**
+     * The text area showing Drone anomalies.
+     */
+    private TableView<MonitorTableEntry> myAnomalyTable;
+    /**
+     * VBox containing the little boxes that show each drone's stats (holds myDroneBoxes).
+     */
+    private VBox myLiveTelemetry;
+    /**
+     * The text area showing Drone statistics.
+     */
+    private TextArea myStatsText;
+    /**
+     * Singleton variable for our JavaFX App instance.
+     */
+    private volatile static MonitorDash myInstance;
+    /**
+     * Where the drones will be displayed.
+     */
+    private Pane myDroneDisplay;
+    /**
+     * What each drone will look like.
+     */
+    private final Image myDroneImage = new Image(Objects.requireNonNull(
+            getClass().getResourceAsStream("pointer.png")));
+    /**
+     * A label representing how much time's gone on in the simulation.
+     */
+    private final Label myTimeLabel = new Label("Time: ");
+    /**
+     * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
+     * singleton stuff makes us gotta worry about multiple threads.
+     */
+    private final Map<Integer, ImageView> myDroneViews = new ConcurrentHashMap<>();
+    /**
+     * Map of all the small RegionBoxes for displaying their stats in the top-right.
+     */
+    private final Map<Integer, RegionBox> myDroneBoxes = new ConcurrentHashMap<>();
+    /**
+     * Map of all the drones currently in use by the GUI.
+     */
+    private final Map<Integer, Drone> myDrones = new ConcurrentHashMap<>();
+
+    /*==============================
+    FIELDS THAT ARE ACTUAL VARIABLES
+     ===============================*/
+    /**
+     * Used by the method rightSwapPanel(), if true then show the big stats box.
+     * Otherwise, show the little ones.
+     */
+    private boolean myShowingStats = false;
+
+    /* ==========================
+    THE ONE RECORD WE GOT SO FAR
+     ===========================*/
+
+    /**
+     * Record that makes our little stats boxes in the top-right
+     * NOTE: We may want to make this a separate class at some point.
+     *
+     * @param theId
+     * @param theHeader
+     * @param theTextArea
+     * @param theContainer
+     */
+    private record RegionBox(int theId, Label theHeader, TextArea theTextArea, VBox theContainer) {
+        public RegionBox(int theID, String theTitle) {
+            this(
+                    theID,
+                    new Label(theTitle),
+                    new TextArea(),
+                    new VBox()
+            );
+
+            theHeader.getStyleClass().add("box-header");
+
+            theTextArea.setText("Battery:\nAltitude:\nPosition:");
+            theTextArea.setWrapText(true);
+            theTextArea.setEditable(false);
+            theTextArea.setFocusTraversable(false);
+            theTextArea.getStyleClass().add("dark-text-area");
+            theTextArea.setFont(Font.font("Helvetica", 14));
+
+            theContainer.setPrefHeight(100);
+            theContainer.setMinHeight(Control.USE_PREF_SIZE);
+            theContainer.setMaxHeight(Control.USE_PREF_SIZE);
+            theContainer.getChildren().addAll(theHeader, theTextArea);
+
+            theContainer.setOnMouseClicked(_ -> {
+                Drone d = MonitorDash.getInstance().myDrones.get(theId);
+                if (d != null) {
+                    MonitorDash.getInstance().updateStatsTextLarge(d);
+                    MonitorDash.getInstance().swapRightPanel(true);
+                }
+            });
+        }
+
+        void setText(String theText) {
+            Platform.runLater(() -> theTextArea.setText(theText));
+        }
+    }
 
     /*======================
     INTERACTING WITH THE GUI
@@ -98,7 +171,9 @@ public class MonitorDash extends Application {
     /**
      * Constructor of MyJavaFXApp, for Singleton stuff.
      */
-    public MonitorDash() { myInstance = this; }
+    public MonitorDash() {
+        myInstance = this;
+    }
 
     /**
      * Getter for the singleton instance of the Java Application.
@@ -117,143 +192,188 @@ public class MonitorDash extends Application {
     }
 
     /**
-     * Refresh the drone display with the drones you want shown.
+     * Updates the time label with the specified time.
+     *
+     * @param theTime The current time.
+     */
+    public void updateTime(final double theTime) {
+        myTimeLabel.setText("Time: " + theTime);
+    }
+
+    /**
+     * Refresh the drone display for a single drone.
+     *
+     * @param drone The drone to show
+     */
+    public void refreshDroneDisplay(final Drone drone) {
+        //If a drone or its contents are null, do nothing
+        if (drone == null || drone.getDroneTelemetry() == null) {
+            return;
+        }
+
+        Platform.runLater(() -> moveDroneView(drone));
+    }
+
+    /**
+     * Refresh the drone display for multiple drones.
      *
      * @param myDrones Drones you are showing
      */
     public void refreshDroneDisplay(final Drone[] myDrones) {
-        //Checking for anything invalid in our array of drones
-        for (int i = 0; i < myDrones.length; i++) {
-            if (myDrones[i] == null || myDrones[i].getMyDroneTelemetryData() == null) {
-                throw new IllegalArgumentException("Illegal Argument Exception " +
-                        "in refreshDroneDisplay: Element " + i + " of the array " +
-                        "is null, or has null TelemetryData");
-            }
+        //If the array is null, do nothing
+        if (myDrones == null) return;
+
+        //Call single-drone version iteratively
+        for (Drone drone : myDrones) {
+            refreshDroneDisplay(drone);
         }
-        Platform.runLater(() -> {
-            //Remove images that don't exist anymore (just in case)
-            Set<Integer> activeIds = new HashSet<>();
-            for (Drone drone : myDrones) {
-                activeIds.add(drone.getDroneID());
-            }
-            myDroneViews.keySet().removeIf(id -> {
-                if (!activeIds.contains(id)) {
-                    myDroneDisplay.getChildren().remove(myDroneViews.get(id));
-                    return true;
-                }
-                return false;
+    }
+
+    /**
+     * Helper method for refreshDroneDisplay.
+     * Moves the corresponding Drone ImageView for the drone
+     *
+     * @param theDrone The drone we are moving.
+     */
+    private void moveDroneView(Drone theDrone) {
+        //Store the drone for RegionBox lookups or in case user clicks it
+        myDrones.put(theDrone.getDroneID(), theDrone);
+
+        double displayWidth = myDroneDisplay.getWidth();
+        double displayHeight = myDroneDisplay.getHeight();
+        TelemetryData data = theDrone.getDroneTelemetry();
+
+        //Create or retrieve the ImageView
+        ImageView droneView = myDroneViews.computeIfAbsent(theDrone.getDroneID(), id -> {
+            ImageView view = new ImageView(myDroneImage);
+            view.setPreserveRatio(true);
+            Tooltip.install(view, new Tooltip("Drone " + id));
+
+            //Clicking opens large stats
+            view.setOnMouseClicked(_ -> {
+                updateStatsTextLarge(theDrone);
+                swapRightPanel(true);
             });
 
-            //Getting width and height of drone display for size and location
-            double displayWidth = myDroneDisplay.getWidth();
-            double displayHeight = myDroneDisplay.getHeight();
+            //Add the image view to where the drones will be displayed
+            myDroneDisplay.getChildren().add(view);
 
-            //Iterate through all the drones
-            for (Drone drone : myDrones) {
-                TelemetryData data = drone.getMyDroneTelemetryData();
-                if (data == null) continue;
-
-                //If a drone with the given ID isn't in our map, we make one with it
-                ImageView droneView = myDroneViews.computeIfAbsent(drone.getDroneID(), id -> {
-                    ImageView view = new ImageView(myDroneImage);
-                    view.setPreserveRatio(true);
-                    Tooltip.install(view, new Tooltip("Drone " + id));
-                    view.setOnMouseClicked(_ -> updateStatsText(drone));
-                    myDroneDisplay.getChildren().add(view);
-
-                    //Our starting values for location, size, rotation
-                    view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                            * displayWidth - Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER) / 2);
-                    view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                            * displayHeight - Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER) / 2);
-                    view.setFitWidth(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER));
-                    view.setFitHeight(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER));
-                    view.setScaleX(1);
-                    view.setScaleY(1);
-                    view.setRotate(data.getOrientation());
-
-                    return view;
-                });
-
-                //Where we want the drone to end up (size, location, angle)
-                double targetSize = Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER);
-                double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                        * displayWidth - targetSize / 2;
-                double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                        * displayHeight - targetSize / 2;
-                double targetAngle = data.getOrientation();
-
-                //Interpolating ourselves to our target state
-                Timeline timeline = new Timeline(
-                        new KeyFrame(Duration.seconds(1),
-                                new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
-                                new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
-                                new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
-                                new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
-                                new KeyValue(droneView.rotateProperty(), targetAngle, Interpolator.EASE_BOTH)
-                        )
-                );
-
-                timeline.play();
-            }
+            //Initial placement/size/rotation/orientation
+            double initSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
+            view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
+                    * displayWidth - initSize / 2);
+            view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
+                    * displayHeight - initSize / 2);
+            view.setFitWidth(initSize);
+            view.setFitHeight(initSize);
+            view.setRotate(data.getOrientation());
+            return view;
         });
+
+        //Target animation values
+        double targetSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
+        double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
+                * displayWidth - targetSize / 2;
+        double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
+                * displayHeight - targetSize / 2;
+        double targetAngle = data.getOrientation();
+
+        //Transition animation
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.seconds(1),
+                        new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
+                        new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
+                        new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
+                        new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
+                        new KeyValue(droneView.rotateProperty(), targetAngle, Interpolator.EASE_BOTH)
+                )
+        );
+        timeline.play();
+
+        updateStatsText(theDrone);
     }
 
     /**
-     * Adds another anomaly record to the anomalies text field.
+     * Update the large stats box at the top-right of the GUI.
      *
-     * @param theRecord What record you want info from to add to the field.
+     * @param theDrone The drone whose data we are looking at.
      */
-    public void addAnomalyText(final AnomalyRecord theRecord) {
-        if (theRecord == null) {
-            throw new IllegalArgumentException("Illegal Argument in " +
-                    "addAnomalyText: Passed AnomalyRecord is null");
-        }
-        Platform.runLater(() -> {
-            String add = "Time: " + theRecord.getTime() +
-                    "\nMethod check failed: " + theRecord.getMethod() +
-                    "\nID for drone (null if multiple): " + theRecord.getID() +
-                    "\n=======================\n";
-            myAnomalyText.appendText(add);
-        });
+    public void updateStatsTextLarge(final Drone theDrone) {
+        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
+
+        TelemetryData data = theDrone.getDroneTelemetry();
+
+        String statsString = "Drone " + theDrone.getDroneID() +
+                "\n==========================" +
+                "\nBattery: " + theDrone.getBatteryLevel() +
+                "\nAltitude: " + data.getAltitude() +
+                "\nLatitude: " + data.getLatitude() +
+                "\nLongitude: " + data.getLongitude() +
+                "\nVelocity: " + data.getVelocity() +
+                "\nOrientation: " + data.getOrientation() + "°";
+
+        Platform.runLater(() -> myStatsText.setText(statsString));
     }
 
     /**
-     * What drone you are showing the stats for.
+     * Update the small stats boxes at the top right of the GUI.
      *
-     * @param theDrone The drone whose stats you want to display.
+     * @param theDrone The drone whose data we want to display.
      */
     public void updateStatsText(final Drone theDrone) {
-        //Checking for invalid arguments
-        if (theDrone == null ||
-                theDrone.getMyDroneTelemetryData() == null) {
-            throw new IllegalArgumentException("Illegal Argument Exception: " +
-                    "updateStatsText (invalid Drone/Drone has null TelemetryData)");
-        }
-        Platform.runLater(() -> {
-            TelemetryData data = theDrone.getMyDroneTelemetryData();
-            String replace = "ID: " + theDrone.getDroneID() +
-                    "\nBattery: " + theDrone.getBatteryLevel() +
-                    "\nLongitude: " + data.getLongitude() +
-                    "\nLatitude: " + data.getLatitude() +
-                    "\nAltitude: " + data.getAltitude() +
-                    "\nVelocity: " + data.getVelocity() +
-                    "\nOrientation: " + data.getOrientation();
-            myStatsText.setText(replace);
-        });
+        //If our drone or its data is null, return nothing
+        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
+
+        //Build a string for our little stats box to use
+        StringBuilder statsString = new StringBuilder();
+        TelemetryData data = theDrone.getDroneTelemetry();
+
+        statsString.append("Battery: ").append(theDrone.getBatteryLevel());
+        statsString.append("\nAltitude: ").append(data.getAltitude());
+        statsString.append("\nPosition: ").append(data.getLatitude())
+                .append(" ").append(data.getLongitude());
+
+        //Set the text of the stats box w/ the matching ID of the drone
+        myDroneBoxes.get(theDrone.getDroneID()).setText(statsString.toString());
     }
 
     /**
-     * Updates the label that shows the player what time the simulation is in.
-     * Note for devs: Be sure to update timeUnits if needed
+     * Update the small stats boxes at the top right of the GUI.
      *
-     * @param theTime The time it currently is.
+     * @param theDrones All the drones whose data we want to display.
      */
-    public void updateTimeText(final double theTime) {
-        String timeUnits = "Seconds";
-        myTimeLabel.setText("Time: " + theTime + " " + timeUnits);
+    public void updateStatsText(final Drone[] theDrones) {
+        //If the array is null do nothing
+        if (theDrones == null) return;
+
+        //For each drone, do the non-array equivalent of this function
+        for (Drone drone : theDrones) {
+            updateStatsText(drone);
+        }
     }
 
+    public void addAnomalyRecord(AnomalyRecord theRecord) {
+        Platform.runLater(() -> {
+            //Whether or not the ID is null, otherwise turn it into a String
+            String idString = (theRecord.getID() == null) ? "—" : String.valueOf(theRecord.getID());
+
+            //Turn the time into a string
+            String timeString = Double.toString(theRecord.getTime());
+
+            //Make a new AnomalyEntry record for our table
+            MonitorTableEntry entry = new MonitorTableEntry(
+                    timeString,
+                    idString,
+                    theRecord.getType(),
+                    theRecord.getSeverity(),
+                    theRecord.getDetails()
+            );
+
+            //Add our entry and scroll to it
+            myAnomalyTable.getItems().add(entry);
+            myAnomalyTable.scrollTo(entry);
+        });
+    }
 
     /* =====================
     BUILDING THE APPLICATION
@@ -264,21 +384,43 @@ public class MonitorDash extends Application {
      *
      * @param thePrimaryStage Our primary JavaFX stage.
      */
-    @Override
     public void start(final Stage thePrimaryStage) {
-        // Main content HBox
-        HBox mainBox = new HBox(10);
+        //Main VBox that holds everything
+        VBox mainBox = new VBox(10);
         mainBox.getStyleClass().add("main-box");
 
-        // Making each side
-        VBox leftSide = buildLeftSide();
-        VBox rightSide = buildRightSide();
-        mainBox.getChildren().addAll(leftSide, rightSide);
+        //The top and bottom of the GUI
+        HBox topSide = new HBox(10);
+        HBox bottomSide = new HBox();
+        bottomSide.setPrefHeight(150);
+        bottomSide.setMinHeight(150);
+        bottomSide.setMaxHeight(150);
+        VBox.setVgrow(bottomSide, Priority.NEVER);
+        HBox.setHgrow(bottomSide, Priority.ALWAYS);
 
-        // MenuBar setup
+        VBox.setVgrow(topSide, Priority.ALWAYS);
+        mainBox.getChildren().addAll(topSide, bottomSide);
+
+        //Building each section - top-left, top-right, and bottom
+        VBox topLeft = buildTopLeft();
+        StackPane rightSwapPane = buildTopRight();
+        VBox anomalyBox = buildBottom();
+
+        HBox.setHgrow(topLeft, Priority.ALWAYS);
+        VBox.setVgrow(topLeft, Priority.ALWAYS);
+        HBox.setHgrow(rightSwapPane, Priority.NEVER);
+
+        //Adding the respective sections to either the top or bottom
+        topSide.getChildren().addAll(topLeft, rightSwapPane);
+
+        bottomSide.setFillHeight(true);
+        bottomSide.getChildren().add(anomalyBox);
+        bottomSide.setMaxWidth(Double.MAX_VALUE);
+
+        //Menu bar
         MenuBar menuBar = buildMenuBar(thePrimaryStage);
 
-        // Wrap stuff in a BorderPane
+        //Setting up the root to hold all our stuff
         BorderPane root = new BorderPane();
         root.setTop(menuBar);
         root.setCenter(mainBox);
@@ -287,30 +429,210 @@ public class MonitorDash extends Application {
         scene.getStylesheets().add(
                 Objects.requireNonNull(getClass().getResource("dark_theme.css")).toExternalForm()
         );
+
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
 
-        //Examples for right hand side
+        //Stuff the program runs after its build
         Platform.runLater(() -> {
-            TelemetryData data = new TelemetryData();
-            data.setLatitude(0.0); data.setLongitude(0.0); data.setAltitude(0.0);
-            data.setVelocity(4.0); data.setOrientation(90.0);
-            Drone drone1 = new Drone(data);
+            swapRightPanel(false); //Don't delete this part
 
-            Drone[] drones = {drone1};
+            // Example drones and anomaly
+            TelemetryData data = new TelemetryData(1, 1, 1, 1, 1);
+            Drone drone = new Drone(data);
+            drone.setBatteryLevel(100);
+
+            TelemetryData data1 = new TelemetryData(500, 500, 10, 180, 500);
+            Drone drone1 = new Drone(data1);
+            drone1.setBatteryLevel(40);
+
+            Drone[] drones = {drone, drone1};
+
             refreshDroneDisplay(drones);
+            updateStatsText(drones);
+
+            AnomalyRecord anomaly = new AnomalyRecord("test", 67, 31.0, "kill me", ":)");
+            addAnomalyRecord(anomaly);
+
+            AnomalyRecord anomaly1 = new AnomalyRecord("test1", 69, 32.0, "dn", ":(");
+            addAnomalyRecord(anomaly1);
+
+            updateTime(2);
 
             PauseTransition pause = new PauseTransition(Duration.seconds(5));
             pause.setOnFinished(_ -> {
-                data.setLatitude(1000.0); data.setLongitude(1000.0); data.setAltitude(1.0);
-                data.setVelocity(4.0); data.setOrientation(180.0);
-                drone1.updateTelemetryData(data);
+                TelemetryData data3 = new TelemetryData(1000, 3, 3, 3, 3);
+                TelemetryData data4 = new TelemetryData(30, 30, 5, 30, 30);
+                drone.updateTelemetryData(data4);
+                drone1.updateTelemetryData(data3);
                 refreshDroneDisplay(drones);
-                updateTimeText(2.0);
+                updateTime(5);
             });
             pause.play();
         });
+    }
+
+    /**
+     * Helper method for start(), builds the top-left of the GUI.
+     *
+     * @return Returns a VBox containing the top-left of the GUI.
+     */
+    private VBox buildTopLeft() {
+        //Top left vbox that's going to hold all our stuff
+        VBox topLeft = new VBox();
+
+        //Making our drone display
+        myDroneDisplay = new Pane();
+        myDroneDisplay.getStyleClass().add("drone-display");
+
+        //Clip to make sure that the drones in drone
+        //display aren't displayed over its rounded edges
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.setArcWidth(12);
+        clip.setArcHeight(12);
+        clip.widthProperty().bind(myDroneDisplay.widthProperty());
+        clip.heightProperty().bind(myDroneDisplay.heightProperty());
+        myDroneDisplay.setClip(clip);
+
+        //The box holding our drone display and time label (so it looks nice :))
+        VBox droneBox = new VBox();
+        droneBox.getStyleClass().add("rounded-box");
+        VBox.setVgrow(droneBox, Priority.ALWAYS);
+        VBox.setVgrow(myDroneDisplay, Priority.ALWAYS);
+        myDroneDisplay.setMinHeight(0);
+
+        //Making the time label stylish
+        myTimeLabel.getStyleClass().add("box-header");
+
+        //Adding children to their respective parents
+        droneBox.getChildren().addAll(myTimeLabel, myDroneDisplay);
+        topLeft.getChildren().add(droneBox);
+
+        return topLeft;
+    }
+
+    /**
+     * Helper method for start(), builds the top-right of the GUI.
+     *
+     * @return A StackPane containing the top-right of the GUI.
+     */
+    private StackPane buildTopRight() {
+        //Setup for the VBox that's going to hold our small drone stats boxes.
+        myLiveTelemetry = new VBox();
+        myLiveTelemetry.setPrefWidth(275);
+        HBox.setHgrow(myLiveTelemetry, Priority.NEVER);
+        myLiveTelemetry.getStyleClass().add("rounded-box");
+
+        //Header for our main vbox
+        Label header = new Label("Live Telemetry");
+        header.getStyleClass().add("box-header");
+
+        //VBox that holds each RegionBox
+        VBox droneHolder = new VBox();
+        droneHolder.setSpacing(10);
+
+        //Make it so we can scroll through all our stats
+        ScrollPane sPane = new ScrollPane();
+        sPane.getStyleClass().add("dark-scroll-pane");
+        sPane.setFitToHeight(true);
+        sPane.setFitToWidth(true);
+        sPane.setContent(droneHolder);
+        VBox.setVgrow(sPane, Priority.ALWAYS);
+
+        //Add a region box based on the number of drone boxes
+        for (int i = 1; i <= DRONE_COUNT; i++) {
+            RegionBox rb = new RegionBox(i, "Drone " + i);
+            myDroneBoxes.put(i, rb);
+            droneHolder.getChildren().add(rb.theContainer());
+        }
+
+        //Add children to our main top-right vbox
+        myLiveTelemetry.getChildren().addAll(header, sPane);
+
+        //Adjusting the big stats box
+        myStatsText = new TextArea();
+        myStatsText.setEditable(false);
+        myStatsText.setWrapText(true);
+        myStatsText.setVisible(false);
+        myStatsText.getStyleClass().add("dark-text-area");
+        myStatsText.setFont(Font.font("Helvetica", 14));
+        myStatsText.setOnMouseClicked(_ -> swapRightPanel(false));
+
+        //The pane that allows us to swap between big stats box and small stats boxes
+        StackPane rightSwapPane = new StackPane();
+        rightSwapPane.getChildren().addAll(myLiveTelemetry, myStatsText);
+
+        //Makes it so the large stats box doesn't take up more width than it needs (bug fix)
+        myStatsText.prefWidthProperty().bind(myLiveTelemetry.prefWidthProperty());
+
+        return rightSwapPane;
+    }
+
+    /**
+     * A helper method for start(), builds the bottom half of the GUI.
+     *
+     * @return A VBox containing the bottom half of the GUI.
+     */
+    private VBox buildBottom() {
+        //The table that'll show us all our AnomalyRecords
+        myAnomalyTable = new TableView<>();
+        myAnomalyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);
+        VBox.setVgrow(myAnomalyTable, Priority.ALWAYS);
+
+        //Setting up each column of the Anomaly Table
+        TableColumn<MonitorTableEntry, String> col1 = new TableColumn<>("Timestamp");
+        TableColumn<MonitorTableEntry, String> col2 = new TableColumn<>("Drone ID");
+        TableColumn<MonitorTableEntry, String> col3 = new TableColumn<>("Type");
+        TableColumn<MonitorTableEntry, String> col4 = new TableColumn<>("Severity");
+        TableColumn<MonitorTableEntry, String> col5 = new TableColumn<>("Details");
+
+        col1.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
+        col2.setCellValueFactory(new PropertyValueFactory<>("droneId"));
+        col3.setCellValueFactory(new PropertyValueFactory<>("type"));
+        col4.setCellValueFactory(new PropertyValueFactory<>("severity"));
+        col5.setCellValueFactory(new PropertyValueFactory<>("details"));
+
+        myAnomalyTable.getColumns().addAll(List.of(col1, col2, col3, col4, col5));
+
+        //Box that'll be holding everything at the bottom
+        VBox anomalyBox = new VBox();
+        anomalyBox.getStyleClass().add("rounded-box");
+        VBox.setVgrow(anomalyBox, Priority.ALWAYS);
+
+        //Header to make the bottom section look nice :)
+        Label anomalyHeader = new Label("Anomaly Log");
+        anomalyHeader.getStyleClass().add("box-header");
+
+        //Size stuff
+        VBox.setVgrow(myAnomalyTable, Priority.ALWAYS);
+        anomalyBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(anomalyBox, Priority.ALWAYS);
+
+        //Giving the main box for the bottom its children
+        anomalyBox.getChildren().addAll(anomalyHeader, myAnomalyTable);
+
+        return anomalyBox;
+    }
+
+    /**
+     * Swaps between displaying the small stats boxes and the big stats box.
+     *
+     * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
+     */
+    private void swapRightPanel(boolean theBigStatsBox) {
+        if (theBigStatsBox == myShowingStats) return;
+
+        myShowingStats = theBigStatsBox;
+
+        //Hide the correct box
+        if (theBigStatsBox) {
+            myLiveTelemetry.setVisible(false);
+            myStatsText.setVisible(true);
+        } else {
+            myStatsText.setVisible(false);
+            myLiveTelemetry.setVisible(true);
+        }
     }
 
     /**
@@ -345,104 +667,6 @@ public class MonitorDash extends Application {
         menuBar.getMenus().addAll(fileMenu, pauseMenu, endMenu);
 
         return menuBar;
-    }
-
-    /**
-     * Setup for the right side of the GUI.
-     *
-     * @return VBox containing the elements of the right side.
-     */
-    private VBox buildRightSide() {
-        VBox rightSide = new VBox(10);
-        rightSide.setPrefWidth(275);
-
-        //Setup for the Anomaly and Stats text
-        myAnomalyText = new TextArea();
-        myAnomalyText.setWrapText(true);
-        myAnomalyText.setEditable(false);
-        myAnomalyText.getStyleClass().add("dark-text-area");
-        myAnomalyText.setFont(Font.font("Helvetica", 14));
-
-        myStatsText = new TextArea();
-        myStatsText.setWrapText(true);
-        myStatsText.setEditable(false);
-        myStatsText.getStyleClass().add("dark-text-area");
-        myStatsText.setFont(Font.font("Helvetica", 14));
-
-        //Setup for the Anomaly and Stats boxes
-        VBox anomalyBox = new VBox();
-        anomalyBox.getStyleClass().add("rounded-box");
-        buildVBox(anomalyBox, "Anomaly Reports", myAnomalyText);
-
-        VBox statsBox = new VBox();
-        statsBox.setPrefHeight(200);
-        statsBox.setMinHeight(Control.USE_PREF_SIZE);
-        statsBox.setMaxHeight(Control.USE_PREF_SIZE);
-        statsBox.getStyleClass().add("rounded-box");
-        buildVBox(statsBox, "Drone Statistics", myStatsText);
-
-        rightSide.getChildren().addAll(anomalyBox, statsBox);
-
-        return rightSide;
-    }
-
-    /**
-     * Setup for the left side of the GUI.
-     *
-     * @return VBox containing the elements of the left side.
-     */
-    private VBox buildLeftSide() {
-        // Drone display
-        myDroneDisplay = new Pane();
-        myDroneDisplay.getStyleClass().add("drone-display");
-
-        //Make sure drone display's children is hid behind it
-        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
-        clip.setArcWidth(12);  // match CSS corner radius
-        clip.setArcHeight(12);
-        clip.widthProperty().bind(myDroneDisplay.widthProperty());
-        clip.heightProperty().bind(myDroneDisplay.heightProperty());
-        myDroneDisplay.setClip(clip);
-
-        VBox leftSide = new VBox();
-        HBox.setHgrow(leftSide, Priority.ALWAYS);
-        VBox.setVgrow(myDroneDisplay, Priority.ALWAYS);
-
-        //Box to hold our time label
-        HBox timeBox = new HBox();
-        timeBox.setPrefHeight(20);
-        timeBox.getStyleClass().add("rounded-box");
-
-        //Making our time label
-        myTimeLabel.getStyleClass().add("time-label");
-        timeBox.getChildren().add(myTimeLabel);
-
-        leftSide.getChildren().addAll(myDroneDisplay, timeBox);
-
-        return leftSide;
-    }
-
-    /**
-     * Setup for some of our VBoxes, method used to reduce duplicate code.
-     *
-     * @param theVBox The vbox you're setting up.
-     * @param theTextArea The text you're using in the setup.
-     */
-    private void buildVBox(final VBox theVBox,
-                           final String theHeaderText, final TextArea theTextArea) {
-        VBox.setVgrow(theVBox, Priority.ALWAYS);
-
-        Label header = new Label(theHeaderText);
-        header.getStyleClass().add("box-header");
-
-        ScrollPane sPane = new ScrollPane();
-        sPane.getStyleClass().add("dark-scroll-pane");
-        sPane.setContent(theTextArea);
-        sPane.setFitToHeight(true);
-        sPane.setFitToWidth(true);
-        VBox.setVgrow(sPane, Priority.ALWAYS);
-
-        theVBox.getChildren().addAll(header, sPane);
     }
 
     public static void main(final String[] theArgs) {

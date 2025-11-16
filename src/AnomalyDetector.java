@@ -63,7 +63,7 @@ public class AnomalyDetector {
         List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(thePrior, theCurrent, theTime)));
 
         for (int i = 0; i < theCurrent.length; i++) {
-            if (detectTeleport(thePrior[i], theCurrent[i].getMyDroneTelemetryData(), theTimeStep)) {
+            if (detectTeleport(thePrior[i], theCurrent[i].getDroneTelemetry(), theTimeStep)) {
                 returnList.add(new AnomalyRecord("detectTeleport",
                         theCurrent[i].getDroneID(), theTime));
             }
@@ -88,7 +88,7 @@ public class AnomalyDetector {
             }
         }
         for (int i = 0; i < theDrones.length; i++) {
-            if (theDrones[i] == null || theDrones[i].getMyDroneTelemetryData() == null) {
+            if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
                 throw new IllegalArgumentException("Illegal Argument " +
                         "for Drone[] in analyzeDrones(TelemetryData[], " +
                         "Drone[], double, double): Element " + i + " or " +
@@ -119,7 +119,7 @@ public class AnomalyDetector {
         List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(theCurrent, theTime)));
 
         for (int i = 0; i < theCurrent.length; i++) {
-            TelemetryData data = theCurrent[i].getMyDroneTelemetryData();
+            TelemetryData data = theCurrent[i].getDroneTelemetry();
 
             if (detectSuddenDropJump(thePrior[i], data)) {
                 returnList.add(new AnomalyRecord("detectSuddenDropJump",
@@ -145,7 +145,7 @@ public class AnomalyDetector {
                                          final double theTime) {
         // Null Checks
         for (int i = 0; i < theDrones.length; i++) {
-            if (theDrones[i] == null || theDrones[i].getMyDroneTelemetryData() == null) {
+            if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
                 throw new IllegalArgumentException("Illegal Argument " +
                         "for Drone[] in analyzeDrones(Drone[], double): " +
                         "Element" + i + " or its telemetryData is null");
@@ -168,7 +168,7 @@ public class AnomalyDetector {
                 returnList.add(new AnomalyRecord("isBatteryLow", drone.getDroneID(), theTime));
             }
 
-            TelemetryData data = drone.getMyDroneTelemetryData();
+            TelemetryData data = drone.getDroneTelemetry();
 
             if (detectTooFast(data)) {
                 returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime));
@@ -236,7 +236,7 @@ public class AnomalyDetector {
      */
     public boolean detectSharingLocations(final Drone[] theDrones) {
         for (int i = 0; i < theDrones.length; i++) {
-            if (theDrones[i] == null || theDrones[i].getMyDroneTelemetryData() == null) {
+            if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
                 throw new IllegalArgumentException("Illegal Argument " +
                         "for Drone[] in detectSharingLocations(Drone[]): " +
                         "Element" + i + " or its telemetryData is null");
@@ -249,8 +249,8 @@ public class AnomalyDetector {
 
         for (Drone drone : theDrones) {
             Location loc = new Location(
-                    drone.getMyDroneTelemetryData().getLatitude(),
-                    drone.getMyDroneTelemetryData().getLongitude()
+                    drone.getDroneTelemetry().getLatitude(),
+                    drone.getDroneTelemetry().getLongitude()
             );
 
             if (seen.contains(loc)) {
