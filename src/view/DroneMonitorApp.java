@@ -1,6 +1,10 @@
+package view;
+
 import Model.Drone;
 import Model.TelemetryData;
-import Simulation.TelemetryGenerator;
+import controller.AnomalyDetector;
+import controller.TelemetryGenerator;
+import database.AnomalyDB;
 
 import java.util.Timer;
 

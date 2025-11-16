@@ -1,4 +1,4 @@
-package Simulation;
+package controller;
 
 import Model.TelemetryData;
 

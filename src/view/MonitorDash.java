@@ -1,3 +1,6 @@
+package view;
+
+import Model.AnomalyRecord;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;

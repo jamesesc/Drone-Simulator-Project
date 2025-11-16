@@ -1,3 +1,6 @@
+package controller;
+
+import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 
@@ -48,7 +51,7 @@ public class AnomalyDetector {
      * @param theCurrent The current drones.
      * @param theTime The current time.
      * @param theTimeStep The time since we last checked.
-     * @return An array of all the anomalies in AnomalyRecord form
+     * @return An array of all the anomalies in Model.AnomalyRecord form
      */
     public AnomalyRecord[] analyzeDrones(final TelemetryData[] thePrior,
                                          final Drone[] theCurrent,

@@ -1,3 +1,5 @@
+package Model;
+
 public class AnomalyRecord {
     /**
      * Type of anomaly we're getting
