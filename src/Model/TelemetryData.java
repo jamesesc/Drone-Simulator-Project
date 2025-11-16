@@ -39,6 +39,14 @@ public class TelemetryData {
         myVelocity = 0;
     }
 
+    public TelemetryData(double theLatitude, double theLongitude,
+                         double theAltitude, double theOrientation, double theVelocity) {
+        myLatitude = theLatitude;
+        myLongitude = theLongitude;
+        myAltitude = theAltitude;
+        myOrientation = theOrientation;
+        myVelocity = theVelocity;
+    }
 
     /* GETTERS */
 
