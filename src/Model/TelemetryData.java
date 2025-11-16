@@ -2,6 +2,9 @@ package Model;
 
 /**
  * An object class that contains all the telemetry data for the drone.
+ *
+ * @author James Escudero
+ * @version Autumn 2025
  */
 public class TelemetryData {
     /* FIELDS */
