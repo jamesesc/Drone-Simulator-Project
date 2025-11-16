@@ -3,7 +3,7 @@ https://github.com/jamesesc/Drone-Simulator-Project
 
 --Fourth Deliverable--
 
-Oisin Perkins-Gilbert: The most difficult thing I did this week was making this GUI, getting it just right, and then tearing it apart to make something completely different like Frankenstein's monster. Overall, it was still worth it, as the layout that James came up with was better in pretty much every regard. I still need to pretty it up and make it more efficient though, so its definitely a work in progress. Also juggling my time is pretty hard, I'm currently typing this from work.
+Oisin Perkins-Gilbert: The most difficult thing I did this week was making this GUI, getting it just right, and then tearing it apart to make something completely different like Frankenstein's monster. Overall, it was still worth it, as the layout that James came up with was better in pretty much every regard. I still need to pretty it up and make it more efficient though, so its definitely a work in progress. Also juggling my time is pretty hard, I'm currently typing this from work (unfortunately I am a part-time worker and a full-time student).
 
 James Escudero:
 
