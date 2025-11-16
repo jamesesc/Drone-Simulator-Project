@@ -1,0 +1,138 @@
+/* ----------------
+Variables for Color
+------------------- */
+.root {
+    -fx-base-dark: rgb(26,26,26);
+    -fx-base-medium: rgb(48,48,48);
+    -fx-base-gray: rgb(60,60,60);
+}
+
+/* -----------
+General layout
+-------------- */
+.main-box {
+    -fx-background-color: -fx-base-medium;
+    -fx-padding: 10;
+}
+.drone-display {
+    -fx-background-color: red;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: -fx-base-gray;
+    -fx-border-width: 1;
+    -fx-padding: 8;
+    -fx-effect: none;
+}
+.time-label .text{
+    -fx-fill: white;
+    -fx-font-size: 18;
+}
+
+/* --------------------
+Rounded VBox containers
+----------------------- */
+.rounded-box {
+    -fx-background-color: -fx-base-dark;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: -fx-base-gray;
+    -fx-border-width: 1;
+    -fx-padding: 8;
+    -fx-effect: none;
+}
+.box-header {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 10 0 10;
+    -fx-border-color: rgb(80,80,80);
+    -fx-border-width: 0 0 1 0;
+}
+
+/* --------------
+Dark text areas
+----------------- */
+.dark-text-area {
+    -fx-background-color: -fx-base-dark;
+    -fx-control-inner-background: -fx-base-dark;
+    -fx-text-fill: white;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+    -fx-highlight-fill: derive(-fx-base-dark, 20%);
+    -fx-highlight-text-fill: white;
+}
+
+/* ----------------------------
+ScrollPane & Scrollbar styling
+----------------------------- */
+.dark-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-radius: 12;
+}
+.dark-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.scroll-bar { -fx-background-color: -fx-base-medium; }
+.scroll-bar .thumb {
+    -fx-background-color: -fx-base-gray;
+    -fx-background-radius: 8;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-color: -fx-base-medium;
+}
+.scroll-bar .track {
+    -fx-background-color: -fx-base-dark;
+    -fx-background-radius: 8;
+}
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/*
+=======================
+MenuBar, Menu, MenuItem
+=======================
+*/
+.menu-bar {
+    -fx-background-color: -fx-base-dark;
+}
+.menu-bar .menu {
+    -fx-background-color: transparent;
+}
+.menu-bar .menu .label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+.menu-bar .menu:hover {
+    -fx-background-color: -fx-base-medium;
+}
+
+.menu-bar .menu:hover .label {
+    -fx-text-fill: white;
+}
+.context-menu {
+    -fx-background-color: -fx-base-dark;
+    -fx-border-color: transparent;
+}
+.menu-item {
+    -fx-background-color: -fx-base-dark;
+}
+.menu-item:hover, .menu-item:armed {
+    -fx-background-color: -fx-base-medium;
+}
+.menu-item .label, .menu-item:hover .label, .menu-item:armed .label {
+    -fx-text-fill: white;
+}
+.separator {
+    -fx-background-color: -fx-base-gray;
+}

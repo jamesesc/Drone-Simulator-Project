@@ -18,7 +18,7 @@ public class Drone {
     private TelemetryData myTelemetryData = new TelemetryData();
 
     /** An int that is use as drone counter for all created drone objects */
-    private static int droneCounter = 0;
+    private static int droneCounter = 1;
 
     /** An int that represent the drone individual id */
     private int myDroneID;
@@ -53,9 +53,12 @@ public class Drone {
      */
     public Drone(TelemetryData droneTelemetryData) {
         myTelemetryData = droneTelemetryData;
-        myDroneID += 1;
+        myDroneID = droneCounter;
+        droneCounter++;
         myDroneStatus = true;
+        initializeDroneBattery();
     }
+
 
 
     /* GETTERS */

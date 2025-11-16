@@ -1,5 +1,6 @@
 import Model.Drone;
 import Model.TelemetryData;
+import controller.AnomalyDetector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
