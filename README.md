@@ -8,7 +8,7 @@ Oisin Perkins-Gilbert: The most difficult thing I did this week was making this 
 James Escudero: James Escudero: For this week deliverable, there were 2 things that were quite challenging. One of these difficulties was the time management as I was drain from 2 midterms I had. Not only that, there were other responsibilities and events that I had to attend to. The other hard difficulties were refactoring the codebase to be more orangzed and modular (especially for DroneMonitorApp). I realized that the class was getting to big where it was handling many responsibilities at once. After this realization, it was too late as I was struggling to conceptually and implementing the class to be more modular. However, after some thinking, I was able to do so. For the following weeks, we need to really start implementing and connecting the front end with the back end.
 
 
-Mankirat Mann:
+Mankirat Mann: This week was hard because of midterms, ICPC, and other responsibilities. While working on the map, I ran into problems some problems because it loads but it doesn't load correctly. I made some progress with the GUI and drone display, but it still needs work.
 
 --Third Deliverable--
 
