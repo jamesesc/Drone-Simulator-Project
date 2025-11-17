@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Leaflet Map</title>
+
+    <!-- Link to Leaflet CSS to style map -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* Make pagefull screen, remove default spacing, hide scrollbars, set black background */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Make map container fill page */
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<!-- where the map will be displayed -->
+<div id="map"></div>
+
+<!-- Load Leaflet library -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Create the map in the map div, remove zoom and attribution controls, and center at given coordinates
+    const map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView([47.24618138382787, -122.43828637762586], 14);
+
+    // Add satellite imagery to map, and allow zooming
+    L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { maxZoom: 19 }
+    ).addTo(map);
+
+    // Fix map size after short delay in case container wasn't loaded
+    setTimeout(() => { map.invalidateSize(); }, 300);
+
+    // Update map size when the window is resized
+    window.addEventListener('resize', () => map.invalidateSize());
+</script>
+</body>
+</html>

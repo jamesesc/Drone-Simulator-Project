@@ -24,6 +24,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.scene.control.Tooltip;
+import javafx.scene.web.WebView;
+import javafx.scene.web.WebEngine;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -82,6 +84,10 @@ public class MyJavaFXApp extends Application {
      * we wanna make it bigger or smaller.
      */
     private static final double SIZE_SCALER = 20;
+
+    //For map
+    private WebView myMapView;
+    private WebEngine myMapEngine;
 
     /**
      * Constructor of MyJavaFXApp, for Singleton stuff.
@@ -238,10 +244,28 @@ public class MyJavaFXApp extends Application {
         HBox mainBox = new HBox(10);
         mainBox.getStyleClass().add("main-box");
 
+        // Map backfground setup
+        // Create webview to display HTML content( Leaflet map)
+        myMapView = new WebView();
+        // Get WebEngine from WebView to load HTML
+        myMapEngine = myMapView.getEngine();
+        // Load map.html file into WebView
+        loadMapFromFile();
+        // Allow mouse clicks to drone for future functionality
+        myMapView.setMouseTransparent(true);
+
         // Drone display
+        // Pane to hold drones and map
         myDroneDisplay = new Pane();
-        myDroneDisplay.getStyleClass().add("drone-display");
+        // fill horizontal space in the dispaly
         HBox.setHgrow(myDroneDisplay, Priority.ALWAYS);
+
+        // Add map Webview as a child so it appears in background
+        myDroneDisplay.getChildren().add(myMapView);
+        // match Maps width with Panes width
+        myMapView.prefWidthProperty().bind(myDroneDisplay.widthProperty());
+        // match Maps height with Panes height
+        myMapView.prefHeightProperty().bind(myDroneDisplay.heightProperty());
 
         //Make sure drone display's children is hid behind it
         javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
@@ -332,6 +356,21 @@ public class MyJavaFXApp extends Application {
             pause.play();
         });
     }
+    // Loads map.html file into webview
+    private void loadMapFromFile() {
+        try {
+            // get the url of map.html in the resources folder
+            String mapPath = Objects.requireNonNull(
+                    getClass().getResource("map.html")
+            ).toExternalForm();
+            // load map into WebEngine
+            myMapEngine.load(mapPath);
+        } catch (Exception e) {
+            // Print error if loading fails
+            System.err.println("Failed to load map.html: " + e.getMessage());
+        }
+    }
+
 
     /**
      * Setup for some of our VBoxes, method used to reduce duplicate code.
@@ -359,4 +398,5 @@ public class MyJavaFXApp extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
 }
