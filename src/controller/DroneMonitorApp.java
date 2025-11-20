@@ -1,29 +1,34 @@
 package controller;
 
 /**
- * A class that handles and manges the simulation logic.
- * The class uses many other helper classes to help function and operate the simulation all together
+ * A Controller class that handles and mange the core system of the simulation.
+ * The class uses many helper classes to help build the functionality and operation
+ * of the simulation all together.
  *
  * @author James Escudero
  * @version Fall 2025
  */
 public class DroneMonitorApp {
-    /* Represent the 1 Object instance */
+    /* Represent the DroneMonitorApp instance */
     private static DroneMonitorApp instance;
 
-    /* A class that help manges the time system of the simulation */
+    /* A class object that help manage the time system of the simulation */
     private final TimerManger myTimerManger;
 
-    /* A class that help manges the tasks that needs be done */
+    /* A class object that help manage run the tasks needed for the simulation */
     private final SimulationScheduler mySchedulerOperator;
 
-    /** Private constructor to create the DroneMonitorApp */
+    /** Private constructor to create the DroneMonitorApp instance */
     private DroneMonitorApp() {
         myTimerManger = TimerManger.getInstance();
         mySchedulerOperator = SimulationScheduler.getInstance();
     }
 
-    /** A method to ensure only 1 DroneMonitorApp is created */
+    /**
+     * A method to ensure only one TimeManger instance is created.
+     *
+     * @return the single instance of the DroneMonitorApp.
+     */
     public static DroneMonitorApp getInstance() {
         if (instance == null) {
             instance = new DroneMonitorApp();
@@ -31,12 +36,11 @@ public class DroneMonitorApp {
         return instance;
     }
 
-    /* METHOD */
+    /* Methods: Different Simulation "Stages/Phases" */
 
-    /** Method to startTimer the simulation */
+    /** Method to start the simulation */
     public void startSim() {
         myTimerManger.startTimer();
-        System.out.println("Working: DroneMonitorApp");
         mySchedulerOperator.startSimulationTask();
     }
 
