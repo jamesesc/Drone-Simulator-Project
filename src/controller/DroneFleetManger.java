@@ -69,6 +69,7 @@ public class DroneFleetManger {
 
     /**  Method that initialize drone fleet array with new drone objects */
     public void initializeFleet() {
+        System.out.println("Working: DroneFleetManger - InitializeFleet");
         for (int i = 0; i < DRONE_COUNT; i++) {
             myDroneFleet[i] = new Drone();
         }

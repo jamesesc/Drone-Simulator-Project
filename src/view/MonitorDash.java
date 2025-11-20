@@ -201,8 +201,11 @@ public class MonitorDash extends Application {
      *
      * @param theTime The current time.
      */
-    public void updateTime(final double theTime) {
-        myTimeLabel.setText("Time: " + theTime);
+    public void updateTime(final int theTime) {
+        // Will update to the UI thread safely
+        Platform.runLater(() -> {
+            myTimeLabel.setText("Time: " + theTime);
+        });
     }
 
     /**

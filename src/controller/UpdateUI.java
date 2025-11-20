@@ -27,12 +27,13 @@ public class UpdateUI {
 
     /** Method that updates the UI with the drone telemetry data */
     public void updateDroneTelemetry() {
+        System.out.println("Working: UpdateUI - updateDroneTelemetry");
         DroneFleetManger fleetManager = DroneFleetManger.getInstance();
         MonitorDash.getInstance().updateStatsText(fleetManager.getSpecificDrone(0));
     }
 
     //TODO: Update the UI with the timer display
-    public void updateTimer(final Double theTime) {
+    public void updateTimer(final int theTime) {
         MonitorDash.getInstance().updateTime(theTime);
     }
 }

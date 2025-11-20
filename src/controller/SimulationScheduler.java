@@ -72,6 +72,13 @@ public class SimulationScheduler {
                 timerInterval,
                 TimeUnit.SECONDS
         );
+
+        myScheduleOperation.scheduleAtFixedRate(
+                this::updateTime,
+                0,
+                timerInterval,
+                TimeUnit.SECONDS
+        );
     }
 
     /* Helper Methods to start the simulation */
@@ -100,5 +107,11 @@ public class SimulationScheduler {
 
         // 5) Update the display
         myUIUpdater.updateDroneTelemetry();
+    }
+
+    private void updateTime() {
+        int elapseTime = TimerManger.getInstance().getElapsedTime();
+
+        myUIUpdater.updateTimer(elapseTime);
     }
 }
