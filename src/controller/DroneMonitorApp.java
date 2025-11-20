@@ -46,12 +46,12 @@ public class DroneMonitorApp {
 
     /** Method to pause the simulation */
     public void pauseSim() {
-        myTimerManger.paused();
+        myTimerManger.pauseTimer();
     }
 
-    /** Method to continue the simulation after simulation has been paused */
+    /** Method to continue the simulation after simulation has been pauseTimer */
     public void continueSim() {
-        myTimerManger.resume();
+        myTimerManger.resumeTimer();
     }
 
     /** Method to stop the simulation all together */
