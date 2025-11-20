@@ -49,16 +49,23 @@ public class TelemetryGenerator {
     // longitude = x, Horizontal
 
     private void generateLatitude(final TelemetryData theTelemetryData, final TelemetryData theCurrentTelemetry) {
-        // Random class generate 0.0 to 1.0, we need * 100 to generate 0 to 100
-        // This double is randomly generating a number between 0 and 100
+        // Converting the drone current orientation to radians
+        double orientationInRadians = Math.toRadians(theCurrentTelemetry.getOrientation());
 
-        final double newLatitudePosition = theCurrentTelemetry.getVelocity() * Math.cos(theCurrentTelemetry.getOrientation());
-        theTelemetryData.setLatitude(newLatitudePosition);
+        // Calculate how much we moved vertically (aka the Y-axis)
+        double changeInY = theCurrentTelemetry.getVelocity() * Math.cos(orientationInRadians);
+
+        // Adding the change to the old Position to the new TelemetryData output
+        theTelemetryData.setLatitude(theCurrentTelemetry.getLatitude() + changeInY);
     }
 
     private void generateLongitude(final TelemetryData theTelemetryData, final TelemetryData theCurrentTelemetry) {
-        final double newLongitudePosition = theCurrentTelemetry.getVelocity() * Math.cos(theCurrentTelemetry.getOrientation());
-        theTelemetryData.setLongitude(newLongitudePosition);
+        double orientationInRadians = Math.toRadians(theCurrentTelemetry.getOrientation());
+
+        // Calculate how much we moved vertically (aka the x-axis)
+        double changeInX = theCurrentTelemetry.getVelocity() * Math.sin(orientationInRadians);
+
+        theTelemetryData.setLongitude(theCurrentTelemetry.getLongitude() + changeInX);
     }
 
     public TelemetryData generateStartAltitude() {
@@ -249,7 +256,7 @@ public class TelemetryGenerator {
         // Putting in the hashmap the key of the potential ranges, and then their corresponding weighted chances
         speedCategoryWeights.put("0-5", Arrays.asList(20, 50 , 25, 4, 1));
         speedCategoryWeights.put("6-15", Arrays.asList(10, 30, 50, 8, 2));
-        speedCategoryWeights.put("16-30", Arrays.asList(5, 20, 60, 12, 3));
+        speedCategoryWeights.put("16-30", Arrays.asList(5, 20, 50, 22, 3));
         speedCategoryWeights.put("31-45", Arrays.asList(2, 10, 40, 40, 8));
         speedCategoryWeights.put("46-50", Arrays.asList(1, 5, 25, 50, 19));
 
