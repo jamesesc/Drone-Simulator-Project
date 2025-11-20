@@ -30,24 +30,24 @@ public class MonitorDash extends Application {
     /**
      * Minimum bound for longitude.
      */
-    private static final double MIN_LONGITUDE = -100;
+    private static final double MIN_LONGITUDE = -250;
     /**
      * Maximum bound for longitude.
      */
-    private static final double MAX_LONGITUDE = 100;
+    private static final double MAX_LONGITUDE = 250;
     /**
      * Minimum bound for latitude.
      */
-    private static final double MIN_LATITUDE = -100;
+    private static final double MIN_LATITUDE = -250;
     /**
      * Maximum bound for latitude.
      */
-    private static final double MAX_LATITUDE = 100;
+    private static final double MAX_LATITUDE = 250;
     /**
      * How much we're multiplying the drone size by, in case
      * we want to make it bigger or smaller.
      */
-    private static final double SIZE_SCALER = 10;
+    private static final double SIZE_SCALER = 3;
     /**
      * Minimum size a drone can be in our GUI.
      */

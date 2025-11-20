@@ -50,6 +50,14 @@ public class SimulationScheduler {
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 
+        myUIUpdater.updateDroneTelemetry();
+
+        myScheduleOperation.schedule(
+                myUIUpdater::updateDroneTelemetry,
+                3,
+                TimeUnit.SECONDS
+        );
+
         // First schedule task to initialize drone altitudes at 3 seconds (1st update)
         myScheduleOperation.schedule(
                 myFleetManger::initializeFleetAltitude,

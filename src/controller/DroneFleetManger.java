@@ -28,6 +28,7 @@ public class DroneFleetManger {
         myDroneFleet = new Drone[DRONE_COUNT];
         myTelemetryGen = new TelemetryGenerator();
         initializeFleet();
+        initializeFleetPosition();
     }
 
     /** Method that ensures only one instance of the object is created */
@@ -78,7 +79,16 @@ public class DroneFleetManger {
     /** Method that initialize all drones in the fleet with their starting attitude */
     public void initializeFleetAltitude() {
         for (Drone drone : myDroneFleet) {
-            drone.updateTelemetryData(myTelemetryGen.generateStartAltitude());
+            TelemetryData droneCurrData = drone.getDroneTelemetry();
+            TelemetryData altitudeData = myTelemetryGen.generateStartAltitude();
+            droneCurrData.setAltitude(altitudeData.getAltitude());
+            drone.updateTelemetryData(droneCurrData);
+        }
+    }
+
+    private void initializeFleetPosition() {
+        for (Drone drone : myDroneFleet) {
+            drone.updateTelemetryData(myTelemetryGen.generateStartPosition());
         }
     }
 
