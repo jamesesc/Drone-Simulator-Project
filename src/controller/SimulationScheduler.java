@@ -29,7 +29,7 @@ public class SimulationScheduler {
 
     /** Private constructor to call and use the 1 instance of each object */
     private SimulationScheduler() {
-        myScheduleOperation = Executors.newScheduledThreadPool(1);
+        myScheduleOperation = Executors.newScheduledThreadPool(4);
         myTimerManger = TimerManger.getInstance();
         myFleetManger = DroneFleetManger.getInstance();
         myAnomalyProcessor = AnomalyProcessor.getInstance();
@@ -50,6 +50,14 @@ public class SimulationScheduler {
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 
+        myUIUpdater.updateDroneTelemetry();
+
+        myScheduleOperation.schedule(
+                myUIUpdater::updateDroneTelemetry,
+                3,
+                TimeUnit.SECONDS
+        );
+
         // First schedule task to initialize drone altitudes at 3 seconds (1st update)
         myScheduleOperation.schedule(
                 myFleetManger::initializeFleetAltitude,
@@ -65,9 +73,11 @@ public class SimulationScheduler {
                 TimeUnit.SECONDS
         );
 
-        // A fix Schedule task that sends the new updated telemetry data to the UI every 3 seconds
+
+        /* UI UPDATE TASK */
+
         myScheduleOperation.scheduleAtFixedRate(
-                myUIUpdater::updateDroneTelemetry,
+                this::updateTime,
                 0,
                 timerInterval,
                 TimeUnit.SECONDS
@@ -81,24 +91,39 @@ public class SimulationScheduler {
      * Generating telemetry data, detecting anomalies and updating the drone with the new telemetry.
      */
     private void updateDronesTask() {
-        // 1) Generate new telemetry for all drones
-        TelemetryData[] newTelemetry = myFleetManger.generateFleetData();
+        try {
+            // Checking if it does this
+            System.out.println("DEBUG: Executing updateDronesTask...");
 
-        // 2) Detect anomalies with the new telemetry
-        AnomalyRecord[] anomalies = myAnomalyProcessor.processAnomalies(
-                newTelemetry,
-                myFleetManger.getDroneFleet(),
-                myTimerManger.getElapsedTime(),
-                myTimerManger.getUpdateInterval()
-        );
+            // 1) Generate new telemetry for all drones
+            TelemetryData[] newTelemetry = myFleetManger.generateFleetData();
 
-        // 3) Save the new anomalies list to the database
-        myAnomalyProcessor.saveAnomaliesToDB(anomalies);
+            // 2) Detect anomalies
+            AnomalyRecord[] anomalies = myAnomalyProcessor.processAnomalies(
+                    newTelemetry,
+                    myFleetManger.getDroneFleet(),
+                    myTimerManger.getElapsedTime(),
+                    myTimerManger.getUpdateInterval()
+            );
 
-        // 4) Update all drones with the new telemetry data
-        myFleetManger.updateFleetData(newTelemetry);
+            // 3) Save anomalies
+            //myAnomalyProcessor.saveAnomaliesToDB(anomalies);
 
-        // 5) Update the display
-        myUIUpdater.updateDroneTelemetry();
+            // 4) Update fleet data
+            myFleetManger.updateFleetData(newTelemetry);
+
+            // 5) Update the display
+            myUIUpdater.updateDroneTelemetry();
+
+        } catch (Exception e) {
+            System.err.println("Theres a ERROR in updateDronesTask:");
+            e.printStackTrace();
+        }
+    }
+
+    private void updateTime() {
+        int elapseTime = TimerManger.getInstance().getElapsedTime();
+
+        myUIUpdater.updateTimer(elapseTime);
     }
 }

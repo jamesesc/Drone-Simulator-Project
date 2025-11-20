@@ -30,24 +30,24 @@ public class MonitorDash extends Application {
     /**
      * Minimum bound for longitude.
      */
-    private static final double MIN_LONGITUDE = -1000;
+    private static final double MIN_LONGITUDE = -250;
     /**
      * Maximum bound for longitude.
      */
-    private static final double MAX_LONGITUDE = 1000;
+    private static final double MAX_LONGITUDE = 250;
     /**
      * Minimum bound for latitude.
      */
-    private static final double MIN_LATITUDE = -1000;
+    private static final double MIN_LATITUDE = -250;
     /**
      * Maximum bound for latitude.
      */
-    private static final double MAX_LATITUDE = 1000;
+    private static final double MAX_LATITUDE = 250;
     /**
      * How much we're multiplying the drone size by, in case
      * we want to make it bigger or smaller.
      */
-    private static final double SIZE_SCALER = 10;
+    private static final double SIZE_SCALER = 3;
     /**
      * Minimum size a drone can be in our GUI.
      */
@@ -201,8 +201,11 @@ public class MonitorDash extends Application {
      *
      * @param theTime The current time.
      */
-    public void updateTime(final double theTime) {
-        myTimeLabel.setText("Time: " + theTime);
+    public void updateTime(final int theTime) {
+        // Will update to the UI thread safely
+        Platform.runLater(() -> {
+            myTimeLabel.setText("Time: " + theTime);
+        });
     }
 
     /**
@@ -225,13 +228,13 @@ public class MonitorDash extends Application {
      * @param myDrones Drones you are showing
      */
     public void refreshDroneDisplay(final Drone[] myDrones) {
-        //If the array is null, do nothing
-        if (myDrones == null) return;
+            //If the array is null, do nothing
+            if (myDrones == null) return;
 
-        //Call single-drone version iteratively
-        for (Drone drone : myDrones) {
-            refreshDroneDisplay(drone);
-        }
+            //Call single-drone version iteratively
+            for (Drone drone : myDrones) {
+                refreshDroneDisplay(drone);
+            }
     }
 
     /**
@@ -295,7 +298,10 @@ public class MonitorDash extends Application {
         );
         timeline.play();
 
-        updateStatsText(theDrone);
+        Platform.runLater(() -> {
+            updateStatsText(theDrone);
+        });
+
     }
 
     /**
@@ -304,20 +310,23 @@ public class MonitorDash extends Application {
      * @param theDrone The drone whose data we are looking at.
      */
     public void updateStatsTextLarge(final Drone theDrone) {
-        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
+        Platform.runLater(() -> {
+            if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
-        TelemetryData data = theDrone.getDroneTelemetry();
+            TelemetryData data = theDrone.getDroneTelemetry();
 
-        String statsString = "Drone " + theDrone.getDroneID() +
-                "\n==========================" +
-                "\nBattery: " + theDrone.getBatteryLevel() +
-                "\nAltitude: " + data.getAltitude() +
-                "\nLatitude: " + data.getLatitude() +
-                "\nLongitude: " + data.getLongitude() +
-                "\nVelocity: " + data.getVelocity() +
-                "\nOrientation: " + data.getOrientation() + "°";
+            String statsString = "Drone " + theDrone.getDroneID() +
+                    "\n==========================" +
+                    "\nBattery: " + theDrone.getBatteryLevel() +
+                    "\nAltitude: " + data.getAltitude() +
+                    "\nLatitude: " + data.getLatitude() +
+                    "\nLongitude: " + data.getLongitude() +
+                    "\nVelocity: " + data.getVelocity() +
+                    "\nOrientation: " + data.getOrientation() + "°";
 
-        Platform.runLater(() -> myStatsText.setText(statsString));
+            Platform.runLater(() -> myStatsText.setText(statsString));
+            System.out.println("Working - MonitorDash - updateStatsTextLarge");
+        });
     }
 
     /**
@@ -339,7 +348,21 @@ public class MonitorDash extends Application {
                 .append(" ").append(data.getLongitude());
 
         //Set the text of the stats box w/ the matching ID of the drone
-        myDroneBoxes.get(theDrone.getDroneID()).setText(statsString.toString());
+
+        if (myDroneBoxes != null) {
+            // 1. Get the box first
+            var box = myDroneBoxes.get(theDrone.getDroneID());
+
+            // 2. Check if the box actually exists before using it
+            if (box != null) {
+                box.setText(statsString.toString());
+            } else {
+                System.out.println("Warning: Drone ID " + theDrone.getDroneID() + " not found in UI map.");
+            }
+        } else {
+            System.out.println("Warning: myDroneBoxes map is null.");
+        }
+
     }
 
     /**
@@ -440,42 +463,42 @@ public class MonitorDash extends Application {
         thePrimaryStage.show();
 
         //Stuff the program runs after its build
-        Platform.runLater(() -> {
-            swapRightPanel(false); //Don't delete this part
-
-            // Example drones and anomaly
-            TelemetryData data = new TelemetryData(1, 1, 1, 1, 1);
-            Drone drone = new Drone(data);
-            drone.setBatteryLevel(100);
-
-            TelemetryData data1 = new TelemetryData(500, 500, 10, 180, 500);
-            Drone drone1 = new Drone(data1);
-            drone1.setBatteryLevel(40);
-
-            Drone[] drones = {drone, drone1};
-
-            refreshDroneDisplay(drones);
-            updateStatsText(drones);
-
-            AnomalyRecord anomaly = new AnomalyRecord("test", 67, 31.0, "kill me", ":)");
-            addAnomalyRecord(anomaly);
-
-            AnomalyRecord anomaly1 = new AnomalyRecord("test1", 69, 32.0, "dn", ":(");
-            addAnomalyRecord(anomaly1);
-
-            updateTime(2);
-
-            PauseTransition pause = new PauseTransition(Duration.seconds(5));
-            pause.setOnFinished(_ -> {
-                TelemetryData data3 = new TelemetryData(1000, 3, 3, 3, 3);
-                TelemetryData data4 = new TelemetryData(30, 30, 5, 30, 30);
-                drone.updateTelemetryData(data4);
-                drone1.updateTelemetryData(data3);
-                refreshDroneDisplay(drones);
-                updateTime(5);
-            });
-            pause.play();
-        });
+//        Platform.runLater(() -> {
+//            swapRightPanel(false); //Don't delete this part
+//
+//            // Example drones and anomaly
+//            TelemetryData data = new TelemetryData(1, 1, 1, 1, 1);
+//            Drone drone = new Drone(data);
+//            drone.setBatteryLevel(100);
+//
+//            TelemetryData data1 = new TelemetryData(500, 500, 10, 180, 500);
+//            Drone drone1 = new Drone(data1);
+//            drone1.setBatteryLevel(40);
+//
+//            Drone[] drones = {drone, drone1};
+//
+//            refreshDroneDisplay(drones);
+//            updateStatsText(drones);
+//
+//            AnomalyRecord anomaly = new AnomalyRecord("test", 67, 31.0, "kill me", ":)");
+//            addAnomalyRecord(anomaly);
+//
+//            AnomalyRecord anomaly1 = new AnomalyRecord("test1", 69, 32.0, "dn", ":(");
+//            addAnomalyRecord(anomaly1);
+//
+//            updateTime(2);
+//
+//            PauseTransition pause = new PauseTransition(Duration.seconds(5));
+//            pause.setOnFinished(_ -> {
+//                TelemetryData data3 = new TelemetryData(1000, 3, 3, 3, 3);
+//                TelemetryData data4 = new TelemetryData(30, 30, 5, 30, 30);
+//                drone.updateTelemetryData(data4);
+//                drone1.updateTelemetryData(data3);
+//                refreshDroneDisplay(drones);
+//                updateTime(5);
+//            });
+//            pause.play();
+//        });
     }
 
     /**
