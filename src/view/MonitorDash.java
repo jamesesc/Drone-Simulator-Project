@@ -1,9 +1,11 @@
 package view;
 
 import Model.AnomalyRecord;
+import controller.DroneMonitorApp;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -662,6 +664,13 @@ public class MonitorDash extends Application {
         exitItem.setOnAction(_ -> thePrimaryStage.close());
         fileMenu.getItems().addAll(clearItem, closeItem, exitItem);
 
+        // To actually make the menu button work on its own, we need to do a trick, where a label is inside a Menu
+        Menu startMenu = new Menu(""); // Empty text
+        Label startLabel = new Label("Start"); // Real Menu is here
+        startLabel.setOnMouseClicked(e -> startGame(null)); // Click action
+        startMenu.setGraphic(startLabel);
+
+
         //Pause Menu
         Menu pauseMenu = new Menu("Pause");
         /*
@@ -674,9 +683,14 @@ public class MonitorDash extends Application {
         Menu endMenu = new Menu("End");
 
         //Adding menus to the MenuBar
-        menuBar.getMenus().addAll(fileMenu, pauseMenu, endMenu);
+        menuBar.getMenus().addAll(fileMenu, startMenu, pauseMenu, endMenu);
 
         return menuBar;
+    }
+
+    private void startGame(ActionEvent actionEvent) {
+        DroneMonitorApp.getInstance().startSim();
+        System.out.print("Working: MonitorDash");
     }
 
     //Start the application

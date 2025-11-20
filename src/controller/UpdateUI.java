@@ -1,6 +1,8 @@
 package controller;
 
-import view.MyJavaFXApp;
+//import view.MyJavaFXApp;
+
+import view.MonitorDash;
 
 /**
  * A helper class that helps update the UI with certain info.
@@ -26,11 +28,11 @@ public class UpdateUI {
     /** Method that updates the UI with the drone telemetry data */
     public void updateDroneTelemetry() {
         DroneFleetManger fleetManager = DroneFleetManger.getInstance();
-        MyJavaFXApp.getInstance().updateStatsText(fleetManager.getSpecificDrone(0));
+        MonitorDash.getInstance().updateStatsText(fleetManager.getSpecificDrone(0));
     }
 
     //TODO: Update the UI with the timer display
-    public void updateTimer() {
-        // Timer display updates if needed
+    public void updateTimer(final Double theTime) {
+        MonitorDash.getInstance().updateTime(theTime);
     }
 }

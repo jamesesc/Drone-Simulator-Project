@@ -4,7 +4,6 @@ import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
-import view.MyJavaFXApp;
 
 /**
  * A helper class for the DroneMonitorApp to help and process the AnomalyProcessing.

@@ -36,6 +36,7 @@ public class DroneMonitorApp {
     /** Method to startTimer the simulation */
     public void startSim() {
         myTimerManger.startTimer();
+        System.out.println("Working: DroneMonitorApp");
         mySchedulerOperator.startSimulationTask();
     }
 

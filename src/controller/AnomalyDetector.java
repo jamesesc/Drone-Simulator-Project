@@ -6,7 +6,7 @@ import Model.TelemetryData;
 
 import java.util.*;
 
-public class AnomalyDetector {
+public class AnomalyDetector  {
     /**
      * What constitutes a battery being too low
      */

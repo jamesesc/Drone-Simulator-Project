@@ -46,6 +46,7 @@ public class SimulationScheduler {
 
     /** Method to start the simulation logic and schedule task */
     public void startSimulationTask() {
+        System.out.println("Working: startSimulationTask");
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 

@@ -60,14 +60,14 @@ public class AnomalyDB {
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            TelemetryData data = record.getTelemetryData();
+            //TelemetryData data = record.getTelemetryData();
 
             pstmt.setInt(1, record.getID());
-            pstmt.setDouble(2, data.getAltitude());
-            pstmt.setDouble(3, data.getLongitude());
-            pstmt.setDouble(4, data.getLatitude());
-            pstmt.setDouble(5, data.getOrientation());
-            pstmt.setDouble(6, data.getVelocity());
+//            pstmt.setDouble(2, data.getAltitude());
+//            pstmt.setDouble(3, data.getLongitude());
+//            pstmt.setDouble(4, data.getLatitude());
+//            pstmt.setDouble(5, data.getOrientation());
+//            pstmt.setDouble(6, data.getVelocity());
             pstmt.executeUpdate();
             return true;
         } catch (SQLException e) {

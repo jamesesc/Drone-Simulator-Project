@@ -48,6 +48,7 @@ public class TimerManger {
     public void startTimer() {
         myStartTime = System.currentTimeMillis();
         mySimStatus = "Running";
+        System.out.println("Working: TimeManger");
     }
 
     /** Method to pause the Timer */
