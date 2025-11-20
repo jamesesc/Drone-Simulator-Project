@@ -5,7 +5,6 @@ import controller.DroneMonitorApp;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -26,7 +25,6 @@ public class MonitorDash extends Application {
     /* ============================
     CONSTANTS - You can edit these
      ==============================*/
-
     /**
      * Minimum bound for longitude.
      */
@@ -119,6 +117,11 @@ public class MonitorDash extends Application {
      */
     private boolean myShowingStats = false;
 
+    /**
+     * Whether the game is paused. True = paused, False = not paused.
+     */
+    private boolean myIsPaused = false;
+
     /* ==========================
     THE ONE RECORD WE GOT SO FAR
      ===========================*/
@@ -150,7 +153,7 @@ public class MonitorDash extends Application {
             theTextArea.getStyleClass().add("dark-text-area");
             theTextArea.setFont(Font.font("Helvetica", 14));
 
-            theContainer.setPrefHeight(100);
+            theContainer.setPrefHeight(120);
             theContainer.setMinHeight(Control.USE_PREF_SIZE);
             theContainer.setMaxHeight(Control.USE_PREF_SIZE);
             theContainer.getChildren().addAll(theHeader, theTextArea);
@@ -203,9 +206,7 @@ public class MonitorDash extends Application {
      */
     public void updateTime(final int theTime) {
         // Will update to the UI thread safely
-        Platform.runLater(() -> {
-            myTimeLabel.setText("Time: " + theTime);
-        });
+        Platform.runLater(() -> myTimeLabel.setText("Time: " + theTime));
     }
 
     /**
@@ -219,7 +220,7 @@ public class MonitorDash extends Application {
             return;
         }
 
-        Platform.runLater(() -> moveDroneView(drone));
+        moveDroneView(drone);
     }
 
     /**
@@ -238,95 +239,26 @@ public class MonitorDash extends Application {
     }
 
     /**
-     * Helper method for refreshDroneDisplay.
-     * Moves the corresponding Drone ImageView for the drone
-     *
-     * @param theDrone The drone we are moving.
-     */
-    private void moveDroneView(Drone theDrone) {
-        //Store the drone for RegionBox lookups or in case user clicks it
-        myDrones.put(theDrone.getDroneID(), theDrone);
-
-        double displayWidth = myDroneDisplay.getWidth();
-        double displayHeight = myDroneDisplay.getHeight();
-        TelemetryData data = theDrone.getDroneTelemetry();
-
-        //Create or retrieve the ImageView
-        ImageView droneView = myDroneViews.computeIfAbsent(theDrone.getDroneID(), id -> {
-            ImageView view = new ImageView(myDroneImage);
-            view.setPreserveRatio(true);
-            Tooltip.install(view, new Tooltip("Drone " + id));
-
-            //Clicking opens large stats
-            view.setOnMouseClicked(_ -> {
-                updateStatsTextLarge(theDrone);
-                swapRightPanel(true);
-            });
-
-            //Add the image view to where the drones will be displayed
-            myDroneDisplay.getChildren().add(view);
-
-            //Initial placement/size/rotation/orientation
-            double initSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
-            view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                    * displayWidth - initSize / 2);
-            view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                    * displayHeight - initSize / 2);
-            view.setFitWidth(initSize);
-            view.setFitHeight(initSize);
-            view.setRotate(data.getOrientation());
-            return view;
-        });
-
-        //Target animation values
-        double targetSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
-        double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                * displayWidth - targetSize / 2;
-        double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                * displayHeight - targetSize / 2;
-        double targetAngle = data.getOrientation();
-
-        //Transition animation
-        Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(1),
-                        new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
-                        new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
-                        new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
-                        new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
-                        new KeyValue(droneView.rotateProperty(), targetAngle, Interpolator.EASE_BOTH)
-                )
-        );
-        timeline.play();
-
-        Platform.runLater(() -> {
-            updateStatsText(theDrone);
-        });
-
-    }
-
-    /**
      * Update the large stats box at the top-right of the GUI.
      *
      * @param theDrone The drone whose data we are looking at.
      */
     public void updateStatsTextLarge(final Drone theDrone) {
-        Platform.runLater(() -> {
-            if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
+        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
-            TelemetryData data = theDrone.getDroneTelemetry();
+        TelemetryData data = theDrone.getDroneTelemetry();
 
-            String statsString = "Drone " + theDrone.getDroneID() +
-                    "\n==========================" +
-                    "\nBattery: " + theDrone.getBatteryLevel() +
-                    "\nAltitude: " + data.getAltitude() +
-                    "\nLatitude: " + data.getLatitude() +
-                    "\nLongitude: " + data.getLongitude() +
-                    "\nVelocity: " + data.getVelocity() +
-                    "\nOrientation: " + data.getOrientation() + "°";
+        String statsString = "Drone " + theDrone.getDroneID() +
+                "\n==========================" +
+                "\nBattery: " + theDrone.getBatteryLevel() +
+                "\nAltitude: " + data.getAltitude() +
+                "\nLatitude: " + data.getLatitude() +
+                "\nLongitude: " + data.getLongitude() +
+                "\nVelocity: " + data.getVelocity() +
+                "\nOrientation: " + data.getOrientation() + "°";
 
-            Platform.runLater(() -> myStatsText.setText(statsString));
-            System.out.println("Working - MonitorDash - updateStatsTextLarge");
-        });
+        Platform.runLater(() -> myStatsText.setText(statsString));
+        System.out.println("Working - MonitorDash - updateStatsTextLarge");
     }
 
     /**
@@ -348,21 +280,17 @@ public class MonitorDash extends Application {
                 .append(" ").append(data.getLongitude());
 
         //Set the text of the stats box w/ the matching ID of the drone
-
-        if (myDroneBoxes != null) {
-            // 1. Get the box first
+        Platform.runLater(() -> {
+            //Get the box first
             var box = myDroneBoxes.get(theDrone.getDroneID());
 
-            // 2. Check if the box actually exists before using it
+            //Check if the box actually exists before using it
             if (box != null) {
                 box.setText(statsString.toString());
             } else {
                 System.out.println("Warning: Drone ID " + theDrone.getDroneID() + " not found in UI map.");
             }
-        } else {
-            System.out.println("Warning: myDroneBoxes map is null.");
-        }
-
+        });
     }
 
     /**
@@ -380,26 +308,125 @@ public class MonitorDash extends Application {
         }
     }
 
+    /**
+     * Add an anomaly record to the table in the GUI.
+     *
+     * @param theRecord The anomaly record we'll be adding.
+     */
     public void addAnomalyRecord(AnomalyRecord theRecord) {
+        //Whether or not the ID is null, otherwise turn it into a String
+        String idString = (theRecord.getID() == null) ? "—" : String.valueOf(theRecord.getID());
+
+        //Turn the time into a string
+        String timeString = Double.toString(theRecord.getTime());
+
+        //Make a new AnomalyEntry record for our table
+        MonitorTableEntry entry = new MonitorTableEntry(
+                timeString,
+                idString,
+                theRecord.getType(),
+                theRecord.getSeverity(),
+                theRecord.getDetails()
+        );
+
         Platform.runLater(() -> {
-            //Whether or not the ID is null, otherwise turn it into a String
-            String idString = (theRecord.getID() == null) ? "—" : String.valueOf(theRecord.getID());
-
-            //Turn the time into a string
-            String timeString = Double.toString(theRecord.getTime());
-
-            //Make a new AnomalyEntry record for our table
-            MonitorTableEntry entry = new MonitorTableEntry(
-                    timeString,
-                    idString,
-                    theRecord.getType(),
-                    theRecord.getSeverity(),
-                    theRecord.getDetails()
-            );
-
             //Add our entry and scroll to it
             myAnomalyTable.getItems().add(entry);
             myAnomalyTable.scrollTo(entry);
+        });
+    }
+
+    /**
+     * Add anomaly records to the table in the GUI.
+     *
+     * @param theRecords The anomaly records we'll be adding.
+     */
+    public void addAnomalyRecord(List<AnomalyRecord> theRecords) {
+        if (theRecords == null || theRecords.isEmpty()) { return; }
+
+        for (AnomalyRecord record : theRecords) {
+            addAnomalyRecord(record);
+        }
+    }
+
+    /**
+     * Clears the anomaly table in the GUI, then replaces its contents with the given List.
+     *
+     * @param theRecords What we want the contents to be.
+     */
+    public void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
+        if (theRecords == null || theRecords.isEmpty()) { return; }
+
+        myAnomalyTable.getItems().clear();
+
+        for (AnomalyRecord record : theRecords) {
+            addAnomalyRecord(record);
+        }
+    }
+
+    /**
+     * Helper method for refreshDroneDisplay.
+     * Moves the corresponding Drone ImageView for the drone
+     *
+     * @param theDrone The drone we are moving.
+     */
+    private void moveDroneView(Drone theDrone) {
+        //Store the drone for RegionBox lookups or in case user clicks it
+        myDrones.put(theDrone.getDroneID(), theDrone);
+        TelemetryData data = theDrone.getDroneTelemetry();
+
+        Platform.runLater(() -> {
+            double displayWidth = myDroneDisplay.getWidth();
+            double displayHeight = myDroneDisplay.getHeight();
+
+            //Create or retrieve the ImageView
+            ImageView droneView = myDroneViews.computeIfAbsent(theDrone.getDroneID(), id -> {
+                ImageView view = new ImageView(myDroneImage);
+                view.setPreserveRatio(true);
+                Tooltip.install(view, new Tooltip("Drone " + id));
+
+                //Clicking opens large stats
+                view.setOnMouseClicked(_ -> {
+                    updateStatsTextLarge(theDrone);
+                    swapRightPanel(true);
+                });
+
+                //Add the image view to where the drones will be displayed
+                myDroneDisplay.getChildren().add(view);
+
+                //Initial placement/size/rotation/orientation
+                double initSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
+                view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
+                        * displayWidth - initSize / 2);
+                view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
+                        * displayHeight - initSize / 2);
+                view.setFitWidth(initSize);
+                view.setFitHeight(initSize);
+                view.setRotate(data.getOrientation());
+                return view;
+            });
+
+            //Target animation values
+            double targetSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
+            double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
+                    * displayWidth - targetSize / 2;
+            double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
+                    * displayHeight - targetSize / 2;
+            double targetAngle = data.getOrientation();
+
+            //Transition animation
+            Timeline timeline = new Timeline(
+                    new KeyFrame(Duration.seconds(1),
+                            new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
+                            new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
+                            new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
+                            new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
+                            new KeyValue(droneView.rotateProperty(), targetAngle, Interpolator.EASE_BOTH)
+                    )
+            );
+            timeline.play();
+
+            updateStatsText(theDrone);
         });
     }
 
@@ -463,42 +490,9 @@ public class MonitorDash extends Application {
         thePrimaryStage.show();
 
         //Stuff the program runs after its build
-//        Platform.runLater(() -> {
-//            swapRightPanel(false); //Don't delete this part
-//
-//            // Example drones and anomaly
-//            TelemetryData data = new TelemetryData(1, 1, 1, 1, 1);
-//            Drone drone = new Drone(data);
-//            drone.setBatteryLevel(100);
-//
-//            TelemetryData data1 = new TelemetryData(500, 500, 10, 180, 500);
-//            Drone drone1 = new Drone(data1);
-//            drone1.setBatteryLevel(40);
-//
-//            Drone[] drones = {drone, drone1};
-//
-//            refreshDroneDisplay(drones);
-//            updateStatsText(drones);
-//
-//            AnomalyRecord anomaly = new AnomalyRecord("test", 67, 31.0, "kill me", ":)");
-//            addAnomalyRecord(anomaly);
-//
-//            AnomalyRecord anomaly1 = new AnomalyRecord("test1", 69, 32.0, "dn", ":(");
-//            addAnomalyRecord(anomaly1);
-//
-//            updateTime(2);
-//
-//            PauseTransition pause = new PauseTransition(Duration.seconds(5));
-//            pause.setOnFinished(_ -> {
-//                TelemetryData data3 = new TelemetryData(1000, 3, 3, 3, 3);
-//                TelemetryData data4 = new TelemetryData(30, 30, 5, 30, 30);
-//                drone.updateTelemetryData(data4);
-//                drone1.updateTelemetryData(data3);
-//                refreshDroneDisplay(drones);
-//                updateTime(5);
-//            });
-//            pause.play();
-//        });
+        Platform.runLater(() -> {
+            swapRightPanel(false); //Don't delete this part
+        });
     }
 
     /**
@@ -679,41 +673,73 @@ public class MonitorDash extends Application {
     private MenuBar buildMenuBar(final Stage thePrimaryStage) {
         MenuBar menuBar = new MenuBar();
 
-        //File Menu and its Items
-        Menu fileMenu = new Menu("File");
-        MenuItem clearItem = new MenuItem("Clear");
-        MenuItem closeItem = new MenuItem("Close Sim.");
-        MenuItem exitItem = new MenuItem("Exit");
-        exitItem.setOnAction(_ -> thePrimaryStage.close());
-        fileMenu.getItems().addAll(clearItem, closeItem, exitItem);
+        //Creating Menu buttons
+        Menu exitMenu = new Menu("Exit");
 
-        // To actually make the menu button work on its own, we need to do a trick, where a label is inside a Menu
-        Menu startMenu = new Menu(""); // Empty text
-        Label startLabel = new Label("Start"); // Real Menu is here
-        startLabel.setOnMouseClicked(e -> startGame(null)); // Click action
+        Menu startMenu = new Menu("");
+        Label startLabel = new Label("Start");
         startMenu.setGraphic(startLabel);
 
+        Menu pauseMenu = new Menu("");
+        Label pauseLabel = new Label("Pause");
+        pauseMenu.setGraphic(pauseLabel);
 
-        //Pause Menu
-        Menu pauseMenu = new Menu("Pause");
-        /*
-        doActionMenu.setOnShowing(e -> {
-            doSomething();
+        Menu stopMenu = new Menu("");
+        Label stopLabel = new Label("Stop");
+        stopMenu.setDisable(true);
+        stopMenu.setGraphic(stopLabel);
+
+        //Functionality to buttons
+        exitMenu.setOnAction(_ -> thePrimaryStage.close());
+
+        pauseLabel.setOnMouseClicked(_ -> togglePauseGame());
+
+        startLabel.setOnMouseClicked(_ -> {
+            startGame();
+            startMenu.setDisable(true);
+            stopMenu.setDisable(false);
         });
-         */
 
-        //End Menu
-        Menu endMenu = new Menu("End");
+        stopLabel.setOnMouseClicked(_ -> {
+            endGame();
+            startMenu.setDisable(false);
+            stopMenu.setDisable(true);
+        });
 
         //Adding menus to the MenuBar
-        menuBar.getMenus().addAll(fileMenu, startMenu, pauseMenu, endMenu);
+        menuBar.getMenus().addAll(exitMenu, startMenu, pauseMenu, stopMenu);
 
         return menuBar;
     }
 
-    private void startGame(ActionEvent actionEvent) {
+    /**
+     * Tell the controller DroneMonitorApp to end the game.
+     */
+    private void endGame() {
+        DroneMonitorApp.getInstance().stopSim();
+        System.out.println("MonitorDash: stopped game");
+    }
+
+    /**
+     * Tell the controller DroneMonitorApp to toggle pausing.
+     */
+    private void togglePauseGame() {
+        System.out.println("MonitorDash: toggled pause");
+        if (myIsPaused) {
+            DroneMonitorApp.getInstance().pauseSim();
+        } else {
+            DroneMonitorApp.getInstance().continueSim();
+        }
+
+        myIsPaused = !myIsPaused;
+    }
+
+    /**
+     * Tell the controller DroneMonitorApp to start the game.
+     */
+    private void startGame() {
         DroneMonitorApp.getInstance().startSim();
-        System.out.print("Working: MonitorDash");
+        System.out.print("MonitorDash: Started Game");
     }
 
     //Start the application

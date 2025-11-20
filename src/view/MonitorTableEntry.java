@@ -3,14 +3,14 @@ package view;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class MonitorTableEntry {
+class MonitorTableEntry {
     private final StringProperty myTimestamp;
     private final StringProperty myDroneId;
     private final StringProperty myType;
     private final StringProperty mySeverity;
     private final StringProperty myDetails;
 
-    public MonitorTableEntry(String theTimestamp, String theDroneId, String theType, String theSeverity, String theDetails) {
+    MonitorTableEntry(String theTimestamp, String theDroneId, String theType, String theSeverity, String theDetails) {
         myTimestamp = new SimpleStringProperty(theTimestamp);
         myDroneId = new SimpleStringProperty(theDroneId);
         myType = new SimpleStringProperty(theType);
@@ -18,23 +18,19 @@ public class MonitorTableEntry {
         myDetails = new SimpleStringProperty(theDetails);
     }
 
-    public StringProperty timestampProperty() {
+    StringProperty getTimestampProperty() {
         return myTimestamp;
     }
-
-    public StringProperty droneIdProperty() {
+    StringProperty getDroneIdProperty() {
         return myDroneId;
     }
-
-    public StringProperty typeProperty() {
+    StringProperty getTypeProperty() {
         return myType;
     }
-
-    public StringProperty severityProperty() {
+    StringProperty getSeverityProperty() {
         return mySeverity;
     }
-
-    public StringProperty detailsProperty() {
+    StringProperty getDetailsProperty() {
         return myDetails;
     }
 }

@@ -19,7 +19,7 @@ public class Drone {
     private final Battery myBattery = new Battery();
 
     /** An int that is use as drone counter for all created drone objects */
-    private static int myDroneCounter = 0;
+    private static int myDroneCounter = 1;
 
     /** An int that represent the drone individual id */
     private int myDroneID;
