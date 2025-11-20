@@ -29,7 +29,9 @@ public class UpdateUI {
     public void updateDroneTelemetry() {
         System.out.println("Working: UpdateUI - updateDroneTelemetry");
         DroneFleetManger fleetManager = DroneFleetManger.getInstance();
-        MonitorDash.getInstance().updateStatsText(fleetManager.getSpecificDrone(0));
+        MonitorDash.getInstance().updateStatsTextLarge(fleetManager.getSpecificDrone(0));
+        MonitorDash.getInstance().refreshDroneDisplay(fleetManager.getDroneFleet());
+
     }
 
     //TODO: Update the UI with the timer display
