@@ -118,6 +118,7 @@ public class DroneFleetManger {
     public void updateFleetData(final TelemetryData[] theNewTelemetry) {
         for (int i = 0; i < myDroneFleet.length;i++) {
             myDroneFleet[i].updateTelemetryData(theNewTelemetry[i]);
+            myDroneFleet[i].simulateBatteryDrain();
         }
     }
 }
