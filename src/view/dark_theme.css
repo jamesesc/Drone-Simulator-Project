@@ -67,6 +67,65 @@ Dark text areas
     -fx-highlight-text-fill: white;
 }
 
+/* -----------------------
+Dark Themed TableView
+-------------------------- */
+
+.dark-table {
+    -fx-background-color: -fx-base-dark;
+    -fx-border-color: -fx-base-gray;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* Table header */
+.dark-table .column-header-background {
+    -fx-background-color: -fx-base-medium;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.dark-table .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: -fx-base-gray;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dark-table .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Table rows */
+.dark-table .table-row-cell {
+    -fx-background-color: -fx-base-dark;
+    -fx-text-fill: white;
+}
+
+.dark-table .table-row-cell:odd {
+    -fx-background-color: derive(-fx-base-dark, 8%);
+}
+
+.dark-table .table-row-cell:selected {
+    -fx-background-color: -fx-base-medium;
+    -fx-text-fill: white;
+}
+
+/* Table cells */
+.dark-table .table-cell {
+    -fx-border-color: -fx-base-gray;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: white;
+    -fx-padding: 6;
+    -fx-font-size: 13px;
+}
+
+/* Scrollbars (inherits your scroll-bar styles) */
+.dark-table .scroll-bar:vertical,
+.dark-table .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
 /* ----------------------------
 ScrollPane & Scrollbar styling
 ----------------------------- */

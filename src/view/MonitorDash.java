@@ -643,6 +643,7 @@ public class MonitorDash extends Application {
         col5.setCellValueFactory(new PropertyValueFactory<>("details"));
 
         myAnomalyTable.getColumns().addAll(List.of(col1, col2, col3, col4, col5));
+        myAnomalyTable.getStyleClass().add("dark-table");
 
         //Box that'll be holding everything at the bottom
         VBox anomalyBox = new VBox();
