@@ -9,8 +9,6 @@ import database.AnomalyDB;
  * A helper class for the DroneMonitorApp to help and process the AnomalyProcessing.
  */
 public class AnomalyProcessor {
-    /** Represents the object instance */
-    private static AnomalyProcessor instance;
 
     /** An object that represents the AnomalyDetector */
     private final AnomalyDetector myAnomalyDetector;
@@ -19,17 +17,9 @@ public class AnomalyProcessor {
     private final AnomalyDB myAnomalyDB;
 
     /** Private constructor to initialize the objects in used */
-    private AnomalyProcessor() {
+    public AnomalyProcessor() {
         myAnomalyDetector = new AnomalyDetector();
         myAnomalyDB = new AnomalyDB();
-    }
-
-    /** A method to ensure only one object get to initialize */
-    public static AnomalyProcessor getInstance() {
-        if (instance == null) {
-            instance = new AnomalyProcessor();
-        }
-        return instance;
     }
 
     /**

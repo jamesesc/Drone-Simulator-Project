@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import controller.*;
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
 import Model.Drone;
@@ -81,6 +82,15 @@ public class MonitorDash extends Application {
      * adjustable drone counts (in case we simulate a drone crashing or something).
      */
     private final int DRONE_COUNT = 4;
+
+   /* ===============================
+    Class Objects for the back end
+     ================================= */
+
+    /**
+     * Represent the Controller for the simulation.
+     */
+    private DroneMonitorApp myController;
 
     /* ===============================
     FIELDS FOR GUI ELEMENTS - Generally don't touch them
@@ -509,6 +519,25 @@ public class MonitorDash extends Application {
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
+
+
+        TimerManager timerManager = new TimerManager();
+        DroneFleetManager fleetManager = new DroneFleetManager();
+        AnomalyProcessor anomalyProcessor = new AnomalyProcessor();
+
+        UpdateUIManager updaterManager = new UpdateUIManager(this, fleetManager);
+
+        SimulationScheduler scheduler = new SimulationScheduler(
+                timerManager,
+                fleetManager,
+                anomalyProcessor,
+                updaterManager
+        );
+
+        myController = new DroneMonitorApp(timerManager, scheduler);
+
+
+
 
         //Stuff the program runs after its build
         Platform.runLater(() -> {
