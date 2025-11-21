@@ -24,8 +24,8 @@ public class SimulationScheduler {
     /** Represents the AnomalyProcessing object to handle all the anomalies*/
     private final AnomalyProcessor myAnomalyProcessor;
 
-    /** Represent the UpdateUI object that sends and update to the UI */
-    private final UpdateUI myUIUpdater;
+    /** Represent the UpdateUIManager object that sends and update to the UI */
+    private final UpdateUIManager myUIUpdater;
 
     /** Private constructor to call and use the 1 instance of each object */
     private SimulationScheduler() {
@@ -33,7 +33,7 @@ public class SimulationScheduler {
         myTimerManger = TimerManager.getInstance();
         myFleetManger = DroneFleetManager.getInstance();
         myAnomalyProcessor = AnomalyProcessor.getInstance();
-        myUIUpdater = UpdateUI.getInstance();
+        myUIUpdater = UpdateUIManager.getInstance();
     }
 
     /** Method to ensure only one object is made */
@@ -50,10 +50,10 @@ public class SimulationScheduler {
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 
-        myUIUpdater.updateDroneTelemetry();
+        myUIUpdater.updateDroneDisplay();
 
         myScheduleOperation.schedule(
-                myUIUpdater::updateDroneTelemetry,
+                myUIUpdater::updateDroneDisplay,
                 3,
                 TimeUnit.SECONDS
         );
@@ -113,7 +113,7 @@ public class SimulationScheduler {
             myFleetManger.updateFleetData(newTelemetry);
 
             // 5) Update the display
-            myUIUpdater.updateDroneTelemetry();
+            myUIUpdater.updateDroneDisplay();
 
         } catch (Exception e) {
             System.err.println("Theres a ERROR in updateDronesTask:");
