@@ -12,9 +12,6 @@ import Model.TelemetryData;
  */
 public class DroneFleetManager {
 
-    /** Represent the DroneFleetManager instance */
-    private static DroneFleetManager instance;
-
     /** Constant that represent the numbers of drones in the fleet */
     private static final int DRONE_COUNT = 3;
 
@@ -22,29 +19,20 @@ public class DroneFleetManager {
     private final TelemetryGenerator myTelemetryGen;
 
     /** Represent the current drone being simulated on */
-    private static Drone[] myDroneFleet = new Drone[DRONE_COUNT];
+    private static Drone[] myDroneFleet;
 
 
     /* CONSTRUCTOR */
 
-    /** Private constructor for initializing the drone fleet and telemetry generator */
-    private DroneFleetManager() {
+    /** Public constructor for initializing the drone fleet and telemetry generator */
+    public DroneFleetManager() {
         myDroneFleet = new Drone[DRONE_COUNT];
         myTelemetryGen = new TelemetryGenerator();
+
         initializeFleet();
         initializeFleetPosition();
     }
 
-    /**
-     * A method to ensure only one DroneFleetManger instance is created.
-     *
-     * @return the single instance of the DroneFleetManger.
-     */    public static DroneFleetManager getInstance() {
-        if (instance == null) {
-            instance = new DroneFleetManager();
-        }
-        return instance;
-    }
 
     /* GETTERS */
 
@@ -64,7 +52,11 @@ public class DroneFleetManager {
      * @return the Drone Object based on the index that was given.
      */
     public Drone getSpecificDrone(final int theIndex) {
-        return myDroneFleet[theIndex];
+        if (theIndex > 0 && theIndex < myDroneFleet.length) {
+           return myDroneFleet[theIndex];
+        } else {
+            throw new IndexOutOfBoundsException();
+        }
     }
 
     /**
@@ -127,7 +119,9 @@ public class DroneFleetManager {
      */
     public void updateFleetData(final TelemetryData[] theNewTelemetry) {
         for (int i = 0; i < myDroneFleet.length;i++) {
+            // Updating the Drone Telemetry Data
             myDroneFleet[i].updateTelemetryData(theNewTelemetry[i]);
+            // Updating the Drone Battery
             myDroneFleet[i].simulateBatteryDrain();
         }
     }
