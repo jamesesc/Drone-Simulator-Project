@@ -26,9 +26,9 @@ public class UpdateUIManager {
     /** Updates the UI to reflect the latest changes to the drone telemetry data */
     public void updateDroneDisplay() {
         // Updating the Big Stats
-        MonitorDash.getInstance().updateStatsTextLarge(myDroneFleetManager.getSpecificDrone(0));
+        myUI.updateStatsText(myDroneFleetManager.getDroneFleet());
         // Updating the Display
-        MonitorDash.getInstance().refreshDroneDisplay(myDroneFleetManager.getDroneFleet());
+        myUI.refreshDroneDisplay(myDroneFleetManager.getDroneFleet());
     }
 
     /** Updates the UI to display the current timer */
