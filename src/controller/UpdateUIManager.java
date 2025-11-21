@@ -10,35 +10,29 @@ import view.MonitorDash;
  * @version Autumn 2025
  */
 public class UpdateUIManager {
-    /** Represents the UpdateUIManager instance */
-    private static UpdateUIManager instance;
+    /** A MonitorDash Object responsible for displaying the UI */
+    private final MonitorDash myUI;
 
-    /** Private constructor with nothing in it */
-    private UpdateUIManager() {}
+    /** A DroneFleetManager Object responsible for handling the fleet of drones */
+    private final DroneFleetManager myDroneFleetManager;
 
-    /**
-     * A method to ensure only one UpdateUIManager instance is created.
-     *
-     * @return the single instance of UpdateUIManager.
-     */
-    public static UpdateUIManager getInstance() {
-        if (instance == null) {
-            instance = new UpdateUIManager();
-        }
-        return instance;
+    /** Public constructor to initialize the UI and Drone Fleet Manager */
+    public UpdateUIManager(final MonitorDash theUI, final DroneFleetManager theDroneFleetManager) {
+        myUI = theUI;
+        myDroneFleetManager = theDroneFleetManager;
     }
+
 
     /** Updates the UI to reflect the latest changes to the drone telemetry data */
     public void updateDroneDisplay() {
-        DroneFleetManager fleetManager = DroneFleetManager.getInstance();
         // Updating the Big Stats
-        MonitorDash.getInstance().updateStatsTextLarge(fleetManager.getSpecificDrone(0));
+        MonitorDash.getInstance().updateStatsTextLarge(myDroneFleetManager.getSpecificDrone(0));
         // Updating the Display
-        MonitorDash.getInstance().refreshDroneDisplay(fleetManager.getDroneFleet());
+        MonitorDash.getInstance().refreshDroneDisplay(myDroneFleetManager.getDroneFleet());
     }
 
     /** Updates the UI to display the current timer */
     public void updateTimer(final int theTime) {
-        MonitorDash.getInstance().updateTime(theTime);
+        myUI.updateTime(theTime);
     }
 }
