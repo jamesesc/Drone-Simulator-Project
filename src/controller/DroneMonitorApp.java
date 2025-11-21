@@ -13,14 +13,14 @@ public class DroneMonitorApp {
     private static DroneMonitorApp instance;
 
     /* A class object that help manage the time system of the simulation */
-    private final TimerManger myTimerManger;
+    private final TimerManager myTimerManger;
 
     /* A class object that help manage run the tasks needed for the simulation */
     private final SimulationScheduler mySchedulerOperator;
 
     /** Private constructor to create the DroneMonitorApp instance */
     private DroneMonitorApp() {
-        myTimerManger = TimerManger.getInstance();
+        myTimerManger = TimerManager.getInstance();
         mySchedulerOperator = SimulationScheduler.getInstance();
     }
 

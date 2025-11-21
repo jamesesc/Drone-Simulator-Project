@@ -16,10 +16,10 @@ public class SimulationScheduler {
     private final ScheduledExecutorService myScheduleOperation;
 
     /** Represents the timer object to manage the simulation timer */
-    private final TimerManger myTimerManger;
+    private final TimerManager myTimerManger;
 
     /** Represents the Fleet manger object that manges all drone fleet */
-    private final DroneFleetManger myFleetManger;
+    private final DroneFleetManager myFleetManger;
 
     /** Represents the AnomalyProcessing object to handle all the anomalies*/
     private final AnomalyProcessor myAnomalyProcessor;
@@ -30,8 +30,8 @@ public class SimulationScheduler {
     /** Private constructor to call and use the 1 instance of each object */
     private SimulationScheduler() {
         myScheduleOperation = Executors.newScheduledThreadPool(4);
-        myTimerManger = TimerManger.getInstance();
-        myFleetManger = DroneFleetManger.getInstance();
+        myTimerManger = TimerManager.getInstance();
+        myFleetManger = DroneFleetManager.getInstance();
         myAnomalyProcessor = AnomalyProcessor.getInstance();
         myUIUpdater = UpdateUI.getInstance();
     }
@@ -122,7 +122,7 @@ public class SimulationScheduler {
     }
 
     private void updateTime() {
-        int elapseTime = TimerManger.getInstance().getElapsedTime();
+        int elapseTime = TimerManager.getInstance().getElapsedTime();
 
         myUIUpdater.updateTimer(elapseTime);
     }

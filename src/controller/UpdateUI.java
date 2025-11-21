@@ -28,7 +28,7 @@ public class UpdateUI {
     /** Method that updates the UI with the drone telemetry data */
     public void updateDroneTelemetry() {
         System.out.println("Working: UpdateUI - updateDroneTelemetry");
-        DroneFleetManger fleetManager = DroneFleetManger.getInstance();
+        DroneFleetManager fleetManager = DroneFleetManager.getInstance();
         MonitorDash.getInstance().updateStatsTextLarge(fleetManager.getSpecificDrone(0));
         MonitorDash.getInstance().refreshDroneDisplay(fleetManager.getDroneFleet());
 
