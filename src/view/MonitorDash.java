@@ -474,14 +474,12 @@ public class MonitorDash extends Application {
 
         TimerManager timerManager = new TimerManager();
         DroneFleetManager fleetManager = new DroneFleetManager();
-        AnomalyProcessor anomalyProcessor = new AnomalyProcessor();
 
         UpdateUIManager updaterManager = new UpdateUIManager(this, fleetManager);
 
         SimulationScheduler scheduler = new SimulationScheduler(
                 timerManager,
                 fleetManager,
-                anomalyProcessor,
                 updaterManager
         );
 
