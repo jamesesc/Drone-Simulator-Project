@@ -9,51 +9,52 @@ import java.util.concurrent.TimeUnit;
 
 public class SimulationScheduler {
 
-    /** Represents the object instance */
-    private static SimulationScheduler instance;
-
     /** Represents the java import scheduler use to schedule a task */
     private final ScheduledExecutorService myScheduleOperation;
 
     /** Represents the timer object to manage the simulation timer */
-    private final TimerManger myTimerManger;
+    private final TimerManager myTimerManger;
 
     /** Represents the Fleet manger object that manges all drone fleet */
-    private final DroneFleetManger myFleetManger;
+    private final DroneFleetManager myFleetManger;
 
     /** Represents the AnomalyProcessing object to handle all the anomalies*/
     private final AnomalyProcessor myAnomalyProcessor;
 
-    /** Represent the UpdateUI object that sends and update to the UI */
-    private final UpdateUI myUIUpdater;
+    /** Represent the UpdateUIManager object that sends and update to the UI */
+    private final UpdateUIManager myUIUpdater;
+
+    /** Represents the current status of the simulation; true = running, false for stopped */
+    private volatile boolean myPausedStatus = false;
 
     /** Private constructor to call and use the 1 instance of each object */
-    private SimulationScheduler() {
+    public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
+                                AnomalyProcessor theAnomalyProcessor, UpdateUIManager theUIUpdater) {
         myScheduleOperation = Executors.newScheduledThreadPool(4);
-        myTimerManger = TimerManger.getInstance();
-        myFleetManger = DroneFleetManger.getInstance();
-        myAnomalyProcessor = AnomalyProcessor.getInstance();
-        myUIUpdater = UpdateUI.getInstance();
+        myTimerManger = theTimerManager;
+        myFleetManger = theFleetManager;
+        myAnomalyProcessor = theAnomalyProcessor;
+        myUIUpdater = theUIUpdater;
     }
 
-    /** Method to ensure only one object is made */
-    public static SimulationScheduler getInstance() {
-        if (instance == null) {
-            instance = new SimulationScheduler();
-        }
-        return instance;
+    /**
+     * Sets the simulation status to pause.
+     *
+     * @param thePaused true to pause the simulation, otherwise false to resume.
+     */
+    public void setPausedStatus(final boolean thePaused) {
+        myPausedStatus = thePaused;
     }
 
     /** Method to start the simulation logic and schedule task */
     public void startSimulationTask() {
-        System.out.println("Working: startSimulationTask");
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 
-        myUIUpdater.updateDroneTelemetry();
+        myUIUpdater.updateDroneDisplay();
 
         myScheduleOperation.schedule(
-                myUIUpdater::updateDroneTelemetry,
+                myUIUpdater::updateDroneDisplay,
                 3,
                 TimeUnit.SECONDS
         );
@@ -91,6 +92,10 @@ public class SimulationScheduler {
      * Generating telemetry data, detecting anomalies and updating the drone with the new telemetry.
      */
     private void updateDronesTask() {
+        if (myPausedStatus){
+            return;
+        }
+
         try {
             // Checking if it does this
             System.out.println("DEBUG: Executing updateDronesTask...");
@@ -113,7 +118,7 @@ public class SimulationScheduler {
             myFleetManger.updateFleetData(newTelemetry);
 
             // 5) Update the display
-            myUIUpdater.updateDroneTelemetry();
+            myUIUpdater.updateDroneDisplay();
 
         } catch (Exception e) {
             System.err.println("Theres a ERROR in updateDronesTask:");
@@ -122,8 +127,11 @@ public class SimulationScheduler {
     }
 
     private void updateTime() {
-        int elapseTime = TimerManger.getInstance().getElapsedTime();
-
+        int elapseTime = myTimerManger.getElapsedTime();
         myUIUpdater.updateTimer(elapseTime);
+    }
+
+    public void stopSimulationSchedule() {
+        myScheduleOperation.shutdown();
     }
 }

@@ -1,7 +1,7 @@
 package view;
 
 import Model.AnomalyRecord;
-import controller.DroneMonitorApp;
+import controller.*;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -62,6 +62,15 @@ public class MonitorDash extends Application {
      * adjustable drone counts (in case we simulate a drone crashing or something).
      */
     private final int DRONE_COUNT = 4;
+
+   /* ===============================
+    Class Objects for the back end
+     ================================= */
+
+    /**
+     * Represent the Controller for the simulation.
+     */
+    private DroneMonitorApp myController;
 
     /* ===============================
     FIELDS FOR GUI ELEMENTS - Generally don't touch them
@@ -462,6 +471,25 @@ public class MonitorDash extends Application {
         thePrimaryStage.setScene(scene);
         thePrimaryStage.show();
 
+
+        TimerManager timerManager = new TimerManager();
+        DroneFleetManager fleetManager = new DroneFleetManager();
+        AnomalyProcessor anomalyProcessor = new AnomalyProcessor();
+
+        UpdateUIManager updaterManager = new UpdateUIManager(this, fleetManager);
+
+        SimulationScheduler scheduler = new SimulationScheduler(
+                timerManager,
+                fleetManager,
+                anomalyProcessor,
+                updaterManager
+        );
+
+        myController = new DroneMonitorApp(timerManager, scheduler);
+
+
+
+
         //Stuff the program runs after its build
 //        Platform.runLater(() -> {
 //            swapRightPanel(false); //Don't delete this part
@@ -711,9 +739,12 @@ public class MonitorDash extends Application {
         return menuBar;
     }
 
+    /** Helper method for the button to starts the sim */
     private void startGame(ActionEvent actionEvent) {
-        DroneMonitorApp.getInstance().startSim();
-        System.out.print("Working: MonitorDash");
+        if (myController != null) {
+            myController.startSim();
+
+        }
     }
 
     //Start the application
