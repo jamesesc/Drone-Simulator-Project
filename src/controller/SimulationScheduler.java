@@ -7,6 +7,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A class that connects and ties all the connecting logic into the reoccurring tasks it needs to do.
+ * It is used by DroneMonitorApp to help and assist in the simulation to run and start.
+ *
+ * @author James Escudero
+ * @author Autumn 2025
+ */
 public class SimulationScheduler {
 
     /** Represents the java import scheduler use to schedule a task */
@@ -27,7 +34,7 @@ public class SimulationScheduler {
     /** Represents the current status of the simulation; true = running, false for stopped */
     private volatile boolean myPausedStatus = false;
 
-    /** Private constructor to call and use the 1 instance of each object */
+    /** Public constructor to call and use the 1 instance of each object */
     public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
                                 AnomalyProcessor theAnomalyProcessor, UpdateUIManager theUIUpdater) {
         myScheduleOperation = Executors.newScheduledThreadPool(4);
@@ -51,11 +58,13 @@ public class SimulationScheduler {
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 
+        // Update the drone display for initial drone stats
         myUIUpdater.updateDroneDisplay();
 
+        // Update drone when 3 seconds is up, meaning when it fly's up
         myScheduleOperation.schedule(
                 myUIUpdater::updateDroneDisplay,
-                3,
+                updateInterval,
                 TimeUnit.SECONDS
         );
 
@@ -69,7 +78,7 @@ public class SimulationScheduler {
         // Fixed Schedule Task that updates drones telemetry data every 3 seconds (it starts after 6 sec)
         myScheduleOperation.scheduleAtFixedRate(
                 this::updateDronesTask,
-                updateInterval * 2,
+                updateInterval * 2L,
                 updateInterval,
                 TimeUnit.SECONDS
         );
@@ -92,14 +101,11 @@ public class SimulationScheduler {
      * Generating telemetry data, detecting anomalies and updating the drone with the new telemetry.
      */
     private void updateDronesTask() {
-        if (myPausedStatus){
+        // If the Simulator is paused, don't update
+        if (myPausedStatus) {
             return;
         }
-
         try {
-            // Checking if it does this
-            System.out.println("DEBUG: Executing updateDronesTask...");
-
             // 1) Generate new telemetry for all drones
             TelemetryData[] newTelemetry = myFleetManger.generateFleetData();
 
@@ -126,11 +132,13 @@ public class SimulationScheduler {
         }
     }
 
+    /** Helper method to do update time task */
     private void updateTime() {
         int elapseTime = myTimerManger.getElapsedTime();
         myUIUpdater.updateTimer(elapseTime);
     }
 
+    /** To stop the reoccurring schedule tasks */
     public void stopSimulationSchedule() {
         myScheduleOperation.shutdown();
     }
