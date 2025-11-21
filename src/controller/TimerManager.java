@@ -13,11 +13,6 @@ import java.time.format.DateTimeFormatter;
 public class TimerManager {
 
     /**
-     * Represent the TimeManger instance
-     */
-    private static TimerManager instance;
-
-    /**
      * Represent the update interval time to update the drone telemetry data
      */
     private static final int UPDATE_INTERVAL = 3;
@@ -35,30 +30,16 @@ public class TimerManager {
     /**
      * Represent the time when the simulation is pauseTimer
      */
-    private long myPausedTime = 0;
+    private long myPausedTime;
 
     /**
      * Represent the state of the simulation
      */
-    private String mySimStatus;
+    private Status mySimStatus = Status.STOPPED;
 
-    /**
-     * Private constructor to set up and initialize the TimeManger object
-     */
-    private TimerManager() {
-        mySimStatus = "Stopped";
-    }
-
-    /**
-     * A method to ensure only one TimeManger instance is created.
-     *
-     * @return the single instance of the TimeManger.
-     */
-    public static TimerManager getInstance() {
-        if (instance == null) {
-            instance = new TimerManager();
-        }
-        return instance;
+    /** Enum for sim status for safety */
+    public enum Status {
+        STOPPED, RUNNING, PAUSED
     }
 
 
@@ -69,7 +50,7 @@ public class TimerManager {
      *
      * @return a string representing the current simulation status.
      */
-    public String getSimStatus() {
+    public Status getSimStatus() {
         return mySimStatus;
     }
 
@@ -99,16 +80,16 @@ public class TimerManager {
      */
     public void startTimer() {
         myStartTime = System.currentTimeMillis();
-        mySimStatus = "Running";
+        mySimStatus = Status.RUNNING;
     }
 
     /**
      * Method to pause the Timer
      */
     public void pauseTimer() {
-        if ("Running".equals(mySimStatus)) {
+        if (mySimStatus == Status.RUNNING) {
             myPausedTime = System.currentTimeMillis();
-            mySimStatus = "Paused";
+            mySimStatus = Status.PAUSED;
         }
     }
 
@@ -116,10 +97,10 @@ public class TimerManager {
      * Method to resume the timer
      */
     public void resumeTimer() {
-        if ("Paused".equals(mySimStatus)) {
+        if (mySimStatus == Status.PAUSED) {
             long pausedDuration = System.currentTimeMillis() - myPausedTime;
             myStartTime += pausedDuration;
-            mySimStatus = "Running";
+            mySimStatus = Status.RUNNING;
             myPausedTime = 0;
         }
     }
@@ -128,7 +109,7 @@ public class TimerManager {
      * Method to stop the timer
      */
     public void stopTimer() {
-        mySimStatus = "Stopped";
+        mySimStatus = Status.STOPPED;
     }
 
 
@@ -141,8 +122,14 @@ public class TimerManager {
      */
     public int getElapsedTime() {
         final long now = System.currentTimeMillis();
-        final long elapsedTime = now - myStartTime;
-        return (int) (elapsedTime / 1000);
+        int elapsedTime;
+
+        if (mySimStatus == Status.PAUSED) {
+            elapsedTime = (int) ((myPausedTime - myStartTime) / 1000);
+        } else {
+            elapsedTime = (int) ((now - myStartTime) / 1000);
+        }
+        return elapsedTime;
     }
 
     /**
@@ -150,8 +137,7 @@ public class TimerManager {
      *
      * @return the current time in military time as a String.
      */
-
-    private String getCurrentTime() {
+    public String getCurrentTime() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
     }
 }

@@ -9,53 +9,47 @@ package controller;
  * @version Fall 2025
  */
 public class DroneMonitorApp {
-    /* Represent the DroneMonitorApp instance */
-    private static DroneMonitorApp instance;
-
     /* A class object that help manage the time system of the simulation */
-    private final TimerManager myTimerManger;
+    private final TimerManager myTimerManager;
 
     /* A class object that help manage run the tasks needed for the simulation */
     private final SimulationScheduler mySchedulerOperator;
 
-    /** Private constructor to create the DroneMonitorApp instance */
-    private DroneMonitorApp() {
-        myTimerManger = TimerManager.getInstance();
-        mySchedulerOperator = SimulationScheduler.getInstance();
-    }
-
     /**
-     * A method to ensure only one TimeManger instance is created.
+     *  Public constructor to create the DroneMonitorApp instance
      *
-     * @return the single instance of the DroneMonitorApp.
+     * @param theTimerManager represents the TimeManager object to manage timer functionality.
+     * @param theSchedulerOperator represents the SimulationScheduler object to handle the simulation tasks.
      */
-    public static DroneMonitorApp getInstance() {
-        if (instance == null) {
-            instance = new DroneMonitorApp();
-        }
-        return instance;
+    public DroneMonitorApp(final TimerManager theTimerManager, final SimulationScheduler theSchedulerOperator) {
+        myTimerManager = theTimerManager;
+        mySchedulerOperator = theSchedulerOperator;
     }
 
     /* Methods: Different Simulation "Stages/Phases" */
 
     /** Method to start the simulation */
     public void startSim() {
-        myTimerManger.startTimer();
+        myTimerManager.startTimer();
+        mySchedulerOperator.setPausedStatus(false);
         mySchedulerOperator.startSimulationTask();
     }
 
     /** Method to pause the simulation */
     public void pauseSim() {
-        myTimerManger.pauseTimer();
+        mySchedulerOperator.setPausedStatus(true);
+        myTimerManager.pauseTimer();
     }
 
     /** Method to continue the simulation after simulation has been pauseTimer */
     public void continueSim() {
-        myTimerManger.resumeTimer();
+        mySchedulerOperator.setPausedStatus(false);
+        myTimerManager.resumeTimer();
     }
 
     /** Method to stop the simulation all together */
     public void stopSim() {
-        myTimerManger.stopTimer();
+        myTimerManager.stopTimer();
+        mySchedulerOperator.stopSimulationSchedule();
     }
 }
