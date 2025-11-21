@@ -2,86 +2,143 @@ package controller;
 
 import Model.TelemetryData;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
+/**
+ * A class that is purely and sole resposnbiel for generating telemetry data for the
+ * drone object.
+ * Generating values such as Latitude, Longitude, Velocity, Orientation, Altitude,
+ * Starting position, starting height.
+ *
+ * @author James Escudero
+ * @version Fall 2025
+ */
 public class TelemetryGenerator {
 
-    private static final Random randomNumGenerator = new Random();
+    /** Random object to use as a random generator */
+    private static final Random myRandomGenerator = new Random();
 
-    public TelemetryData generateTelemetryData(final TelemetryData currentTelemetry) {
-        final TelemetryData telemetryData = new TelemetryData();
-        generateAll(telemetryData, currentTelemetry);
-        return telemetryData;
-    }
-
-    private void generateAll(final TelemetryData theTelemetryData, TelemetryData currentTelemetry) {
-        generateLatitude(theTelemetryData, currentTelemetry);
-        generateLongitude(theTelemetryData, currentTelemetry);
-        generateAltitude(theTelemetryData, currentTelemetry);
-        generateOrientation(theTelemetryData, currentTelemetry);
-        generateVelocity(theTelemetryData, currentTelemetry);
-    }
-
-
+    /**
+     * Generates the starting spawn position.
+     * It will generate a random spawn point within the circle spawn area.
+     *
+     * @return a TelemetryData object of lat and long values.
+     */
     public TelemetryData generateStartPosition() {
-        // The Area where it can spawn is in a circle
 
-        TelemetryData returnTelemetry = new TelemetryData();
+        TelemetryData startPositionTelemetry = new TelemetryData();
 
-        int radius = 50; // 50 Feet
+        // The spawn radius for the drone is a circle
+        final int radius = 50; // aka 50 ft
 
-        int spawnArea = (int) (Math.PI * Math.pow(radius, 2));
+        // Randomly generating a random angle of a circle
+        double randomAngle = myRandomGenerator.nextDouble() * 2 * Math.PI;
+        // Randomly generating a distance between the 0-50 units
+        double randomDistance = Math.sqrt(myRandomGenerator.nextDouble()) * radius; // 0 to units
 
-        double randomAngle = randomNumGenerator.nextDouble() * 2 * Math.PI; // For 0 to 2pi raidens
-        double randomDistance = randomNumGenerator.nextDouble() * 50; // 0 to 50 units
-
+        // Base on the random distance + random Angle -> Convert into official Lat, and Long position
         double latOffset = randomDistance * Math.cos(randomAngle);
         double longOffset = randomDistance * Math.sin(randomAngle);
 
-        returnTelemetry.setLatitude(latOffset);
-        returnTelemetry.setLongitude(longOffset);
+        // Setting those calculated position into the telemetry data object
+        startPositionTelemetry.setLatitude(latOffset);
+        startPositionTelemetry.setLongitude(longOffset);
 
-        return returnTelemetry;
+        // Returning the randomly generated position
+        return startPositionTelemetry;
     }
 
-
-    // latitude = y, Vertical
-    // longitude = x, Horizontal
-
-    private void generateLatitude(final TelemetryData theTelemetryData, final TelemetryData theCurrentTelemetry) {
-        // Converting the drone current orientation to radians
-        double orientationInRadians = Math.toRadians(theCurrentTelemetry.getOrientation());
-
-        // Calculate how much we moved vertically (aka the Y-axis)
-        double changeInY = theCurrentTelemetry.getVelocity() * Math.cos(orientationInRadians);
-
-        // Adding the change to the old Position to the new TelemetryData output
-        theTelemetryData.setLatitude(theCurrentTelemetry.getLatitude() + changeInY);
-    }
-
-    private void generateLongitude(final TelemetryData theTelemetryData, final TelemetryData theCurrentTelemetry) {
-        double orientationInRadians = Math.toRadians(theCurrentTelemetry.getOrientation());
-
-        // Calculate how much we moved vertically (aka the x-axis)
-        double changeInX = theCurrentTelemetry.getVelocity() * Math.sin(orientationInRadians);
-
-        theTelemetryData.setLongitude(theCurrentTelemetry.getLongitude() + changeInX);
-    }
-
+    /**
+     * Generates the starting altitude that the drones fly up to after 3 seconds.
+     *
+     * @return a TelemetryData with only the altitude being generated.
+     */
     public TelemetryData generateStartAltitude() {
         TelemetryData droneSetupTelemetry = new TelemetryData();
 
-        // attitude generates between 25-75 feet.
-        int altitude = randomNumGenerator.nextInt(51) + 25; // 51 = 75 - 25 + 1
+        // Altitude generates between 25-75 feet.
+        int altitude = myRandomGenerator.nextInt(51) + 25; // 51 = 75 - 25 + 1
         droneSetupTelemetry.setAltitude(altitude);
 
         return droneSetupTelemetry;
     }
 
-    private void generateAltitude(final TelemetryData theNewTelemetry, final TelemetryData theCurrentTelemetry) {
-        double velocity = theCurrentTelemetry.getVelocity();
+    /**
+     * Generates Telemetry Data for all Telemetry values base on the previous telemetry value.
+     *
+     * @param thePrevTelemetry is the current telemetry data.
+     * @return a new telemetry data that is base on the pass telemetry data.
+     */
+    public TelemetryData generateTelemetryData(final TelemetryData thePrevTelemetry) {
+        final TelemetryData newTelemetry = new TelemetryData();
+        generateAll(newTelemetry, thePrevTelemetry);
+        return newTelemetry;
+    }
+
+    /**
+     * Helper method to call each telemetry value generator.
+     *
+     * @param theNextTelemetry is the telemetry data we will output back.
+     * @param thePrevTelemetry is the previous telemetry that was passed into.
+     */
+    private void generateAll(final TelemetryData theNextTelemetry, TelemetryData thePrevTelemetry) {
+        generateLatitude(theNextTelemetry, thePrevTelemetry);
+        generateLongitude(theNextTelemetry, thePrevTelemetry);
+        generateAltitude(theNextTelemetry, thePrevTelemetry);
+        generateOrientation(theNextTelemetry, thePrevTelemetry);
+        generateVelocity(theNextTelemetry, thePrevTelemetry);
+    }
+
+    /**
+     * Calculates the latitude Telemetry Data base on the previous velocity and orientation Telemetry values.
+     *
+     * @param theNextTelemetry is the telemetry data we will output back.
+     * @param thePrevTelemetry is the previous telemetry that was passed into.
+     */
+    private void generateLatitude(final TelemetryData theNextTelemetry, final TelemetryData thePrevTelemetry) {
+        // Converting the drone current orientation to radians
+        double orientationInRadians = Math.toRadians(thePrevTelemetry.getOrientation());
+
+        // Calculate how much we moved vertically (aka the Y-axis)
+        double changeInY = thePrevTelemetry.getVelocity() * Math.cos(orientationInRadians);
+
+        // Adding the change to the old Position to the new TelemetryData output
+        theNextTelemetry.setLatitude(thePrevTelemetry.getLatitude() + changeInY);
+    }
+
+    /**
+     * Calculates the longitude Telemetry Data base on the previous velocity and orientation Telemetry values.
+     *
+     * @param theNextTelemetry is the telemetry data we will output back.
+     * @param thePrevTelemetry is the previous telemetry that was passed into.
+     */
+    private void generateLongitude(final TelemetryData theNextTelemetry, final TelemetryData thePrevTelemetry) {
+        double orientationInRadians = Math.toRadians(thePrevTelemetry.getOrientation());
+
+        // Calculate how much we moved vertically (aka the x-axis)
+        double changeInX = thePrevTelemetry.getVelocity() * Math.sin(orientationInRadians);
+
+        theNextTelemetry.setLongitude(thePrevTelemetry.getLongitude() + changeInX);
+    }
+
+    /**
+     * Generates Telemetry data of altitude that is base on the velocity and
+     *
+     * @param theNextTelemetry is the telemetry data we will output back.
+     * @param thePrevTelemetry is the previous telemetry that was passed into.
+     */
+    private void generateAltitude(final TelemetryData theNextTelemetry, final TelemetryData thePrevTelemetry) {
+        // Storing the previous velocity
+        double velocity = thePrevTelemetry.getVelocity();
+
+        // Valid checking if it's 0, we keep it 0
         if (velocity <= 0) {
-            theNewTelemetry.setAltitude(theCurrentTelemetry.getAltitude());
+            theNextTelemetry.setAltitude(thePrevTelemetry.getAltitude());
             return;
         }
 
@@ -92,11 +149,12 @@ public class TelemetryGenerator {
                 new int[]{46, 90}    // Rare
         );
 
+        // Probability Weights
         int[] weights = {80, 17, 3}; // Common, Occasion, Rare
 
         // Weighted random selection
         int totalWeight = 100; // 80+17+3
-        int randomValue = randomNumGenerator.nextInt(totalWeight);
+        int randomValue = myRandomGenerator.nextInt(totalWeight);
         int selectedIndex = 0;
         for (int w : weights) {
             randomValue -= w;
@@ -104,31 +162,38 @@ public class TelemetryGenerator {
             selectedIndex++;
         }
 
-        // getting the magnitude range
+        // Getting the magnitude range
         int[] range = magnitudeBuckets.get(selectedIndex);
         int minMag = range[0];
         int maxMag = range[1];
 
         // int represents the random generated magnitude
-        int magnitude = minMag + randomNumGenerator.nextInt(maxMag - minMag + 1);
+        int magnitude = minMag + myRandomGenerator.nextInt(maxMag - minMag + 1);
 
         // Randomly choosing to either climb (+) or dive (-), EXCEPT: if magnitude == 0 then we stay level
         int angleDegrees;
         if (magnitude == 0) {
             angleDegrees = 0;
         } else {
-            boolean climb = randomNumGenerator.nextBoolean();
+            boolean climb = myRandomGenerator.nextBoolean();
             angleDegrees = climb ? magnitude : -magnitude;
         }
 
         // Compute altitude change
         double altitudeChange = velocity * Math.sin(Math.toRadians(angleDegrees));
-        double newAltitude = theCurrentTelemetry.getAltitude() + altitudeChange;
+        double newAltitude = thePrevTelemetry.getAltitude() + altitudeChange;
 
-        theNewTelemetry.setAltitude(newAltitude);
+        theNextTelemetry.setAltitude(newAltitude);
     }
 
-    private void generateOrientation(final TelemetryData theNewTelemetry, final TelemetryData theCurrentTelemetry) {
+    /**
+     * Generates Orientation telemetry data that's base on its previous velocity.
+     * Generating within a 360 degree directional.
+     *
+     * @param theNextTelemetry is the telemetry data we will output back.
+     * @param thePrevTelemetry is the previous telemetry that was passed into.
+     */
+    private void generateOrientation(final TelemetryData theNextTelemetry, final TelemetryData thePrevTelemetry) {
         /* Velocity Structure
         -45 <-> +45 = 70% (Common)
         -135 ~ -46 and +46 ~ +135 = 25% (Occasion)
@@ -136,7 +201,7 @@ public class TelemetryGenerator {
         */
 
         // Storing the current orientation
-        int currentOrientation = (int) theCurrentTelemetry.getOrientation();
+        int currentOrientation = (int) thePrevTelemetry.getOrientation();
 
         // A list of int arrays for each range velocity category
         List<int[]> turnBuckets = new ArrayList<>();
@@ -156,7 +221,7 @@ public class TelemetryGenerator {
             totalWeight += weight;
         }
 
-        int randomValue = randomNumGenerator.nextInt(totalWeight);
+        int randomValue = myRandomGenerator.nextInt(totalWeight);
         int indexCounter = 0;
 
 
@@ -173,9 +238,9 @@ public class TelemetryGenerator {
         int minTurn = newTurn[0];
         int maxTurn = newTurn[1];
 
-        int direction = minTurn + randomNumGenerator.nextInt(maxTurn - minTurn + 1);
+        int direction = minTurn + myRandomGenerator.nextInt(maxTurn - minTurn + 1);
 
-        boolean whatTurn = randomNumGenerator.nextBoolean();
+        boolean whatTurn = myRandomGenerator.nextBoolean();
 
         // ternary that takes turnRight var, and see if oes right to leave as on the true statement
         int turn = whatTurn ? direction : -direction;
@@ -185,17 +250,17 @@ public class TelemetryGenerator {
         newOrientation = (((newOrientation % 360) + 360) % 360);
 
         // Assigning new Velocity to the newTelemetry
-        theNewTelemetry.setOrientation(newOrientation);
+        theNextTelemetry.setOrientation(newOrientation);
     }
 
     /**
      * Generates the velocity of the drone base on the current velocity with
      * various realistic to imitate realism of the drone behavior.
      *
-     * @param theNewTelemetry represent the new Telemetry data to return.
-     * @param theCurrentTelemetry represent the current Telemetry data.
+     * @param theNextTelemetry is the telemetry data we will output back.
+     * @param thePrevTelemetry is the previous telemetry that was passed into.
      */
-    private void generateVelocity(final TelemetryData theNewTelemetry, final TelemetryData theCurrentTelemetry) {
+    private void generateVelocity(final TelemetryData theNextTelemetry, final TelemetryData thePrevTelemetry) {
         /* Drone Velocity Structure:
         Range: 0-50 m/s
         Categories
@@ -220,7 +285,7 @@ public class TelemetryGenerator {
          */
 
         // Storing the current velocity of the drone (will be used to determine the next velocity)
-        final double currentVelocity = theCurrentTelemetry.getVelocity();
+        final double currentVelocity = thePrevTelemetry.getVelocity();
 
         // Safe check that the currentVelocity is with in 0 and 50
         final double safeVelocity = Math.max(0, Math.min(50, currentVelocity));
@@ -271,7 +336,7 @@ public class TelemetryGenerator {
         }
 
         // From the total we added, we're generating a random number in that range
-        int randomVelocity = randomNumGenerator.nextInt(total);
+        int randomVelocity = myRandomGenerator.nextInt(total);
 
         // int variable to keep count the category we're in
         int categorySectionCounter = 0;
@@ -301,7 +366,7 @@ public class TelemetryGenerator {
         double speedAnchor = Math.max(newMin, Math.min(newMax, currentVelocity));
 
         // Used to implement a triangular distribution
-        double uniform = randomNumGenerator.nextDouble(); // 0.0 to 1.0
+        double uniform = myRandomGenerator.nextDouble(); // 0.0 to 1.0
 
         // A double var used to assign the new velocity to our newTelemetry object
         double newVelocity;
@@ -316,6 +381,6 @@ public class TelemetryGenerator {
         }
 
         // Assigning new Velocity to the newTelemetry
-        theNewTelemetry.setVelocity(Math.round(newVelocity));
+        theNextTelemetry.setVelocity(Math.round(newVelocity));
     }
 }

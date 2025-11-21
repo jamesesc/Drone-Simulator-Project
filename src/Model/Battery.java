@@ -54,9 +54,13 @@ public class Battery {
 
     /* SETTER */
 
-    /** Setter method to set the level of the battery level */
-    public void setLevel(final int theNewBattery) {
-        myBattery = theNewBattery;
+    /**
+     * Setter method to set the level of the battery level
+     *
+     * @param theNewBatteryLevel is the new battery level that were setting battery level to.
+     */
+    public void setLevel(final int theNewBatteryLevel) {
+        myBattery = theNewBatteryLevel;
     }
 
     /* LOGIC */
@@ -99,7 +103,11 @@ public class Battery {
         setLevel(batterLevel);
     }
 
-    /** Method to update the drone Batter */
+    /**
+     * Method to update the drone Battery base on the velocity of the drone.
+     *
+     * @param theVelocity is the velocity of the drone.
+     */
     public void drain(final double theVelocity) {
         /* Velocity Power => Battery Consumption Chart
         60-100 m/s: High (Cap at 30)
