@@ -39,6 +39,9 @@ import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 
+/**
+ * A Singleton class which houses our Graphical User Interface for the application.
+ */
 public class MonitorDash extends Application {
     /* ============================
     CONSTANTS - You can edit these
@@ -63,7 +66,7 @@ public class MonitorDash extends Application {
      * How much we're multiplying the drone size by, in case
      * we want to make it bigger or smaller.
      */
-    private static final double SIZE_SCALER = 3;
+    private static final double SIZE_SCALER = 1.2;
     /**
      * Minimum size a drone can be in our GUI.
      */
@@ -71,7 +74,7 @@ public class MonitorDash extends Application {
     /**
      * Maximum size a drone can be in our GUI.
      */
-    private static final double MAX_DRONE_SIZE = 40;
+    private static final double MAX_DRONE_SIZE = 50;
     /**
      * How many drone stats are we going to have to display in the top-right.
      * NOTE: Constant for now, but in the future I want to be able to adjust for
@@ -145,7 +148,7 @@ public class MonitorDash extends Application {
      ===========================*/
 
     /**
-     * Record that makes our little stats boxes in the top-right
+     * Record that makes our little stats boxes in the top-right.
      * NOTE: We may want to make this a separate class at some point.
      *
      * @param theId
