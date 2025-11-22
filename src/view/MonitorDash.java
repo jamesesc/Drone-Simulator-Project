@@ -731,6 +731,7 @@ public class MonitorDash extends Application {
 
         Menu pauseMenu = new Menu("");
         Label pauseLabel = new Label("Pause");
+        pauseMenu.setDisable(true);
         pauseMenu.setGraphic(pauseLabel);
 
         Menu stopMenu = new Menu("");
@@ -747,12 +748,14 @@ public class MonitorDash extends Application {
             startGame();
             startMenu.setDisable(true);
             stopMenu.setDisable(false);
+            pauseMenu.setDisable(false);
         });
 
         stopLabel.setOnMouseClicked(_ -> {
             endGame();
-            startMenu.setDisable(false);
+            startMenu.setDisable(true);
             stopMenu.setDisable(true);
+            pauseMenu.setDisable(true);
         });
 
         //Adding menus to the MenuBar
@@ -766,6 +769,7 @@ public class MonitorDash extends Application {
      */
     private void endGame() {
         myController.stopSim();
+        myDroneDisplay.setStyle("-fx-background-color: grey;");
         System.out.println("MonitorDash: stopped game");
     }
 
@@ -776,8 +780,10 @@ public class MonitorDash extends Application {
         System.out.println("MonitorDash: toggled pause");
         if (myIsPaused) {
             myController.pauseSim();
+            myDroneDisplay.setStyle("-fx-background-color: grey;");
         } else {
             myController.continueSim();
+            myDroneDisplay.setStyle("-fx-background-color: red;");
         }
 
         myIsPaused = !myIsPaused;
