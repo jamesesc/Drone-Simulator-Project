@@ -443,18 +443,26 @@ public class MonitorDash extends Application {
                     * displayWidth - targetSize / 2;
             double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
                     * displayHeight - targetSize / 2;
-            double targetAngle = data.getOrientation();
 
             //Transition animation
+            double currentAngle = droneView.getRotate();
+            double targetAngle = data.getOrientation();
+
+            // Compute the shortest path rotation
+            double delta = ((targetAngle - currentAngle + 540) % 360) - 180;
+            double shortestAngle = currentAngle + delta;
+
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.seconds(1),
                             new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
                             new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
                             new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
                             new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
-                            new KeyValue(droneView.rotateProperty(), targetAngle, Interpolator.EASE_BOTH)
+                            new KeyValue(droneView.rotateProperty(), shortestAngle, Interpolator.EASE_BOTH)
                     )
             );
+            timeline.play();
+
             timeline.play();
 
             updateStatsText(theDrone);
