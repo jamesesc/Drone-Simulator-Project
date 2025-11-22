@@ -262,7 +262,7 @@ public class MonitorDash extends Application {
     public void refreshDroneDisplay(final Drone[] myDrones) {
             //If the array is null, do nothing
             if (myDrones == null) return;
-
+            
             //Call single-drone version iteratively
             for (Drone drone : myDrones) {
                 refreshDroneDisplay(drone);
