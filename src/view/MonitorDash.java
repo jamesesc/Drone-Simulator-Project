@@ -523,14 +523,12 @@ public class MonitorDash extends Application {
 
         TimerManager timerManager = new TimerManager();
         DroneFleetManager fleetManager = new DroneFleetManager();
-        AnomalyProcessor anomalyProcessor = new AnomalyProcessor();
 
         UpdateUIManager updaterManager = new UpdateUIManager(this, fleetManager);
 
         SimulationScheduler scheduler = new SimulationScheduler(
                 timerManager,
                 fleetManager,
-                anomalyProcessor,
                 updaterManager
         );
 
@@ -767,7 +765,7 @@ public class MonitorDash extends Application {
      * Tell the controller DroneMonitorApp to end the game.
      */
     private void endGame() {
-        DroneMonitorApp.getInstance().stopSim();
+        myController.stopSim();
         System.out.println("MonitorDash: stopped game");
     }
 
@@ -777,9 +775,9 @@ public class MonitorDash extends Application {
     private void togglePauseGame() {
         System.out.println("MonitorDash: toggled pause");
         if (myIsPaused) {
-            DroneMonitorApp.getInstance().pauseSim();
+            myController.pauseSim();
         } else {
-            DroneMonitorApp.getInstance().continueSim();
+            myController.continueSim();
         }
 
         myIsPaused = !myIsPaused;
@@ -789,7 +787,7 @@ public class MonitorDash extends Application {
      * Tell the controller DroneMonitorApp to start the game.
      */
     private void startGame() {
-        DroneMonitorApp.getInstance().startSim();
+        myController.startSim();
         System.out.print("MonitorDash: Started Game");
     }
 

@@ -6,6 +6,7 @@ import java.sql.*;
 
 public class AnomalyDB {
     //database file location
+    //to do: put this into a db.property file, or configuration file for db lite
     private static final String DB_URL = "jdbc:sqlite:drone_anomalies.db";
     //connection to database
     private Connection conn;

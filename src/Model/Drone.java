@@ -4,6 +4,8 @@ package Model;
  * A class that represents the drone that we're simulating on.
  * Uses another object called Telemetry Data which acts as the storage
  * for the drone Telemetry data.
+ * As well, use a battery object that handles the internal battery of
+ * the drone object.
  *
  * @author James Escudero
  * @version Fall 2025
@@ -48,22 +50,38 @@ public class Drone {
 
     /* GETTERS */
 
-    /** A getter to get the drone battery level */
+    /**
+     * A getter to get the drone battery level
+     *
+     * @return the Battery level of the drone as an int.
+     */
     public int getBatteryLevel() {
         return myBattery.getLevel();
     }
 
-    /** A getter to get the drone ID */
+    /**
+     * A getter to get the drone ID
+     *
+     * @return the Drone ID as a String.
+     */
     public int getDroneID() {
         return myDroneID;
     }
 
-    /** A getter to get the drone Telemetry Data */
+    /**
+     * A getter to get the drone Telemetry Data
+     *
+     * @return the Drone Telemetry Data as a TelemetryData Object.
+     */
     public TelemetryData getDroneTelemetry() {
         return myTelemetryData;
     }
 
-    /** A getter to get whether the drone is on or not */
+    /**
+     * A getter to get whether the drone is on or not
+     *
+     * @return the drone status as a boolean.  
+     */
     public boolean isDroneOn() {
         return myDroneStatus;
     }
