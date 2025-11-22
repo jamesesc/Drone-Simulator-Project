@@ -25,6 +25,7 @@ public class UpdateUIManager {
     /** Updates the UI to reflect the latest changes to the drone telemetry data */
     public void updateDroneDisplay() {
         // Updating the Big Stats
+        // TODO: UI is singleton
         myUI.updateStatsText(myDroneFleetManager.getDroneFleet());
         // Updating the Display
         myUI.refreshDroneDisplay(myDroneFleetManager.getDroneFleet());
