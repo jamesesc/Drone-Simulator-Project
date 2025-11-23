@@ -16,7 +16,7 @@ import javafx.scene.text.Font;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TopRightStats extends StackPane {
+class TopRightStats extends StackPane {
     /**
      * How many drone stats are we going to have to display in the top-right.
      * NOTE: Constant for now, but in the future I want to be able to adjust for
@@ -50,7 +50,7 @@ public class TopRightStats extends StackPane {
      * @param theContainer
      */
     private record RegionBox(int theId, Label theHeader, TextArea theTextArea, VBox theContainer) {
-        public RegionBox(int theID, String theTitle) {
+        RegionBox(int theID, String theTitle) {
             this(
                     theID,
                     new Label(theTitle),
@@ -87,7 +87,7 @@ public class TopRightStats extends StackPane {
     }
 
 
-    public TopRightStats() {
+    TopRightStats() {
         HBox.setHgrow(this, Priority.NEVER);
 
         //Setup for the VBox that's going to hold our small drone stats boxes.
@@ -163,7 +163,7 @@ public class TopRightStats extends StackPane {
      *
      * @param theDrone The drone whose data we are looking at.
      */
-    public void updateStatsTextLarge(final Drone theDrone) {
+    void updateStatsTextLarge(final Drone theDrone) {
         if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
         TelemetryData data = theDrone.getDroneTelemetry();
@@ -186,7 +186,7 @@ public class TopRightStats extends StackPane {
      *
      * @param theDrone The drone whose data we want to display.
      */
-    public void updateStatsText(final Drone theDrone) {
+    void updateStatsText(final Drone theDrone) {
         //If our drone or its data is null, return nothing
         if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
@@ -218,7 +218,7 @@ public class TopRightStats extends StackPane {
      *
      * @param theDrones All the drones whose data we want to display.
      */
-    public void updateStatsText(final Drone[] theDrones) {
+    void updateStatsText(final Drone[] theDrones) {
         //If the array is null do nothing
         if (theDrones == null) return;
 
@@ -226,5 +226,9 @@ public class TopRightStats extends StackPane {
         for (Drone drone : theDrones) {
             updateStatsText(drone);
         }
+    }
+
+    boolean getShowingStats() {
+        return myShowingStats;
     }
 }

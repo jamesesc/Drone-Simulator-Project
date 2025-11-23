@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TopLeftDroneDisplay extends VBox {
+class TopLeftDroneDisplay extends VBox {
     /**
      * Minimum bound for longitude.
      */
@@ -93,6 +93,7 @@ public class TopLeftDroneDisplay extends VBox {
         droneBox.getStyleClass().add("rounded-box");
         VBox.setVgrow(droneBox, Priority.ALWAYS);
         VBox.setVgrow(myDroneDisplay, Priority.ALWAYS);
+
         myDroneDisplay.setMinHeight(0);
 
         //Making the time label stylish
@@ -180,7 +181,7 @@ public class TopLeftDroneDisplay extends VBox {
      *
      * @param theTime The current time.
      */
-    public void updateTime(final int theTime) {
+    void updateTime(final int theTime) {
         // Will update to the UI thread safely
         Platform.runLater(() -> myTimeLabel.setText("Time: " + theTime));
     }
@@ -190,7 +191,7 @@ public class TopLeftDroneDisplay extends VBox {
      *
      * @param drone The drone to show
      */
-    public void refreshDroneDisplay(final Drone drone) {
+    void refreshDroneDisplay(final Drone drone) {
         //If a drone or its contents are null, do nothing
         if (drone == null || drone.getDroneTelemetry() == null) {
             return;
@@ -199,5 +200,5 @@ public class TopLeftDroneDisplay extends VBox {
         moveDroneView(drone);
     }
 
-    public Pane getDroneDisplay() { return myDroneDisplay; }
+    Pane getDroneDisplay() { return myDroneDisplay; }
 }

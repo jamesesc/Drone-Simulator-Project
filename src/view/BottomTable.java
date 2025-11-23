@@ -12,13 +12,13 @@ import javafx.scene.layout.VBox;
 
 import java.util.List;
 
-public class BottomTable extends VBox {
+class BottomTable extends VBox {
     /**
      * The text area showing Drone anomalies.
      */
     private final TableView<MonitorTableEntry> myAnomalyTable;
 
-    public BottomTable() {
+    BottomTable() {
         //Self setup
         setPrefHeight(150);
         setMinHeight(150);
@@ -74,7 +74,7 @@ public class BottomTable extends VBox {
      *
      * @param theRecord The anomaly record we'll be adding.
      */
-    public void addAnomalyRecord(AnomalyRecord theRecord) {
+    void addAnomalyRecord(AnomalyRecord theRecord) {
         //Whether or not the ID is null, otherwise turn it into a String
         String idString = (theRecord.getID() == null) ? "—" : String.valueOf(theRecord.getID());
 
@@ -102,7 +102,7 @@ public class BottomTable extends VBox {
      *
      * @param theRecords What we want the contents to be.
      */
-    public void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
+    void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
         if (theRecords == null || theRecords.isEmpty()) { return; }
 
         myAnomalyTable.getItems().clear();

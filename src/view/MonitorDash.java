@@ -266,14 +266,13 @@ public class MonitorDash extends Application {
      * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
      */
     void swapRightPanel(boolean theBigStatsBox) {
-        myTopRight.swapRightPanel(theBigStatsBox);
+        if (theBigStatsBox != myTopRight.getShowingStats()) {
+            myTopRight.swapRightPanel(theBigStatsBox);
+        }
     }
 
     /* ====================================
-    BUILDING OUT SPECIFIC SECTIONS
-
-    (made these helpers so start() wouldn't
-    be an infernal hellscape of code)
+    MENU BAR
      ====================================*/
 
     /**
