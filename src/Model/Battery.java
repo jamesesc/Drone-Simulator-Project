@@ -14,7 +14,7 @@ public class Battery {
     /* FIELDS */
 
     /** Random generator to help generate random battery level */
-    static final Random randomNumGen = new Random();
+    private static final Random randomNumGen = new Random();
 
     /** Represent the Battery Level of the Drone */
     private int myBattery;
@@ -22,15 +22,33 @@ public class Battery {
 
     /* CONSTANTS */
 
+    /** The multiplier use to calculate the drain based on velocity */
+    private static final double DRAIN_COEFFICIENT = 0.005;
+
+    /** The exponent used to represent the square velocity */
+    private static final double VELOCITY_COEFFICIENT = 2.0;
+
+    /** The max amount a battery can drain in a single update*/
+    private static final int MAX_DRAIN_AMOUNT = 30;
+
+    /** The min amount a battery can drain in a single update */
+    private static final int MIN_DRAIN_AMOUNT = 1;
+
+    /** The absolute max battery level */
+    private static final int MAX_BATTERY_LEVEL = 100;
+
+    /** The absolute min battery level */
+    private static final int MIN_BATTERY_LEVEL = 0;
+
     /* The range that battery can randomly generate */
-    static final int[][] BATTERY_LEVEL_RANGE = {
+    private static final int[][] BATTERY_LEVEL_RANGE = {
             {0, 19}, // Low
             {20, 49}, // Medium
             {50, 100} // Full
     };
 
     /** The probability for each range to occur (related to BATTERY_LEVEL_RANGE) */
-    static final int[] PROB_BATTERY_LEVEL = {1, 14, 85};
+    private static final int[] PROB_BATTERY_LEVEL = {1, 14, 85};
 
 
     /* CONSTRUCTOR */
@@ -60,6 +78,10 @@ public class Battery {
      * @param theNewBatteryLevel is the new battery level that were setting battery level to.
      */
     public void setLevel(final int theNewBatteryLevel) {
+        if (theNewBatteryLevel <= MIN_BATTERY_LEVEL || theNewBatteryLevel > MAX_BATTERY_LEVEL) {
+            throw new IllegalArgumentException("Battery level must be between 0 and 100");
+        }
+
         myBattery = theNewBatteryLevel;
     }
 
@@ -117,14 +139,18 @@ public class Battery {
          */
 
         // Battery Decrease Formula
-        int batteryDecrease = (int) (0.005 * Math.pow(theVelocity, 2));
+        int batteryDecrease = (int) (DRAIN_COEFFICIENT * Math.pow(theVelocity, VELOCITY_COEFFICIENT));
 
         // Min Cap, and Max Cap
         if (batteryDecrease == 0) {
-            batteryDecrease = 1;
-        } else if (batteryDecrease > 32) {
-            batteryDecrease = 30;
+            batteryDecrease = MIN_DRAIN_AMOUNT;
+        } else if (batteryDecrease > MAX_DRAIN_AMOUNT) {
+            batteryDecrease = MAX_DRAIN_AMOUNT;
         }
         myBattery -= batteryDecrease;
+
+        if (myBattery < MIN_BATTERY_LEVEL) {
+            myBattery = MIN_BATTERY_LEVEL;
+        }
     }
 }
