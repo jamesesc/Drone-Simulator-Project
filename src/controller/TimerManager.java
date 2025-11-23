@@ -121,14 +121,17 @@ public class TimerManager {
      * @return the elapsed time in seconds as an int.
      */
     public int getElapsedTime() {
-        final long now = System.currentTimeMillis();
         int elapsedTime;
 
-        if (mySimStatus == Status.PAUSED) {
+        if (mySimStatus == Status.RUNNING) {
+            final long now = System.currentTimeMillis();
+            elapsedTime = (int) ((now - myStartTime) / 1000);
+        } else if (mySimStatus == Status.PAUSED ) {
             elapsedTime = (int) ((myPausedTime - myStartTime) / 1000);
         } else {
-            elapsedTime = (int) ((now - myStartTime) / 1000);
+            elapsedTime = 0;
         }
+
         return elapsedTime;
     }
 

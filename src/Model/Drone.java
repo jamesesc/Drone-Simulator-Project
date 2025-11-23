@@ -1,5 +1,8 @@
 package Model;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * A class that represents the drone that we're simulating on.
  * Uses another object called Telemetry Data which acts as the storage
@@ -14,14 +17,14 @@ public class Drone {
 
     /* Fields */
 
+    /** Using a thread-safe counter for all created drone objects. */
+    private static final AtomicInteger DRONE_COUNTER = new AtomicInteger(1);
+
     /** A Telemetry Data object class used to store all the drone Telemetry data */
-    private TelemetryData myTelemetryData = new TelemetryData();
+    private TelemetryData myTelemetryData;
 
     /** A Battery object class used to handle the drone battery functionality */
-    private final Battery myBattery = new Battery();
-
-    /** An int that is use as drone counter for all created drone objects */
-    private static int myDroneCounter = 1;
+    private final Battery myBattery;
 
     /** An int that represent the drone individual id */
     private int myDroneID;
@@ -33,19 +36,12 @@ public class Drone {
 
     /** A non-arg constructor that initializes the drone id, and set the drone status to on */
     public Drone() {
-        myDroneID = myDroneCounter;
-        myDroneCounter++;
-        myDroneStatus = true;
-    }
+        // Using Java atomic increments that ensures each drone get unique ID in multi-thread simulation
+        myDroneID = DRONE_COUNTER.getAndIncrement();
 
-    /**
-     * An arg constructor that takes a telemetry data and sets that telemetry data to the drone
-     *
-     * @param droneTelemetryData represents the wanted telemetry data to assign to the drone.
-     */
-    public Drone(TelemetryData droneTelemetryData) {
-        super();
-        myTelemetryData = droneTelemetryData;
+        myDroneStatus = true;
+        myBattery = new Battery();
+        myTelemetryData = new TelemetryData();
     }
 
     /* GETTERS */
@@ -74,7 +70,8 @@ public class Drone {
      * @return the Drone Telemetry Data as a TelemetryData Object.
      */
     public TelemetryData getDroneTelemetry() {
-        return myTelemetryData;
+        // Creating a copy of the drone telemetry data
+        return new TelemetryData(myTelemetryData);
     }
 
     /**
@@ -104,6 +101,10 @@ public class Drone {
      * @param theNewBatteryLevel represents the new drone battery level.
      */
     public void setBatteryLevel(final int theNewBatteryLevel) {
+        if (theNewBatteryLevel <= 0 || theNewBatteryLevel > 100) {
+            throw new IllegalArgumentException("Battery level must be between 0 and 100");
+        }
+
         myBattery.setLevel(theNewBatteryLevel);
     }
 
@@ -113,7 +114,7 @@ public class Drone {
      * @param theNewTelemetryData represent the telemetry data that is going to update the drone telemetry data.
      */
     public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
-        myTelemetryData = theNewTelemetryData;
+        myTelemetryData = Objects.requireNonNull(theNewTelemetryData, "Telemetry Data cannot be null");
     }
 
 
