@@ -3,7 +3,7 @@ https://github.com/jamesesc/Drone-Simulator-Project
 
 --Fifth Deliverable--
 
-Oisin Perkins-Gilbert:
+Oisin Perkins-Gilbert: I think the biggest thing I've had to deal with this deliverable was being generally confused on what to do (A lot of the tasks I've done this deliverable is just miscellaneous stuff). Up until this point we've been able to largely work on our own on our own separate parts (encapsulation means we don't really need to worry about the internals of what the other person's classes is doing). I think as we go forward, we're going to need to work together more in person in order to get things done. Luckily, I've been keeping myself busy with my GUI classes so far.
 
 James Escudero: For this deliverable, no major issues occurred. Moving forward closer to the end of the project, I personally just need to adjust, and tweak the telemetry generator to be more fluid and smooth. Additionally, with the confirmation of full front end and back end connection is in the most part fully functional is good. With that, I now need to just connect and ensure the database is fully connected as well with everything. Lastly, the final implementation for the next deliverable would be implementing the charging system of the drone. With that, beside bug and polish statements, that would be getting closer to the complete finish of the project.
 
