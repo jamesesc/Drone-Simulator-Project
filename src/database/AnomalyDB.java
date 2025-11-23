@@ -2,6 +2,7 @@ package database;
 
 import Model.AnomalyRecord;
 import Model.TelemetryData;
+import Model.Drone;
 import java.sql.*;
 
 public class AnomalyDB {
@@ -28,22 +29,32 @@ public class AnomalyDB {
         /*
         id: increments automatically for each record
         drone id: which drone had anomaly
+        anomaly_method: mathod where anomaly happened
+        anomaly_time: time when anomaly occured
         altitude: altitude at time of anomaly
         longitude: longitude at time of anomaly
         latitude: latitude at time of anomaly
         orientation: orientation at time of anomaly
         velocity: velocity at time of anomaly
+        type: type of anomaly
+        severity: severity of anomaly
+        details: anomaly details
         timestamp: when anomaly occured
          */
         String sql = """
             CREATE TABLE IF NOT EXISTS drone_anomalies (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 drone_id INTEGER,
+                anomaly_method TEXT,
+                anomaly_time REAL,
                 altitude REAL,
                 longitude REAL,
                 latitude REAL,
                 orientation REAL,
                 velocity REAL,
+                anomaly_type TEXT,
+                severity TEXT,
+                details TEXT,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
             """;
@@ -56,30 +67,37 @@ public class AnomalyDB {
         }
     }
 
-    public boolean saveAnomaly(AnomalyRecord record) {
-        String sql = "INSERT INTO drone_anomalies (drone_id, altitude, longitude, latitude, orientation, velocity) VALUES (?, ?, ?, ?, ?, ?)";
+    public boolean saveAnomaly(AnomalyRecord record, Drone drone) {
+        String sql = "INSERT INTO drone_anomalies (drone_id, anomaly_method, anomaly_time, altitude, longitude, latitude, orientation, velocity, anomaly_type, severity, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            //TelemetryData data = record.getTelemetryData();
+            TelemetryData data = drone.getDroneTelemetry();
 
             pstmt.setInt(1, record.getID());
-//            pstmt.setDouble(2, data.getAltitude());
-//            pstmt.setDouble(3, data.getLongitude());
-//            pstmt.setDouble(4, data.getLatitude());
-//            pstmt.setDouble(5, data.getOrientation());
-//            pstmt.setDouble(6, data.getVelocity());
+            pstmt.setString(2, record.getType());
+            pstmt.setDouble(3, record.getTime());
+            pstmt.setDouble(4, data.getAltitude());
+            pstmt.setDouble(5, data.getLongitude());
+            pstmt.setDouble(6, data.getLatitude());
+            pstmt.setDouble(7, data.getOrientation());
+            pstmt.setDouble(8, data.getVelocity());
+            pstmt.setString(9, record.getType());
+            pstmt.setString(10, record.getSeverity());
+            pstmt.setString(11, record.getDetails());
+
             pstmt.executeUpdate();
             return true;
+
         } catch (SQLException e) {
             System.err.println("Error saving anomaly: " + e.getMessage());
             return false;
         }
     }
 
-    public void saveAnomalies(AnomalyRecord[] records) {
+    public void saveAnomalies(AnomalyRecord[] records, Drone drone) {
         for (AnomalyRecord record : records) {
-            saveAnomaly(record);
+            saveAnomaly(record, drone);
         }
     }
 
@@ -93,6 +111,27 @@ public class AnomalyDB {
 
     public static void main(String[] args) {
         AnomalyDB db = new AnomalyDB();
+
+        // Create a drone with telemetry data
+        Drone drone = new Drone();
+        TelemetryData t = drone.getDroneTelemetry();
+
+        t.setAltitude(150.75);
+        t.setLatitude(47.251);
+        t.setLongitude(-122.440);
+        t.setOrientation(135.0);
+        t.setVelocity(22.8);
+
+        // Create an anomaly record
+        AnomalyRecord record = new AnomalyRecord("EngineFailure", 1, 325.8);
+        record.setSeverity("HIGH");
+        record.setDetails("Engine temperature exceeded safe limit.");
+
+        // Save the anomaly
+        boolean saved = db.saveAnomaly(record, drone);
+
+        System.out.println("Test anomaly saved? " + saved);
+
         db.close();
     }
 }

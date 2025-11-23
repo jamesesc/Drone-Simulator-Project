@@ -1,6 +1,7 @@
 package controller;
 
 import Model.AnomalyRecord;
+import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
 
@@ -123,7 +124,27 @@ public class SimulationScheduler {
             );
 
             // 3) Save anomalies
-            //myAnomalyProcessor.saveAnomaliesToDB(anomalies);
+            for (AnomalyRecord anomaly : anomalies) {
+                // get id of drone that had the anomaly
+                int droneID = anomaly.getID();
+
+                // find which drone in the fleet matches the drone id
+                Drone affectedDrone = null;
+                for (Drone drone : myFleetManger.getDroneFleet()) {
+                    if (drone.getDroneID() == droneID) {
+                        affectedDrone = drone; // found drone
+                        break;
+                    }
+                }
+
+                // save the anomaly
+                if (affectedDrone != null) {
+                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
+                } else {
+                    // if theres no matching drone use first drone as fallback
+                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getDroneFleet()[0]);
+                }
+            }
 
             // 4) Update fleet data
             myFleetManger.updateFleetData(newTelemetry);
@@ -145,5 +166,6 @@ public class SimulationScheduler {
     /** To stop the reoccurring schedule tasks */
     public void stopSimulationSchedule() {
         myScheduleOperation.shutdown();
+        myAnomalyDB.close();
     }
 }
