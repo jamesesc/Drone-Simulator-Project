@@ -19,7 +19,7 @@ public class DroneFleetManager {
     private final TelemetryGenerator myTelemetryGen;
 
     /** Represent the current drone being simulated on */
-    private static Drone[] myDroneFleet;
+    private final Drone[] myDroneFleet;
 
 
     /* CONSTRUCTOR */
@@ -42,7 +42,7 @@ public class DroneFleetManager {
      * @return an array of Drone objects representing the fleet.
      */
     public Drone[] getDroneFleet() {
-        return myDroneFleet;
+        return myDroneFleet.clone();
     }
 
     /**
@@ -52,17 +52,19 @@ public class DroneFleetManager {
      * @return the Drone Object based on the index that was given.
      */
     public Drone getSpecificDrone(final int theIndex) {
-        if (theIndex > 0 && theIndex < myDroneFleet.length) {
-           return myDroneFleet[theIndex];
-        } else {
-            throw new IndexOutOfBoundsException();
+         if (theIndex < 0 || theIndex >= myDroneFleet.length - 1) {
+            throw new IndexOutOfBoundsException(
+                "Invalid Drone Index chosen: : " + theIndex + ". Index must be between" +
+                " 0 and " + (myDroneFleet.length - 1) + "."
+            );
         }
+        return myDroneFleet[theIndex];
     }
 
     /**
      * Getter method that returns the number of drones in the fleet.
      *
-     * @return the number of drones in the flee as an int.
+     * @return the number of drones in the fleet as an int.
      */
     public int getDroneCount() {
         return DRONE_COUNT;
@@ -118,6 +120,10 @@ public class DroneFleetManager {
      * @param theNewTelemetry is an array of telemetry data to update each drone in the fleet.
      */
     public void updateFleetData(final TelemetryData[] theNewTelemetry) {
+       if (theNewTelemetry == null) {
+           throw new NullPointerException();
+       }
+
         for (int i = 0; i < myDroneFleet.length;i++) {
             // Updating the Drone Telemetry Data
             myDroneFleet[i].updateTelemetryData(theNewTelemetry[i]);

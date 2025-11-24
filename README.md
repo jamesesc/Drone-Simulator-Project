@@ -1,11 +1,19 @@
 ## Drone Simulator Project
 https://github.com/jamesesc/Drone-Simulator-Project
 
+--Fifth Deliverable--
+
+Oisin Perkins-Gilbert: I think the biggest thing I've had to deal with this deliverable was being generally confused on what to do (A lot of the tasks I've done this deliverable is just miscellaneous stuff). Up until this point we've been able to largely work on our own on our own separate parts (encapsulation means we don't really need to worry about the internals of what the other person's classes is doing). I think as we go forward, we're going to need to work together more in person in order to get things done. Luckily, I've been keeping myself busy with my GUI classes so far.
+
+James Escudero: For this deliverable, no major issues occurred. Moving forward closer to the end of the project, I personally just need to adjust, and tweak the telemetry generator to be more fluid and smooth. Additionally, with the confirmation of full front end and back end connection is in the most part fully functional is good. With that, I now need to just connect and ensure the database is fully connected as well with everything. Lastly, the final implementation for the next deliverable would be implementing the charging system of the drone. With that, beside bug and polish statements, that would be getting closer to the complete finish of the project.
+
+Mankirat Mann: This week I focused on getting the anomaly system fully connected to the database. I fixed issues with the class versions, updated the save logic, and made sure each anomaly stores the correct telemetry and drone information. I also spent time debugging and cleaning up the backend so everything works smoothly from detection to saving the data.
+
 --Fourth Deliverable--
 
 Oisin Perkins-Gilbert: The most difficult thing I did this week was making this GUI, getting it just right, and then tearing it apart to make something completely different like Frankenstein's monster. Overall, it was still worth it, as the layout that James came up with was better in pretty much every regard. I still need to pretty it up and make it more efficient though, so its definitely a work in progress. Also juggling my time is pretty hard, I'm currently typing this from work (unfortunately I am a part-time worker and a full-time student).
 
-James Escudero: James Escudero: For this week deliverable, there were 2 things that were quite challenging. One of these difficulties was the time management as I was drain from 2 midterms I had. Not only that, there were other responsibilities and events that I had to attend to. The other hard difficulties were refactoring the codebase to be more orangzed and modular (especially for DroneMonitorApp). I realized that the class was getting to big where it was handling many responsibilities at once. After this realization, it was too late as I was struggling to conceptually and implementing the class to be more modular. However, after some thinking, I was able to do so. For the following weeks, we need to really start implementing and connecting the front end with the back end.
+James Escudero: James Escudero: For this week deliverable, there were 2 things that were quite challenging. One of these difficulties was the time management as I was drained from 2 midterms I had. Not only that, there were other responsibilities and events that I had to attend to. The other hard difficulties were refactoring the codebase to be more orangzed and modular (especially for DroneMonitorApp). I realized that the class was getting to big where it was handling many responsibilities at once. After this realization, it was too late as I was struggling to conceptually and implementing the class to be more modular. However, after some thinking, I was able to do so. For the following weeks, we need to really start implementing and connecting the front end with the back end.
 
 
 Mankirat Mann: This week was hard because of midterms, ICPC, and other responsibilities. While working on the map, I ran into problems some problems because it loads but it doesn't load correctly. I made some progress with the GUI and drone display, but it still needs work.

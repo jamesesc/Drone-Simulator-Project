@@ -1,5 +1,7 @@
 package controller;
 
+import java.util.Objects;
+
 /**
  * A Controller class that handles and mange the core system of the simulation.
  * The class uses many helper classes to help build the functionality and operation
@@ -22,8 +24,9 @@ public class DroneMonitorApp {
      * @param theSchedulerOperator represents the SimulationScheduler object to handle the simulation tasks.
      */
     public DroneMonitorApp(final TimerManager theTimerManager, final SimulationScheduler theSchedulerOperator) {
-        myTimerManager = theTimerManager;
-        mySchedulerOperator = theSchedulerOperator;
+
+        myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
+        mySchedulerOperator = Objects.requireNonNull(theSchedulerOperator, "FleetManager can't be null");
     }
 
     /* Methods: Different Simulation "Stages/Phases" */

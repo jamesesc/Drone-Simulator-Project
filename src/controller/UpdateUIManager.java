@@ -1,6 +1,10 @@
 package controller;
 
+import Model.Drone;
 import view.MonitorDash;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * A class that handles and manage in updating the UI with the needed data for the simulation.
@@ -18,21 +22,26 @@ public class UpdateUIManager {
 
     /** Public constructor to initialize the UI and Drone Fleet Manager */
     public UpdateUIManager(final MonitorDash theUI, final DroneFleetManager theDroneFleetManager) {
-        myUI = theUI;
-        myDroneFleetManager = theDroneFleetManager;
+        myUI = Objects.requireNonNull(theUI, "theUI can't be null");
+        myDroneFleetManager = Objects.requireNonNull(theDroneFleetManager, "theDroneFleetManager can't be null");
     }
 
     /** Updates the UI to reflect the latest changes to the drone telemetry data */
     public void updateDroneDisplay() {
+        final Drone[] currentFleet = myDroneFleetManager.getDroneFleet();
+
         // Updating the Big Stats
-        // TODO: UI is singleton
-        myUI.updateStatsText(myDroneFleetManager.getDroneFleet());
+        myUI.updateStatsText(currentFleet);
         // Updating the Display
-        myUI.refreshDroneDisplay(myDroneFleetManager.getDroneFleet());
+        myUI.refreshDroneDisplay(currentFleet);
     }
 
     /** Updates the UI to display the current timer */
     public void updateTimer(final int theTime) {
+        if (theTime < 0) {
+            throw new IllegalArgumentException("theTime can't be less than 0");
+        }
+
         myUI.updateTime(theTime);
     }
 }

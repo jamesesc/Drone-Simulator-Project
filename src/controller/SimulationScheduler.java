@@ -5,6 +5,7 @@ import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
 
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -42,11 +43,11 @@ public class SimulationScheduler {
     /** Public constructor to call and use the 1 instance of each object */
     public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
                                UpdateUIManager theUIUpdater) {
+        // Safety check if the follow objects pass is not null
         myScheduleOperation = Executors.newScheduledThreadPool(4);
-        myTimerManger = theTimerManager;
-        myFleetManger = theFleetManager;
-        myUIUpdater = theUIUpdater;
-
+        myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");;
+        myFleetManger = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
+        myUIUpdater = Objects.requireNonNull(theUIUpdater, "theUIUpdater can't be null");
     }
 
     /**
@@ -113,8 +114,6 @@ public class SimulationScheduler {
             // 1) Generate new telemetry for all drones
             TelemetryData[] newTelemetry = myFleetManger.generateFleetData();
 
-            // TODO: THE timeStamp is a STRING, and Osin wants a int in the AnomalyDetector
-
             // 2) Detect anomalies
             AnomalyRecord[] anomalies = myAnomalyDetector.analyzeDrones(
                     newTelemetry,
@@ -167,5 +166,15 @@ public class SimulationScheduler {
     public void stopSimulationSchedule() {
         myScheduleOperation.shutdown();
         myAnomalyDB.close();
+        myScheduleOperation.shutdownNow();
+
+        // Try-Catch Block to see if shutdown actually works, and no lingering tasks occurring
+        try {
+            if (!myScheduleOperation.awaitTermination(5, TimeUnit.SECONDS)) {
+                System.err.println("The Simulation Scheduler did not terminate");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

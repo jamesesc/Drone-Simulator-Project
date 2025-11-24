@@ -10,7 +10,7 @@ public class TelemetryData {
     /* FIELDS */
 
     /** Represent the drone Latitude */
-    double myLatitude;
+    private double myLatitude;
 
     /** Represent the drone Longitude */
     double myLongitude;
@@ -46,6 +46,19 @@ public class TelemetryData {
         myAltitude = theAltitude;
         myOrientation = theOrientation;
         myVelocity = theVelocity;
+    }
+
+    public TelemetryData(final TelemetryData theTelemetryData) {
+        if (theTelemetryData == null) {
+            throw new IllegalArgumentException("Can't copy a null telemetry data");
+        }
+
+        myLatitude = theTelemetryData.myLatitude;
+        myLongitude = theTelemetryData.myLongitude;
+        myAltitude = theTelemetryData.myAltitude;
+        myOrientation = theTelemetryData.myOrientation;
+        myVelocity = theTelemetryData.myVelocity;
+
     }
 
     /* GETTERS */
