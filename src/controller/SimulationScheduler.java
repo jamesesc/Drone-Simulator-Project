@@ -45,7 +45,7 @@ public class SimulationScheduler {
                                UpdateUIManager theUIUpdater) {
         // Safety check if the follow objects pass is not null
         myScheduleOperation = Executors.newScheduledThreadPool(4);
-        myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");;
+        myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
         myFleetManger = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
         myUIUpdater = Objects.requireNonNull(theUIUpdater, "theUIUpdater can't be null");
     }
@@ -164,7 +164,7 @@ public class SimulationScheduler {
 
     /** To stop the reoccurring schedule tasks */
     public void stopSimulationSchedule() {
-        myScheduleOperation.shutdown();
+
         myAnomalyDB.close();
         myScheduleOperation.shutdownNow();
 
