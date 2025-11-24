@@ -7,7 +7,7 @@ Oisin Perkins-Gilbert: I think the biggest thing I've had to deal with this deli
 
 James Escudero: For this deliverable, no major issues occurred. Moving forward closer to the end of the project, I personally just need to adjust, and tweak the telemetry generator to be more fluid and smooth. Additionally, with the confirmation of full front end and back end connection is in the most part fully functional is good. With that, I now need to just connect and ensure the database is fully connected as well with everything. Lastly, the final implementation for the next deliverable would be implementing the charging system of the drone. With that, beside bug and polish statements, that would be getting closer to the complete finish of the project.
 
-Mankirat Mann:
+Mankirat Mann: This week I focused on getting the anomaly system fully connected to the database. I fixed issues with the class versions, updated the save logic, and made sure each anomaly stores the correct telemetry and drone information. I also spent time debugging and cleaning up the backend so everything works smoothly from detection to saving the data.
 
 --Fourth Deliverable--
 
