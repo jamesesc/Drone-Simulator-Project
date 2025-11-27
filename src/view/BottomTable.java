@@ -20,9 +20,9 @@ class BottomTable extends VBox {
 
     BottomTable() {
         //Self setup
-        setPrefHeight(150);
-        setMinHeight(150);
-        setMaxHeight(150);
+        setPrefHeight(250);
+        setMinHeight(250);
+        setMaxHeight(250);
         VBox.setVgrow(this, Priority.NEVER);
         HBox.setHgrow(this, Priority.ALWAYS);
 

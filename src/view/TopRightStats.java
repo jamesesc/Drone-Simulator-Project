@@ -216,6 +216,7 @@ class TopRightStats extends StackPane {
             if (droneClick != null) {
                 MonitorDash.getInstance().updateStatsTextLarge(droneClick);
                 MonitorDash.getInstance().swapRightPanel(true);
+                MonitorDash.getInstance().selectDroneOnMap(droneId);
             }
         });
 
@@ -297,7 +298,7 @@ class TopRightStats extends StackPane {
         card.getChildren().addAll(topRow, new Separator(), gridStats);
 
         // Event action if clicked, swap card
-        card.setOnMouseClicked(_ -> swapRightPanel(false));
+        card.setOnMouseClicked(_ -> MonitorDash.getInstance().swapRightPanel(false));
 
         return card;
     }
@@ -346,6 +347,7 @@ class TopRightStats extends StackPane {
         if (theBigStatsBox) {
             myLiveTelemetry.setVisible(false);
             myLargeStatsView.setVisible(true);
+
         } else {
             myLargeStatsView.setVisible(false);
             myLiveTelemetry.setVisible(true);

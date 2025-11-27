@@ -247,7 +247,7 @@ public class MonitorDash extends Application {
         root.setTop(menuBar);
         root.setCenter(mainBox);
 
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 800, 700);
         scene.getStylesheets().add(
                 Objects.requireNonNull(getClass().getResource("dark_theme.css")).toExternalForm()
         );
@@ -259,9 +259,6 @@ public class MonitorDash extends Application {
         //Stuff the program runs after its build
         Platform.runLater(() -> {
             swapRightPanel(false); //Don't delete this part
-
-            AnomalyRecord record = new AnomalyRecord("dn", 1, 2.0, "dn", "dn");
-            addAnomalyRecord(record);
         });
     }
 
@@ -271,6 +268,10 @@ public class MonitorDash extends Application {
      * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
      */
     void swapRightPanel(boolean theBigStatsBox) {
+        if (!theBigStatsBox) {
+            myTopLeft.deselectAll();
+        }
+
         if (theBigStatsBox != myTopRight.getShowingStats()) {
             myTopRight.swapRightPanel(theBigStatsBox);
         }
@@ -511,6 +512,15 @@ public class MonitorDash extends Application {
         }
     }
 
+    /**
+     * Tells the map to highlight a specific drone.
+     *
+     * @param theDroneID is the drone ID that's being used to which selected drone we are clicking.
+     */
+    public void selectDroneOnMap(final int theDroneID) {
+        myTopLeft.selectDrone(theDroneID);
+    }
+
     /* ====================================
     Simulation Phases
      ====================================*/
@@ -531,17 +541,18 @@ public class MonitorDash extends Application {
         if (myIsPaused) {
             // Was paused, now resuming
             myController.continueSim();
-            myTopLeft.getDroneDisplay().setStyle("-fx-background-color: red;");
+            myTopLeft.setPausedMode(false);
             System.out.println("MonitorDash: Resumed");
         } else {
             // Was running, now pausing
             myController.pauseSim();
-            myTopLeft.getDroneDisplay().setStyle("-fx-background-color: grey;");
+            myTopLeft.setPausedMode(true);
             System.out.println("MonitorDash: Paused");
         }
 
         myIsPaused = !myIsPaused;
     }
+
 
     /**
      * Tell the controller DroneMonitorApp to end the game.

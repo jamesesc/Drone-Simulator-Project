@@ -12,11 +12,11 @@ import Model.TelemetryData;
  */
 public class DroneFleetManager {
 
-    /** Constant that represent the numbers of drones in the fleet */
+    /** Constant that represent the default numbers of drones in the fleet */
     private static int myDroneCount = 3;
 
     /** A TelemetryGenerator Object responsible for generating telemetry data */
-    private TelemetryGenerator myTelemetryGen;
+    private final TelemetryGenerator myTelemetryGen;
 
     /** Represent the current drone being simulated on */
     private Drone[] myDroneFleet;
@@ -33,17 +33,19 @@ public class DroneFleetManager {
     }
 
     /**
-     * To change the new update drone count
+     * To change the number of drones to make int the fleet.
+     *
+     * @param theNewCount is the new amount of drones to make in the fleet.
+     * @throws IllegalArgumentException if the theNewCount is less than 1.
      */
-    public void updateDroneCount(int newCount) {
-        if (newCount <= 0) return;
+    public void updateDroneCount(int theNewCount) {
+        if (theNewCount <= 0) {
+            throw new IllegalArgumentException("Drone count must be greater than 0, got: " + theNewCount);
+        }
 
         Drone.resetIdCounter();
-
-        myDroneCount = newCount;
+        myDroneCount = theNewCount;
         myDroneFleet = new Drone[myDroneCount];
-        // New generator
-        myTelemetryGen = new TelemetryGenerator();
         initializeFleet();
     }
 
@@ -64,12 +66,13 @@ public class DroneFleetManager {
      *
      * @param theIndex represents the index of the drone in the Fleet array.
      * @return the Drone Object based on the index that was given.
+     * @throws IndexOutOfBoundsException if theIndex is negative or greater than or equal to the fleet size.
      */
     public Drone getSpecificDrone(final int theIndex) {
-         if (theIndex < 0 || theIndex >= myDroneFleet.length - 1) {
+         if (theIndex < 0 || theIndex >= myDroneFleet.length) {
             throw new IndexOutOfBoundsException(
-                "Invalid Drone Index chosen: : " + theIndex + ". Index must be between" +
-                " 0 and " + (myDroneFleet.length - 1) + "."
+                "Invalid Drone Index chosen: : " + theIndex +
+                ". Index must be between 0 and " + (myDroneFleet.length - 1) + "."
             );
         }
         return myDroneFleet[theIndex];
@@ -97,7 +100,7 @@ public class DroneFleetManager {
     /**  Initialize every Drone object in the fleet to their starting position */
     public void initializeFleetPosition() {
         for (Drone drone : myDroneFleet) {
-            drone.updateTelemetryData(myTelemetryGen.generateStartPosition());
+            drone.updateDroneNextMove(myTelemetryGen.generateStartPosition());
         }
     }
 
@@ -107,7 +110,7 @@ public class DroneFleetManager {
             TelemetryData droneCurrData = drone.getDroneTelemetry();
             TelemetryData altitudeData = myTelemetryGen.generateStartAltitude();
             droneCurrData.setAltitude(altitudeData.getAltitude());
-            drone.updateTelemetryData(droneCurrData);
+            drone.updateDroneNextMove(droneCurrData);
         }
     }
 
@@ -132,15 +135,24 @@ public class DroneFleetManager {
      * Update each drone in the fleet with the new given telemetry data array.
      *
      * @param theNewTelemetry is an array of telemetry data to update each drone in the fleet.
+     * @throws NullPointerException if theNewTelemetry is null.
+     * @throws ArrayIndexOutOfBoundsException if theNewTelemetry array length is less than the fleet size.
      */
     public void updateFleetData(final TelemetryData[] theNewTelemetry) {
-       if (theNewTelemetry == null) {
-           throw new NullPointerException();
-       }
+        if (theNewTelemetry == null) {
+            throw new NullPointerException("Telemetry data array cannot be null");
+        }
+
+        if (theNewTelemetry.length < myDroneFleet.length) {
+            throw new ArrayIndexOutOfBoundsException(
+                    "Telemetry array length (" + theNewTelemetry.length + ") +" +
+                    "is less than fleet size (" + myDroneFleet.length + ")"
+            );
+        }
 
         for (int i = 0; i < myDroneFleet.length;i++) {
             // Updating the Drone Telemetry Data
-            myDroneFleet[i].updateTelemetryData(theNewTelemetry[i]);
+            myDroneFleet[i].updateDroneNextMove(theNewTelemetry[i]);
             // Updating the Drone Battery
             myDroneFleet[i].simulateBatteryDrain();
         }

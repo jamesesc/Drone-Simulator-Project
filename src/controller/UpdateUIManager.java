@@ -1,9 +1,10 @@
 package controller;
 
+import Model.AnomalyRecord;
 import Model.Drone;
 import view.MonitorDash;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -36,7 +37,12 @@ public class UpdateUIManager {
         myUI.refreshDroneDisplay(currentFleet);
     }
 
-    /** Updates the UI to display the current timer */
+    /**
+     * Updates the UI to display the current timer.
+     *
+     * @param theTime represents the new elapsed time.
+     * @throws IllegalArgumentException if the theTime is less than 0.
+     */
     public void updateTimer(final int theTime) {
         if (theTime < 0) {
             throw new IllegalArgumentException("theTime can't be less than 0");
@@ -44,4 +50,18 @@ public class UpdateUIManager {
 
         myUI.updateTime(theTime);
     }
+
+    /**
+     * Updates the UI to display the new Anomalies
+     *
+     * @param theAnomalies is the array of anomalies
+     */
+    public void updateAnomaly(final AnomalyRecord[] theAnomalies) {
+        if (theAnomalies == null) {
+            throw new NullPointerException("Anomaly array cannot be null");
+        }
+
+        myUI.addAnomalyRecord(List.of(theAnomalies));
+    }
+
 }

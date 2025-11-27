@@ -13,33 +13,33 @@ import java.time.format.DateTimeFormatter;
 public class TimerManager {
 
     /**
-     * Represent the update interval time to update the drone telemetry data
+     * Represent the update interval time to update the drone telemetry data.
      */
     private static final int UPDATE_INTERVAL = 1;
 
     /**
-     * Represent the time interval
+     * Represent the time interval.
      */
     private static final int TIMER_INTERVAL = 1;
 
     /**
-     * Represents the time when the simulation started
+     * Represents the time when the simulation started.
      */
     private long myStartTime;
 
     /**
-     * Represent the time when the simulation is pauseTimer
+     * Represent the time when the simulation is pauseTimer.
      */
     private long myPausedTime;
 
     /**
-     * Represent the state of the simulation
+     * Represent the state of the simulation.
      */
     private Status mySimStatus = Status.STOPPED;
 
-    /** Enum for sim status for safety */
+     /** Represents the current operational state of the simulation. */
     public enum Status {
-        STOPPED, RUNNING, PAUSED
+        RUNNING, PAUSED, STOPPED
     }
 
 
@@ -76,7 +76,7 @@ public class TimerManager {
     /* TIMER METHODS */
 
     /**
-     * Method to start the timer
+     * Method to start the timer.
      */
     public void startTimer() {
         myStartTime = System.currentTimeMillis();
@@ -84,7 +84,7 @@ public class TimerManager {
     }
 
     /**
-     * Method to pause the Timer
+     * Method to pause the Timer.
      */
     public void pauseTimer() {
         if (mySimStatus == Status.RUNNING) {
@@ -94,7 +94,7 @@ public class TimerManager {
     }
 
     /**
-     * Method to resume the timer
+     * Method to resume the timer.
      */
     public void resumeTimer() {
         if (mySimStatus == Status.PAUSED) {
@@ -106,7 +106,7 @@ public class TimerManager {
     }
 
     /**
-     * Method to stop the timer
+     * Method to stop the timer.
      */
     public void stopTimer() {
         mySimStatus = Status.STOPPED;

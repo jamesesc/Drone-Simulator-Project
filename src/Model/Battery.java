@@ -19,6 +19,7 @@ public class Battery {
     /** Represent the Battery Level of the Drone */
     private int myBattery;
 
+    /** Represent the recharge batter level */
     private static final int RECHARGE_RATE = 15;
 
 
