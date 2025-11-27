@@ -15,7 +15,7 @@ public class TimerManager {
     /**
      * Represent the update interval time to update the drone telemetry data
      */
-    private static final int UPDATE_INTERVAL = 3;
+    private static final int UPDATE_INTERVAL = 1;
 
     /**
      * Represent the time interval

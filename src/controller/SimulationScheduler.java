@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class SimulationScheduler {
 
     /** Represents the java import scheduler use to schedule a task */
-    private final ScheduledExecutorService myScheduleOperation;
+    private ScheduledExecutorService myScheduleOperation;
 
     /** Represents the timer object to manage the simulation timer */
     private final TimerManager myTimerManger;
@@ -63,6 +63,8 @@ public class SimulationScheduler {
     public void startSimulationTask() {
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
+
+        myFleetManger.initializeFleetPosition();
 
         // Update the drone display for initial drone stats
         myUIUpdater.updateDroneDisplay();
@@ -122,28 +124,28 @@ public class SimulationScheduler {
                     myTimerManger.getUpdateInterval()
             );
 
-            // 3) Save anomalies
-            for (AnomalyRecord anomaly : anomalies) {
-                // get id of drone that had the anomaly
-                int droneID = anomaly.getID();
-
-                // find which drone in the fleet matches the drone id
-                Drone affectedDrone = null;
-                for (Drone drone : myFleetManger.getDroneFleet()) {
-                    if (drone.getDroneID() == droneID) {
-                        affectedDrone = drone; // found drone
-                        break;
-                    }
-                }
-
-                // save the anomaly
-                if (affectedDrone != null) {
-                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
-                } else {
-                    // if theres no matching drone use first drone as fallback
-                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getDroneFleet()[0]);
-                }
-            }
+//            // 3) Save anomalies
+//            for (AnomalyRecord anomaly : anomalies) {
+//                // get id of drone that had the anomaly
+//                int droneID = anomaly.getID();
+//
+//                // find which drone in the fleet matches the drone id
+//                Drone affectedDrone = null;
+//                for (Drone drone : myFleetManger.getDroneFleet()) {
+//                    if (drone.getDroneID() == droneID) {
+//                        affectedDrone = drone; // found drone
+//                        break;
+//                    }
+//                }
+//
+//                // save the anomaly
+//                if (affectedDrone != null) {
+//                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
+//                } else {
+//                    // if theres no matching drone use first drone as fallback
+//                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getSpecificDrone(0));
+//                }
+//            }
 
             // 4) Update fleet data
             myFleetManger.updateFleetData(newTelemetry);
@@ -153,6 +155,7 @@ public class SimulationScheduler {
 
         } catch (Exception e) {
             System.err.println("Theres a ERROR in updateDronesTask:");
+            e.printStackTrace();
         }
     }
 
@@ -166,15 +169,19 @@ public class SimulationScheduler {
     public void stopSimulationSchedule() {
 
         myAnomalyDB.close();
-        myScheduleOperation.shutdownNow();
 
-        // Try-Catch Block to see if shutdown actually works, and no lingering tasks occurring
-        try {
-            if (!myScheduleOperation.awaitTermination(5, TimeUnit.SECONDS)) {
-                System.err.println("The Simulation Scheduler did not terminate");
+        if (myScheduleOperation != null) {
+            myScheduleOperation.shutdownNow();
+            try {
+                if (!myScheduleOperation.awaitTermination(5, TimeUnit.SECONDS)) {
+                    System.err.println("The Simulation Scheduler did not terminate");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         }
+
+        myScheduleOperation = Executors.newSingleThreadScheduledExecutor();
+
     }
 }

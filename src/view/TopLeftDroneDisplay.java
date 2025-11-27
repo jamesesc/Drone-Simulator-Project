@@ -2,11 +2,14 @@ package view;
 
 import Model.Drone;
 import Model.TelemetryData;
+import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -14,7 +17,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 import java.util.Map;
@@ -22,183 +27,368 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TopLeftDroneDisplay extends VBox {
-    /**
-     * Minimum bound for longitude.
-     */
-    private static final double MIN_LONGITUDE = -250;
-    /**
-     * Maximum bound for longitude.
-     */
-    private static final double MAX_LONGITUDE = 250;
-    /**
-     * Minimum bound for latitude.
-     */
-    private static final double MIN_LATITUDE = -250;
-    /**
-     * Maximum bound for latitude.
-     */
-    private static final double MAX_LATITUDE = 250;
-    /**
-     * How much we're multiplying the drone size by, in case
-     * we want to make it bigger or smaller.
-     */
-    private static final double SIZE_SCALER = 1.2;
-    /**
-     * Minimum size a drone can be in our GUI.
-     */
-    private static final double MIN_DRONE_SIZE = 10;
-    /**
-     * Maximum size a drone can be in our GUI.
-     */
-    private static final double MAX_DRONE_SIZE = 50;
 
-    /**
-     * Where the drones will be displayed.
-     */
-    private final Pane myDroneDisplay;
+    // Camera Setting
+    /** Represent the zoom scale; 1.0 = 1 pixel  */
+    private double ZOOM_SCALE = 1.0;
+    // Represents the world X coordinate (the center of screen)
+    private double CAM_X = 0.0;
+    // Represents the world Y coordinate (the center of screen)
+    private double CAM_Y = 0.0;
+
+    // Configuration
+    /** Represents the min zoom level */
+    private static final double MIN_ZOOM = 0.1;
+    /** Represents the max zoom level */
+    private static final double MAX_ZOOM = 5.0;
+    /** Represents the min Drone size */
+    private static final double MIN_DRONE_SIZE = 20;
+    /** Represents the max Drone size */
+    private static final double MAX_DRONE_SIZE = 80;
+
+    // Dragging Fields
+    /** Represents the drag mouse in the x direction */
+    private double lastMouseX;
+    /** Represents the drag mouse in the y direction */
+    private double lastMouseY;
+
+    // Scene Graph
+    /** Represents the "window"; its fix size, and clips the content */
+    private final Pane myViewport;
+    /** Represents the "map" (infinite size, and can scale/moves around) */
+    private final Pane myWorld;
+
     /**
      * What each drone will look like.
      */
     private final Image myDroneImage = new Image(Objects.requireNonNull(
-            getClass().getResourceAsStream("Assets/pointer.png")));
+        getClass().getResourceAsStream("Assets/pointer.png")));
+
     /**
-     * A label representing how much time's gone on in the simulation.
+     * Represents the time label of the simulation.
      */
-    private final Label myTimeLabel = new Label("Time: ");
+    private final Label myTimeLabel = new Label("Time: 00:00:00");
+
     /**
      * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
      * singleton stuff makes us gotta worry about multiple threads.
      */
     private final Map<Integer, ImageView> myDroneViews = new ConcurrentHashMap<>();
 
-    TopLeftDroneDisplay() {
+    /**
+     * Constructor for the TopLeftDroneDisplay, that initialize and set up the display up.
+     */
+    public TopLeftDroneDisplay() {
         HBox.setHgrow(this, Priority.ALWAYS);
         VBox.setVgrow(this, Priority.ALWAYS);
 
-        //Making our drone display
-        myDroneDisplay = new Pane();
-        myDroneDisplay.getStyleClass().add("drone-display");
+        // Initialize the viewport
+        myViewport = new Pane();
+        myViewport.getStyleClass().add("drone-display");
+        // This allows to capture the clicks on empty space
+        myViewport.setPickOnBounds(true);
+        myViewport.setStyle("-fx-background-color: rgba(0,0,0,0.01);");
 
-        //Clip to make sure that the drones in drone
-        //display aren't displayed over its rounded edges
-        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        // Clipping the viewpoint so that the world doesn't spill out
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(myViewport.widthProperty());
+        clip.heightProperty().bind(myViewport.heightProperty());
         clip.setArcWidth(12);
         clip.setArcHeight(12);
-        clip.widthProperty().bind(myDroneDisplay.widthProperty());
-        clip.heightProperty().bind(myDroneDisplay.heightProperty());
-        myDroneDisplay.setClip(clip);
+        myViewport.setClip(clip);
 
-        //The box holding our drone display and time label (so it looks nice :))
+        // Initialize the world (aka the container for drones)
+        myWorld = new Pane();
+        // Handling the layout manually by transformation
+        myWorld.setManaged(false);
+        myViewport.getChildren().add(myWorld);
+
+        // Setting up the UI Container
         VBox droneBox = new VBox();
         droneBox.getStyleClass().add("rounded-box");
         VBox.setVgrow(droneBox, Priority.ALWAYS);
-        VBox.setVgrow(myDroneDisplay, Priority.ALWAYS);
+        VBox.setVgrow(myViewport, Priority.ALWAYS);
+        myViewport.setMinHeight(0);
 
-        myDroneDisplay.setMinHeight(0);
+        // Setting up the Panel Title Section
+        HBox headerBox = new HBox(10);
+        Label titleLabel = new Label("Drone Monitor");
+        titleLabel.setStyle(
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 20px; " +
+                "-fx-font-weight: bold;" +
+                "-fx-effect: dropshadow(gaussian, rgba(68,245,71,0.45), 5, 0, 0, 0); "
+        );
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        //Making the time label stylish
-        myTimeLabel.getStyleClass().add("box-header");
+        // Creating the Static Header Label
+        Label timeLabel = new Label("TIME");
+        timeLabel.setStyle(
+                "-fx-text-fill: white; " +
+                "-fx-font-weight: bold; " +
+                "-fx-font-size: 14px;"
+        );
 
-        //Adding children to their respective parents
-        droneBox.getChildren().addAll(myTimeLabel, myDroneDisplay);
+        // Styling the time number itself
+        myTimeLabel.setText("00:00:00");
+        myTimeLabel.setStyle(
+                "-fx-font-family: 'Consolas', 'Monospace'; " +
+                "-fx-font-size: 16px; " +
+                "-fx-font-weight: bold; " +
+                "-fx-text-fill: #D3D3D3;" +
+                "-fx-font-style: italic;"
+        );
+
+        //  Grouping up the Time Label and the TimeNumber
+        HBox timeBox = new HBox(8, timeLabel, myTimeLabel);
+        timeBox.setAlignment(Pos.CENTER);
+        timeBox.setStyle(
+                "-fx-background-color: #1a1a1a; " +
+                "-fx-padding: 5 10 5 10; " +
+                "-fx-background-radius: 4; " +
+                "-fx-border-radius: 4;"
+        );
+
+        // Adding the title, spacer and timeBox together under headerbox
+        headerBox.getChildren().addAll(titleLabel, spacer, timeBox);
+
+        // Adding the HeaderBox, and viewport into the drone screen
+        droneBox.getChildren().addAll(headerBox, myViewport);
         getChildren().add(droneBox);
+
+        // Updating our viewport aka our camera on resize
+        myViewport.widthProperty().addListener((obs, oldVal, newVal) ->
+                updateCameraTransform());
+        myViewport.heightProperty().addListener((obs, oldVal, newVal) ->
+                updateCameraTransform());
+
+        setupInputHandlers();
     }
 
     /**
-     * Helper method for refreshDroneDisplay.
-     * Moves the corresponding Drone ImageView for the drone
-     *
-     * @param theDrone The drone we are moving.
+     * Handles all the Mouse Interactions (Pan & Zoom).
+     * Also affect the 'myWorld' transforms (NOT the individual drones).
      */
-    private void moveDroneView(Drone theDrone) {
-        //Store the drone for RegionBox lookups or in case user clicks it
-        MonitorDash.getInstance().myDrones.put(theDrone.getDroneID(), theDrone);
-        TelemetryData data = theDrone.getDroneTelemetry();
+    private void setupInputHandlers() {
+        // Zoom Actions
+        myViewport.setOnScroll(event -> {
+            double deltaY = event.getDeltaY();
+            if (deltaY == 0) return;
+
+            double zoomFactor;
+            if (deltaY > 0) {
+                zoomFactor = 1.1;
+            } else {
+                zoomFactor = 0.9;
+            }
+            ZOOM_SCALE = Math.max(MIN_ZOOM, Math.min(ZOOM_SCALE * zoomFactor, MAX_ZOOM));
+
+            updateCameraTransform();
+            event.consume();
+        });
+
+        // Drag Start
+        myViewport.setOnMousePressed(event -> {
+            lastMouseX = event.getX();
+            lastMouseY = event.getY();
+            myViewport.setCursor(Cursor.CLOSED_HAND);
+            event.consume();
+        });
+
+        // Drag move
+        myViewport.setOnMouseDragged(event -> {
+            double changeX = event.getX() - lastMouseX;
+            double changeY = event.getY() - lastMouseY;
+
+            lastMouseX = event.getX();
+            lastMouseY = event.getY();
+
+            // Converting the screen pixels to our world units to shift camera
+            CAM_X -= changeX / ZOOM_SCALE;
+            // It's + because screen Y is inverted relative to the World Y
+            CAM_Y += changeY / ZOOM_SCALE;
+
+            updateCameraTransform();
+            event.consume();
+        });
+
+        // Drag end
+        myViewport.setOnMouseReleased(event -> myViewport.setCursor(Cursor.DEFAULT));
+
+        // Reset
+        myViewport.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                CAM_X = 0;
+                CAM_Y = 0;
+                ZOOM_SCALE = 1.0;
+                updateCameraTransform();
+            }
+        });
+    }
+
+    /**
+     * Applying the current CAM_X, CAM_Y, and Zoom to the World Pane.
+     * This handles and adjusts the movement to the entire map instantly.
+     */
+    private void updateCameraTransform() {
+        double width = myViewport.getWidth();
+        double height = myViewport.getHeight();
+
+        // The world scale
+        myWorld.setScaleX(ZOOM_SCALE);
+        myWorld.setScaleY(ZOOM_SCALE);
+
+        // Translating (aka movement of our world)
+        // We want the World Point (CAM_X, -CAM_Y) to be at Screen Center (width/2, height/2).
+        // Formula: Screen = (World - Cam) * Scale + Center
+
+        // Since the myWorld is unmanaged, its default origin is (0,0) of Viewport.
+        // We just need to shift it so (CamX, -CamY) aligns with Viewport Center.
+
+        double centerX = width / 2.0;
+        double centerY = height / 2.0;
+
+        // World(0,0) position on screen:
+        double originScreenX = centerX - (CAM_X * ZOOM_SCALE);
+        // REMEMBER: -CAM_Y because Y is inverted
+        double originScreenY = centerY - (-CAM_Y * ZOOM_SCALE);
+
+        myWorld.setTranslateX(originScreenX);
+        myWorld.setTranslateY(originScreenY);
+    }
+
+    /**
+     * A method being called by Backend.
+     * Updates the Drone's position INSIDE the World.
+     */
+    public void refreshDroneDisplay(Drone drone) {
+        if (drone == null) return;
+        MonitorDash.getInstance().myDrones.put(drone.getDroneID(), drone);
 
         Platform.runLater(() -> {
-            double displayWidth = myDroneDisplay.getWidth();
-            double displayHeight = myDroneDisplay.getHeight();
+            // Check if new (for animation logic)
+            boolean isNew = !myDroneViews.containsKey(drone.getDroneID());
+            ImageView view = getOrCreateView(drone);
 
-            //Create or retrieve the ImageView
-            ImageView droneView = myDroneViews.computeIfAbsent(theDrone.getDroneID(), id -> {
-                ImageView view = new ImageView(myDroneImage);
-                view.setPreserveRatio(true);
-                Tooltip.install(view, new Tooltip("Drone " + id));
+            // Updating the local world position
+            updateDronePosition(view, drone.getDroneTelemetry(), !isNew);
 
-                //Clicking opens large stats
-                view.setOnMouseClicked(_ -> {
-                    MonitorDash.getInstance().updateStatsTextLarge(theDrone);
-                    MonitorDash.getInstance().swapRightPanel(true);
-                });
+            MonitorDash.getInstance().updateStatsText(drone);
+        });
+    }
 
-                //Add the image view to where the drones will be displayed
-                myDroneDisplay.getChildren().add(view);
+    /**
+     * It updates the position, size and orientation of the visual drone on display.
+     *
+     * @param theView is the imageview to update.
+     * @param theData is the telemetry data of the drone to update for.
+     * @param theAnimate true to animate transition, or false for instant update instead.
+     */
+    private void updateDronePosition(final ImageView theView, final TelemetryData theData, final boolean theAnimate) {
+        // Calculates the Target (Local World coordinates) (1 meter = 1 pixel)
+        double targetX = theData.getLongitude();
+        // PS: Invert Y (Sim Up is +Y, Screen Down is +Y)
+        double targetY = -theData.getLatitude();
 
-                //Initial placement/size/rotation/orientation
-                double initSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
-                view.setLayoutX(((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                        * displayWidth - initSize / 2);
-                view.setLayoutY(((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                        * displayHeight - initSize / 2);
-                view.setFitWidth(initSize);
-                view.setFitHeight(initSize);
-                view.setRotate(data.getOrientation());
-                return view;
-            });
+        // Calculating the size logic
+        double altitudePercent = Math.min(Math.max(theData.getAltitude(), 0), 100) / 100.0;
+        double targetSize = MIN_DRONE_SIZE + (MAX_DRONE_SIZE - MIN_DRONE_SIZE) * altitudePercent;
 
-            //Target animation values
-            double targetSize = Math.min(Math.max(MIN_DRONE_SIZE, data.getAltitude() * SIZE_SCALER), MAX_DRONE_SIZE);
-            double targetX = ((data.getLongitude() - MIN_LONGITUDE) / (MAX_LONGITUDE - MIN_LONGITUDE))
-                    * displayWidth - targetSize / 2;
-            double targetY = ((data.getLatitude() - MIN_LATITUDE) / (MAX_LATITUDE - MIN_LATITUDE))
-                    * displayHeight - targetSize / 2;
+        // Centering the icon
+        targetX -= targetSize / 2;
+        targetY -= targetSize / 2;
+        double targetAngle = theData.getOrientation();
 
-            //Transition animation
-            double currentAngle = droneView.getRotate();
-            double targetAngle = data.getOrientation();
-
-            // Compute the shortest path rotation
+        if (theAnimate) {
+            // Smooth Animation
+            double currentAngle = theView.getRotate();
             double delta = ((targetAngle - currentAngle + 540) % 360) - 180;
             double shortestAngle = currentAngle + delta;
 
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.seconds(1),
-                            new KeyValue(droneView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
-                            new KeyValue(droneView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
-                            new KeyValue(droneView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
-                            new KeyValue(droneView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
-                            new KeyValue(droneView.rotateProperty(), shortestAngle, Interpolator.EASE_BOTH)
+                            new KeyValue(theView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
+                            new KeyValue(theView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
+                            new KeyValue(theView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
+                            new KeyValue(theView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
+                            new KeyValue(theView.rotateProperty(), shortestAngle, Interpolator.EASE_BOTH)
                     )
             );
             timeline.play();
+        } else {
+            // Instant Snap
+            theView.setFitWidth(targetSize);
+            theView.setFitHeight(targetSize);
+            theView.setLayoutX(targetX);
+            theView.setLayoutY(targetY);
+            theView.setRotate(targetAngle);
+        }
+    }
 
-            MonitorDash.getInstance().updateStatsText(theDrone);
+    /**
+     * Use the existing image of the drone and maintains a display of the drones.
+     *
+     * @param theDrone which is used to get and create a view for it.
+     * @return the image view of the drones in the display.
+     */
+    private ImageView getOrCreateView(final Drone theDrone) {
+        return myDroneViews.computeIfAbsent(theDrone.getDroneID(), id -> {
+            ImageView droneImage = new ImageView(myDroneImage);
+            droneImage.setPreserveRatio(true);
+            // Positioning the drone  manually
+            droneImage.setManaged(false);
+
+            Tooltip.install(droneImage, new Tooltip("Drone " + id));
+            droneImage.setOnMouseClicked(_ -> {
+                MonitorDash.getInstance().updateStatsTextLarge(theDrone);
+                MonitorDash.getInstance().swapRightPanel(true);
+            });
+
+            // Adding the Drone to the WORLD, NOT Viewport
+            myWorld.getChildren().add(droneImage);
+            return droneImage;
         });
     }
 
     /**
-     * Updates the time label with the specified time.
+     * Updating the time display with the given time value.
      *
-     * @param theTime The current time.
+     * @param theTimeInSeconds the current elapsed time for the display.
      */
-    void updateTime(final int theTime) {
-        // Will update to the UI thread safely
-        Platform.runLater(() -> myTimeLabel.setText("Time: " + theTime));
+    public void updateTime(final int theTimeInSeconds) {
+        Platform.runLater(() -> {
+            int h = theTimeInSeconds / 3600;
+            int m = (theTimeInSeconds % 3600) / 60;
+            int s = theTimeInSeconds % 60;
+
+            // Only set the numbers, don't include "TIME:"
+            myTimeLabel.setText(String.format("%02d:%02d:%02d", h, m, s));
+
+            // Flashing ONLY myTimeLabel in light gray
+            FadeTransition flash = new FadeTransition(Duration.millis(150), myTimeLabel);
+            flash.setFromValue(1.0);
+            flash.setToValue(0.5);
+            flash.setCycleCount(2);
+            flash.setAutoReverse(true);
+            flash.play();
+        });
     }
 
     /**
-     * Refresh the drone display for a single drone.
+     * Getter method that returns the viewpoint pane that contains the drone.
      *
-     * @param drone The drone to show
+     * @return the viewport pane which shows the current view of drones
      */
-    void refreshDroneDisplay(final Drone drone) {
-        //If a drone or its contents are null, do nothing
-        if (drone == null || drone.getDroneTelemetry() == null) {
-            return;
-        }
+    public Pane getDroneDisplay() { return myViewport; }
 
-        moveDroneView(drone);
+    /**
+     * Removes all drone images from the world but KEEPS the world pane intact.
+     */
+    public void clearAllDrones() {
+        // Clear the visual nodes from the "World" pane
+        myWorld.getChildren().clear();
+        // Clear the map tracking them
+        myDroneViews.clear();
     }
-
-    Pane getDroneDisplay() { return myDroneDisplay; }
 }

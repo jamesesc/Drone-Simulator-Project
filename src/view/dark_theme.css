@@ -46,7 +46,7 @@ Rounded VBox containers
     -fx-font-weight: bold;
     -fx-padding: 0 10 0 10;
     -fx-border-color: rgb(80,80,80);
-    -fx-border-width: 0 0 1 0;
+    -fx-border-width: 0 0 0 0;
 }
 
 /* --------------

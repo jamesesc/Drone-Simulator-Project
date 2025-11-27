@@ -2,27 +2,23 @@ package view;
 
 import Model.Drone;
 import Model.TelemetryData;
+import controller.DroneFleetManager;
 import javafx.application.Platform;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TopRightStats extends StackPane {
-    /**
-     * How many drone stats are we going to have to display in the top-right.
-     * NOTE: Constant for now, but in the future I want to be able to adjust for
-     * adjustable drone counts (in case we simulate a drone crashing or something).
-     */
-    private final int DRONE_COUNT = 4;
+
+    // VBox uses in the Stats
+
     /**
      * VBox containing the little boxes that show each drone's stats (holds myDroneBoxes).
      */
@@ -30,120 +26,318 @@ class TopRightStats extends StackPane {
     /**
      * The text area showing Drone statistics.
      */
-    private final TextArea myStatsText;
+    private final VBox myLargeStatsView;
     /**
-     * Used by the method rightSwapPanel(), if true then show the big stats box.
+     * Represnt the box that contains all the drones stats.
+     */
+    private final VBox myDroneHolder;
+
+
+    // FIELDS
+
+    /**
+     * Used by the method rightSwapPanel(), if true, then show the big stats box.
      * Otherwise, show the little ones.
      */
     private boolean myShowingStats = false;
+
+    /**
+     * Represent the user selected drone data stats.
+     */
+    private int mySelectedDroneID = -1;
+
     /**
      * Map of all the small RegionBoxes for displaying their stats in the top-right.
      */
-    private final Map<Integer, RegionBox> myDroneBoxes = new ConcurrentHashMap<>();
+    private final Map<Integer, VBox> myDroneBoxes = new ConcurrentHashMap<>();
+
+
+    // Constant UI Design
+
     /**
-     * Record that makes our little stats boxes in the top-right.
-     * NOTE: We may want to make this a separate class at some point.
-     *
-     * @param theId
-     * @param theHeader
-     * @param theTextArea
-     * @param theContainer
+     * Represent the UI big tech font.
      */
-    private record RegionBox(int theId, Label theHeader, TextArea theTextArea, VBox theContainer) {
-        RegionBox(int theID, String theTitle) {
-            this(
-                    theID,
-                    new Label(theTitle),
-                    new TextArea(),
-                    new VBox()
-            );
+    private static final String FONT_UI = "Helvetica";
+    /**
+     * Represent the UI text section.
+     */
+    private static final String FONT_MONO = "Monospace";
 
-            theHeader.getStyleClass().add("box-header");
-
-            theTextArea.setText("Battery:\nAltitude:\nPosition:");
-            theTextArea.setWrapText(true);
-            theTextArea.setEditable(false);
-            theTextArea.setFocusTraversable(false);
-            theTextArea.getStyleClass().add("dark-text-area");
-            theTextArea.setFont(Font.font("Helvetica", 14));
-
-            theContainer.setPrefHeight(120);
-            theContainer.setMinHeight(Control.USE_PREF_SIZE);
-            theContainer.setMaxHeight(Control.USE_PREF_SIZE);
-            theContainer.getChildren().addAll(theHeader, theTextArea);
-
-            theContainer.setOnMouseClicked(_ -> {
-                Drone d = MonitorDash.getInstance().myDrones.get(theId);
-                if (d != null) {
-                    MonitorDash.getInstance().updateStatsTextLarge(d);
-                    MonitorDash.getInstance().swapRightPanel(true);
-                }
-            });
-        }
-
-        void setText(String theText) {
-            Platform.runLater(() -> theTextArea.setText(theText));
-        }
-    }
-
-
-    TopRightStats() {
+    // The constructor for the TopRightStats class
+    public TopRightStats() {
         HBox.setHgrow(this, Priority.NEVER);
 
         //Setup for the VBox that's going to hold our small drone stats boxes.
         myLiveTelemetry = new VBox();
         myLiveTelemetry.setPrefWidth(275);
+        myLiveTelemetry.setPadding(new Insets(15));
+        myLiveTelemetry.setSpacing(15);
         HBox.setHgrow(myLiveTelemetry, Priority.NEVER);
+
+        // Color Scheme for the Box
         myLiveTelemetry.getStyleClass().add("rounded-box");
 
         //Header for our main vbox
         Label header = new Label("Live Telemetry");
-        header.getStyleClass().add("box-header");
+        header.setStyle(
+                "-fx-font-family: 'Segoe UI'; " +
+                "-fx-font-size: 21px; " +
+                "-fx-font-weight: bold; " +
+                "-fx-text-fill: #effdff; " +
+                "-fx-effect: dropshadow(gaussian, rgba(68,245,71,0.45), 5, 0, 0, 0); "
+        );
 
         //VBox that holds each RegionBox
-        VBox droneHolder = new VBox();
-        droneHolder.setSpacing(10);
+        myDroneHolder = new VBox();
+        myDroneHolder.setSpacing(10);
 
-        //Make it so we can scroll through all our stats
+        // Make it so we can scroll through all our stats
         ScrollPane sPane = new ScrollPane();
-        sPane.getStyleClass().add("dark-scroll-pane");
+        // Scroll Pane settings
+        sPane.setStyle(
+                "-fx-background-color: transparent; " +
+                "-fx-background: transparent; " +
+                "-fx-scrollbar-track-color: #121212; " +
+                "-fx-scrollbar-thumb-color: #444;"
+        );
         sPane.setFitToHeight(true);
         sPane.setFitToWidth(true);
-        sPane.setContent(droneHolder);
+        sPane.setContent(myDroneHolder);
         VBox.setVgrow(sPane, Priority.ALWAYS);
 
-        //Add a region box based on the number of drone boxes
-        for (int i = 1; i <= DRONE_COUNT; i++) {
-            RegionBox rb = new RegionBox(i, "Drone " + i);
-            myDroneBoxes.put(i, rb);
-            droneHolder.getChildren().add(rb.theContainer());
+        // Int that represent the # of pre-made small stats
+        final int defaultCount =  3;
+
+        // Looping through and making the # drone card inside the stat panel
+        for (int i = 1; i <= defaultCount; i++) {
+            // Creating each stats card, with those default values
+            VBox card = createDroneCard(
+                    "DRONE-" + i
+            );
+            myDroneBoxes.put(i, card);
+            myDroneHolder.getChildren().add(card);
         }
 
         //Add children to our main top-right vbox
         myLiveTelemetry.getChildren().addAll(header, sPane);
 
         //Adjusting the big stats box
-        myStatsText = new TextArea();
-        myStatsText.setEditable(false);
-        myStatsText.setWrapText(true);
-        myStatsText.setVisible(false);
-        myStatsText.getStyleClass().add("dark-text-area");
-        myStatsText.setFont(Font.font("Helvetica", 14));
-        myStatsText.setOnMouseClicked(_ -> swapRightPanel(false));
-
-        //Makes it so the large stats box doesn't take up more width than it needs (bug fix)
-        myStatsText.prefWidthProperty().bind(myLiveTelemetry.prefWidthProperty());
+        myLargeStatsView = new VBox();
+        myLargeStatsView.setPrefWidth(275);
+        myLargeStatsView.setVisible(false);
+        myLargeStatsView.setPadding(new Insets(15));
+        myLargeStatsView.setSpacing(10);
+        myLargeStatsView.getStyleClass().add("rounded-box");
 
         //The pane that allows us to swap between big stats box and small stats boxes
-        getChildren().addAll(myLiveTelemetry, myStatsText);
+        getChildren().addAll(myLiveTelemetry, myLargeStatsView);
     }
+
+    /* ====================================
+      Following methods to create either small stats, detail stats, and the stats value
+     ====================================*/
+
+    /**
+     * Helper method that will create the card stats itself.
+     *
+     * @param theDroneID It displays the name for the drone.
+     * @return A VBox containing the complete styled drone card.
+     */
+    private VBox createDroneCard(final String theDroneID) {
+        // Creating the Drone Stats Card
+        VBox statsCardHolder = new VBox(5);
+        statsCardHolder.setPadding(new Insets(10));
+
+        // Potential feature where if anomaly, will flash red
+        String borderColor = false ? "#FF1744" : "#333333";
+
+        // Styling the drone statsCardHolder data itself color
+        statsCardHolder.setStyle(
+                "-fx-background-color: #252525; " +
+                "-fx-border-color: " + borderColor + "; " +
+                "-fx-border-width: 4 4 4 4; " +
+                "-fx-background-radius: 12; " +
+                "-fx-border-radius: 12;"
+        );
+
+        // Creating the Top section of the card (aka topRow) of the stats Card: Contains the Drone ID & Drone Status
+        HBox topRow = new HBox();
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        // Creating and Styling the Drone card ID Label
+        Label droneCardLabel = new Label(theDroneID);
+        droneCardLabel.setFont(Font.font(FONT_UI, FontWeight.BOLD, 14));
+        droneCardLabel.setTextFill(Color.WHITE);
+
+        // The spacer between the Drone ID label and the Status label
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Setting up the Label for the drone
+        Label droneStatusLabel = new Label("INACTIVE");
+        String statusColor = getDroneStatusColor("INACTIVE");
+
+        // Styling the Drone Status Label
+        droneStatusLabel.setFont(Font.font(FONT_MONO, FontWeight.EXTRA_BOLD, 10));
+        droneStatusLabel.setStyle(
+                "-fx-background-color: " + statusColor + "; " +
+                "-fx-padding: 2 5; " +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 4;"
+        );
+
+        // Adding the DroneCardLabel, theSpacer, and the droneStatusLabel into one container
+        topRow.getChildren().addAll(droneCardLabel, spacer, droneStatusLabel);
+
+
+        // Creating the Stats itself
+
+        // Using a gridStats so we can organize and line up the stats together
+        GridPane gridStats = new GridPane();
+        // Setting the gaps for the gridStats
+        gridStats.setHgap(15);
+        gridStats.setVgap(5);
+
+        // Calling a method to create each stat to the gridStats
+        addStatRow(gridStats, 0, "BATTERY : ", "0%");
+        addStatRow(gridStats, 1, "ALTITUDE : ", "0m");
+        addStatRow(gridStats, 2, "SPEED : ", "0 m/s");
+
+        // Combining everything tof form the statsCardHolder: TopRow, Separator, GridStats
+        statsCardHolder.getChildren().addAll(topRow, new Separator(), gridStats);
+
+        // Event Action when click on the statsCardHolder, it will switch over to the detail view
+        statsCardHolder.setOnMouseClicked(_ -> {
+            // Getting which drone card we got
+            int droneId = Integer.parseInt(theDroneID.replace("DRONE-", ""));
+            // Getting the drone info base on the drone card we click
+            Drone droneClick = MonitorDash.getInstance().myDrones.get(droneId);
+            // Only show details stats if such drone exist
+            if (droneClick != null) {
+                MonitorDash.getInstance().updateStatsTextLarge(droneClick);
+                MonitorDash.getInstance().swapRightPanel(true);
+            }
+        });
+
+        // Returning the new built statsCardHolder for the drone
+        return statsCardHolder;
+    }
+
+    // Create a detailed card for large view
+
+    /**
+     * Creating a detail card for the theClickDrone we click on.
+     *
+     * @param theClickDrone represents the drone that we click.
+     * @return a detail stats card base on the drone that we passed (aka we click on).
+     */
+    private VBox createDetailedDroneCard(final Drone theClickDrone) {
+        // Null Safety check
+        if (theClickDrone == null || theClickDrone.getDroneTelemetry() == null) return null;
+
+        // Getting the drone data
+        TelemetryData data = theClickDrone.getDroneTelemetry();
+
+        // Creating the box for the detail stats
+        VBox card = new VBox(5);
+        // Styling the detail box
+        card.setPadding(new Insets(10));
+        card.setStyle(
+                "-fx-background-color: #252525; " +
+                "-fx-border-color:  #333333; " +
+                "-fx-border-width: 4 4 4 4;" +
+                "-fx-background-radius: 12; " +
+                "-fx-border-radius: 12;"
+        );
+
+        // Top Row represent the Drone ID and Status
+        HBox topRow = new HBox();
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        // Setting and Styling Drone ID Label
+        Label droneIDLabel = new Label("DRONE-" + theClickDrone.getDroneID());
+        droneIDLabel.setFont(Font.font("Segue UI", FontWeight.BOLD, 14));
+        droneIDLabel.setTextFill(Color.WHITE);
+
+        // Spacer between Drone ID and Status
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // --- Creating a dynamic status label ---
+        String droneStatusStr = theClickDrone.isDroneOn().toString(); // Getting the drone status (FLYING, etc.)
+        Label droneStatusLabel = new Label(droneStatusStr);   // Creating a label with the given string
+        String statusColor = getDroneStatusColor(droneStatusStr);   // Get the color for the drone status
+
+        // Styling up the Status Label
+        droneStatusLabel.setFont(Font.font("Monospace", 10));
+        droneStatusLabel.setStyle(
+                "-fx-background-color: " + statusColor + "; " +
+                "-fx-padding: 2 5; " +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 4;"
+        );
+
+        // Adding everything up in the TopRow
+        topRow.getChildren().addAll(droneIDLabel, spacer, droneStatusLabel);
+
+        // Creating the Stats Grid now
+        GridPane gridStats = new GridPane();
+        gridStats.setHgap(15);
+        gridStats.setVgap(15);
+
+        // Using Helper method to create each individual stats
+        addStatRow(gridStats, 0, "BATTERY: ", theClickDrone.getBatteryLevel() + "%");
+        addStatRow(gridStats, 1, "ALTITUDE: ", data.getAltitude() + " m");
+        addStatRow(gridStats, 2, "LATITUDE: ", String.valueOf(data.getLatitude()));
+        addStatRow(gridStats, 3, "LONGITUDE: ", String.valueOf(data.getLongitude()));
+        addStatRow(gridStats, 4, "VELOCITY: ", data.getVelocity() + "m/s");
+        addStatRow(gridStats, 5, "ORIENTATION: ", data.getOrientation() + "°");
+
+        // Adding all the individual parts of the stats into the overall card
+        card.getChildren().addAll(topRow, new Separator(), gridStats);
+
+        // Event action if clicked, swap card
+        card.setOnMouseClicked(_ -> swapRightPanel(false));
+
+        return card;
+    }
+
+    /**
+     * Helper method to help create each stat's label.
+     *
+     * @param theGridStats Is the gridPane the stat is being added too.
+     * @param theRow The row index in the grid to add the stats to (base on 0-index)
+     * @param theStatsLabel The Text that represents the stats
+     * @param theValue The text for the value of the stats itself
+     */
+    private void addStatRow(final GridPane theGridStats, final int theRow,
+                            final String theStatsLabel, final String theValue) {
+        // Creating the Stats Label on the left side
+        Label statsLabel = new Label(theStatsLabel);
+        // Styling the stats label
+        statsLabel.setTextFill(Color.GRAY);
+        statsLabel.setFont(Font.font(FONT_UI, 9));
+
+        // Creating the Stats Value label on the right side
+        Label statsValue = new Label(theValue);
+        // Styling the stats value label
+        statsValue.setTextFill(Color.WHITE);
+        statsValue.setFont(Font.font(FONT_MONO, 11));
+
+        // Adding both labels to the grid
+        theGridStats.add(statsLabel, 0, theRow);
+        theGridStats.add(statsValue, 1, theRow);
+    }
+
+
+    /* LOGIC: Switching Back and Forth Big & Small Data */
 
     /**
      * Swaps between displaying the small stats boxes and the big stats box.
      *
      * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
      */
-    void swapRightPanel(boolean theBigStatsBox) {
+    public void swapRightPanel(boolean theBigStatsBox) {
         if (theBigStatsBox == myShowingStats) return;
 
         myShowingStats = theBigStatsBox;
@@ -151,64 +345,38 @@ class TopRightStats extends StackPane {
         //Hide the correct box
         if (theBigStatsBox) {
             myLiveTelemetry.setVisible(false);
-            myStatsText.setVisible(true);
+            myLargeStatsView.setVisible(true);
         } else {
-            myStatsText.setVisible(false);
+            myLargeStatsView.setVisible(false);
             myLiveTelemetry.setVisible(true);
         }
     }
 
-    /**
-     * Update the large stats box at the top-right of the GUI.
-     *
-     * @param theDrone The drone whose data we are looking at.
-     */
-    void updateStatsTextLarge(final Drone theDrone) {
-        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
-        TelemetryData data = theDrone.getDroneTelemetry();
-
-        String statsString = "Drone " + theDrone.getDroneID() +
-                "\n==========================" +
-                "\nBattery: " + theDrone.getBatteryLevel() +
-                "\nAltitude: " + data.getAltitude() +
-                "\nLatitude: " + data.getLatitude() +
-                "\nLongitude: " + data.getLongitude() +
-                "\nVelocity: " + data.getVelocity() +
-                "\nOrientation: " + data.getOrientation() + "°";
-
-        Platform.runLater(() -> myStatsText.setText(statsString));
-        System.out.println("Working - MonitorDash - updateStatsTextLarge");
-    }
+    /* LOGIC: Updating the Stats Card */
 
     /**
-     * Update the small stats boxes at the top right of the GUI.
-     *
-     * @param theDrone The drone whose data we want to display.
+     * Used to clear the existing drone cards setup, and rebuilds them base on the # of drones is in FleetManager.
      */
-    void updateStatsText(final Drone theDrone) {
-        //If our drone or its data is null, return nothing
-        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
+    public void recreateDroneCards() {
+        // Getting the Fleet Manager Controller
+        DroneFleetManager fleetManger = MonitorDash.getInstance().getFleetManager();
+        // Null safety check
+        if (fleetManger == null) return;
 
-        //Build a string for our little stats box to use
-        StringBuilder statsString = new StringBuilder();
-        TelemetryData data = theDrone.getDroneTelemetry();
+        // Getting the drone array
+        Drone[] currentFleet = fleetManger.getDroneFleet();
 
-        statsString.append("Battery: ").append(theDrone.getBatteryLevel());
-        statsString.append("\nAltitude: ").append(data.getAltitude());
-        statsString.append("\nPosition: ").append(data.getLatitude())
-                .append(" ").append(data.getLongitude());
-
-        //Set the text of the stats box w/ the matching ID of the drone
+        // Running to clear, and updating the Drone Stats Card
         Platform.runLater(() -> {
-            //Get the box first
-            var box = myDroneBoxes.get(theDrone.getDroneID());
+            myDroneBoxes.clear();
+            myDroneHolder.getChildren().clear();
 
-            //Check if the box actually exists before using it
-            if (box != null) {
-                box.setText(statsString.toString());
-            } else {
-                System.out.println("Warning: Drone ID " + theDrone.getDroneID() + " not found in UI map.");
+            // Looping through to the # of drones in order to make the # of stats card to make
+            for (Drone drone : currentFleet) {
+                VBox card = createDroneCard("DRONE-" + drone.getDroneID());
+                myDroneBoxes.put(drone.getDroneID(), card);
+                myDroneHolder.getChildren().add(card);
             }
         });
     }
@@ -216,19 +384,158 @@ class TopRightStats extends StackPane {
     /**
      * Update the small stats boxes at the top right of the GUI.
      *
-     * @param theDrones All the drones whose data we want to display.
+     * @param theDrone The drone whose data we want to display.
      */
-    void updateStatsText(final Drone[] theDrones) {
-        //If the array is null do nothing
-        if (theDrones == null) return;
+    public void updateStatsText(final Drone theDrone) {
+        //If our drone or its data is null, return nothing
+        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
-        //For each drone, do the non-array equivalent of this function
-        for (Drone drone : theDrones) {
-            updateStatsText(drone);
+        // 1. Getting the data of the drone
+        TelemetryData data = theDrone.getDroneTelemetry();
+        String battery = theDrone.getBatteryLevel() + "%";
+        String altitude = String.format("%.1f m", data.getAltitude());
+        String velocity = String.format("%.1f m/s", data.getVelocity());
+
+        // Getting the Enum value as a String
+        String droneStatusStr = theDrone.isDroneOn().toString();
+
+        // Running the Action to update the small stats card
+        Platform.runLater(() -> {
+            //Get the box first
+            var box = myDroneBoxes.get(theDrone.getDroneID());
+
+            //Check if the box actually exists before using it
+            if (box != null) {
+                // UPDATING THE STATUS LABEL (Top Row)
+                HBox topRow = (HBox) box.getChildren().getFirst();
+                Label statusLabel = (Label) topRow.getChildren().get(2); // Index 2 is the Status Label
+
+                // Only updating if changed to save performance
+                if (!statusLabel.getText().equals(droneStatusStr)) {
+                    statusLabel.setText(droneStatusStr);
+                    statusLabel.setStyle(
+                            "-fx-background-color: " + getDroneStatusColor(droneStatusStr) + "; " +
+                            "-fx-padding: 2 5; " +
+                            "-fx-text-fill: white;" +
+                            "-fx-background-radius: 4;"
+                    );
+                }
+
+
+                // UPDATING THE STATS GRID (Bottom Row)
+                GridPane grid = (GridPane) box.getChildren().get(2);
+
+                // Update Battery
+                ((Label) grid.getChildren().get(1)).setText(battery);
+                // Update Altitude
+                ((Label) grid.getChildren().get(3)).setText(altitude);
+                // Update Speed
+                ((Label) grid.getChildren().get(5)).setText(velocity);
+            }
+
+            // Only update the detail view if its in display, otherwise not
+            if (myShowingStats && theDrone.getDroneID() == mySelectedDroneID) {
+                refreshDetailedCard(theDrone);
+            }
+        });
+    }
+
+    /**
+     * Update the large stats box at the top-right of the GUI.
+     *
+     * @param theDrone The drone whose data we are looking at.
+     */
+    public void updateStatsTextLarge(final Drone theDrone) {
+        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
+
+        // Save the ID so we know to update this specific drone later
+        mySelectedDroneID = theDrone.getDroneID();
+
+        Platform.runLater(() -> {
+            VBox detailedCard = createDetailedDroneCard(theDrone);
+            myLargeStatsView.getChildren().clear();
+            myLargeStatsView.getChildren().add(detailedCard);
+        });
+    }
+
+    /** Helper method to get the status color of the drone status */
+    private String getDroneStatusColor(String stateStr) {
+        // Convert string back to Enum safely, or just check string values
+        try {
+            Drone.DroneState state = Drone.DroneState.valueOf(stateStr);
+            return switch (state) {
+                case FLYING, TAKEOFF -> "#1B5E20"; // Dark Green
+                case CHARGING, STARTING -> "#F57F17"; // Dark Orange/Yellow
+                case LANDING -> "#B71C1C"; // Dark Red
+                case INACTIVE -> "#424242"; // Gray for inactive
+            };
+        } catch (IllegalArgumentException e) {
+            return "#333333";
         }
     }
 
-    boolean getShowingStats() {
+    /** Helper method to help refresh the detail card to update */
+    private void refreshDetailedCard(Drone drone) {
+        // Safety checks
+        if (myLargeStatsView.getChildren().isEmpty()) return;
+
+        // Get the VBox Card (It's the first child of myLargeStatsView)
+        VBox card = (VBox) myLargeStatsView.getChildren().getFirst();
+
+        TelemetryData data = drone.getDroneTelemetry();
+        String droneStatusStr = drone.isDroneOn().toString();
+
+        // 1. Update Status Header
+        HBox topRow = (HBox) card.getChildren().getFirst();
+        Label statusLabel = (Label) topRow.getChildren().get(2);
+
+        if (!statusLabel.getText().equals(droneStatusStr)) {
+            statusLabel.setText(droneStatusStr);
+            statusLabel.setStyle(
+                    "-fx-background-color: " + getDroneStatusColor(droneStatusStr) + "; " +
+                    "-fx-padding: 2 5; " +
+                    "-fx-text-fill: white;" +
+                    "-fx-background-radius: 4;"
+            );
+        }
+
+        // 2. Update Grid Stats
+        // Grid is index 2 (TopRow is 0, Separator is 1, Grid is 2)
+        GridPane grid = (GridPane) card.getChildren().get(2);
+
+        // Helper to update grid row safely
+        updateGridLabel(grid, 0, drone.getBatteryLevel() + "%");
+        updateGridLabel(grid, 1, String.valueOf(data.getAltitude()));
+        updateGridLabel(grid, 2, String.valueOf(data.getLatitude()));
+        updateGridLabel(grid, 3, String.valueOf(data.getLongitude()));
+        updateGridLabel(grid, 4, String.valueOf(data.getVelocity()));
+        updateGridLabel(grid, 5, data.getOrientation() + "°");
+    }
+
+    // Small helper to grab the Value Label (index 1) from a specific row
+    private void updateGridLabel(GridPane grid, int row, String newValue) {
+        /*
+         In the grid, we added (Label, 0, row) and (Value, 1, row).
+         The children's list is flat.
+         If we added them strictly in order:
+         Row 0: index 0 (Label), index 1 (Value)
+         Row 1: index 2 (Label), index 3 (Value)
+         Formula for Value index: (row * 2) + 1
+        */
+
+        int nodeIndex = (row * 2) + 1;
+        if (nodeIndex < grid.getChildren().size()) {
+            Label valueLabel = (Label) grid.getChildren().get(nodeIndex);
+            valueLabel.setText(newValue);
+        }
+    }
+
+    /**
+     * Getter method whether showing stats
+     *
+     * @return true if it is showing Detail view stats, otherwise, false.
+     */
+    public boolean getShowingStats() {
         return myShowingStats;
     }
 }
