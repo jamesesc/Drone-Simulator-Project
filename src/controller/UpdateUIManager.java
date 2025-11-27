@@ -1,8 +1,10 @@
 package controller;
 
+import Model.AnomalyRecord;
 import Model.Drone;
 import view.MonitorDash;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -48,4 +50,18 @@ public class UpdateUIManager {
 
         myUI.updateTime(theTime);
     }
+
+    /**
+     * Updates the UI to display the new Anomalies
+     *
+     * @param theAnomalies is the array of anomalies
+     */
+    public void updateAnomaly(final AnomalyRecord[] theAnomalies) {
+        if (theAnomalies == null) {
+            throw new NullPointerException("Anomaly array cannot be null");
+        }
+
+        myUI.addAnomalyRecord(List.of(theAnomalies));
+    }
+
 }

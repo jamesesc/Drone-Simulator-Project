@@ -1,6 +1,7 @@
 package controller;
 
 import Model.AnomalyRecord;
+import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
 
@@ -127,28 +128,29 @@ public class SimulationScheduler {
                     myTimerManger.getUpdateInterval()
             );
 
-//            // 3) Save anomalies
-//            for (AnomalyRecord anomaly : anomalies) {
-//                // get id of drone that had the anomaly
-//                int droneID = anomaly.getID();
-//
-//                // find which drone in the fleet matches the drone id
-//                Drone affectedDrone = null;
-//                for (Drone drone : myFleetManger.getDroneFleet()) {
-//                    if (drone.getDroneID() == droneID) {
-//                        affectedDrone = drone; // found drone
-//                        break;
-//                    }
-//                }
-//
-//                // save the anomaly
-//                if (affectedDrone != null) {
-//                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
-//                } else {
-//                    // if there's no matching drone use first drone as fallback
-//                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getSpecificDrone(0));
-//                }
-//            }
+            // 3) Save anomalies
+            for (AnomalyRecord anomaly : anomalies) {
+                // get id of drone that had the anomaly
+                int droneID = anomaly.getID();
+
+                // find which drone in the fleet matches the drone id
+                Drone affectedDrone = null;
+                for (Drone drone : myFleetManger.getDroneFleet()) {
+                    if (drone.getDroneID() == droneID) {
+                        affectedDrone = drone; // found drone
+                        break;
+                    }
+                }
+
+                // save the anomaly
+                if (affectedDrone != null) {
+                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
+                } else {
+                    // if there's no matching drone use first drone as fallback
+                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getSpecificDrone(0));
+                }
+            }
+
 
             // 4) Update fleet data
             myFleetManger.updateFleetData(newTelemetry);
@@ -156,6 +158,10 @@ public class SimulationScheduler {
             // 5) Update the display
             myUIUpdater.updateDroneDisplay();
 
+            //TODO: Wait for Mani for his export anomalies list
+
+            // 6) Update the anomaly
+            myUIUpdater.updateAnomaly(anomalies);
         } catch (Exception e) {
             System.err.println("Theres a ERROR in updateDronesTask:" + e.getMessage());
         }
