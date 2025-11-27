@@ -23,6 +23,7 @@ public class DroneShape extends Polygon {
         );
 
         // Default Style
+        setStroke(Color.BLACK);
         setStrokeWidth(1);
         setStrokeType(StrokeType.INSIDE);
 
