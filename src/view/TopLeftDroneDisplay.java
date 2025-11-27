@@ -12,18 +12,16 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TopLeftDroneDisplay extends VBox {
@@ -45,6 +43,8 @@ class TopLeftDroneDisplay extends VBox {
     private static final double MIN_DRONE_SIZE = 20;
     /** Represents the max Drone size */
     private static final double MAX_DRONE_SIZE = 80;
+    /* The width of the DroneShape polygon (-10 to 10 = 20px width) */
+    private static final double BASE_SHAPE_WIDTH = 20.0;
 
     // Dragging Fields
     /** Represents the drag mouse in the x direction */
@@ -58,11 +58,20 @@ class TopLeftDroneDisplay extends VBox {
     /** Represents the "map" (infinite size, and can scale/moves around) */
     private final Pane myWorld;
 
-    /**
-     * What each drone will look like.
+
+    // Drone Color Settings
+    /** Represents the selected drone the user is looking at */
+    private DroneShape mySelectedDrone;
+    /** Represents the default drone color */
+    private static final Color COLOR_DEFAULT = Color.WHITE;
+    /** Represents the color when a drone is selected */
+    private static final Color COLOR_SELECTED = Color.DEEPSKYBLUE;
+
+    //Drone animation tracking
+    /*
+     * Map to track the active Timeline for each drone ID
      */
-    private final Image myDroneImage = new Image(Objects.requireNonNull(
-        getClass().getResourceAsStream("Assets/pointer.png")));
+    private final Map<Integer, Timeline> activeTimelines = new ConcurrentHashMap<>();
 
     /**
      * Represents the time label of the simulation.
@@ -73,12 +82,13 @@ class TopLeftDroneDisplay extends VBox {
      * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
      * singleton stuff makes us gotta worry about multiple threads.
      */
-    private final Map<Integer, ImageView> myDroneViews = new ConcurrentHashMap<>();
+    private final Map<Integer, DroneShape> myDroneViews = new ConcurrentHashMap<>();
 
     /**
      * Constructor for the TopLeftDroneDisplay, that initialize and set up the display up.
      */
     public TopLeftDroneDisplay() {
+
         HBox.setHgrow(this, Priority.ALWAYS);
         VBox.setVgrow(this, Priority.ALWAYS);
 
@@ -150,7 +160,7 @@ class TopLeftDroneDisplay extends VBox {
                 "-fx-border-radius: 4;"
         );
 
-        // Adding the title, spacer and timeBox together under headerbox
+        // Adding the title, spacer and timeBox together under headers
         headerBox.getChildren().addAll(titleLabel, spacer, timeBox);
 
         // Adding the HeaderBox, and viewport into the drone screen
@@ -223,6 +233,12 @@ class TopLeftDroneDisplay extends VBox {
                 CAM_Y = 0;
                 ZOOM_SCALE = 1.0;
                 updateCameraTransform();
+            } else if (event.getClickCount() == 1) { // Single Click = Deselect Drone
+                if (mySelectedDrone != null) {
+                    mySelectedDrone.setColor(Color.WHITE);
+                    mySelectedDrone = null;
+                    MonitorDash.getInstance().swapRightPanel(false);
+                }
             }
         });
     }
@@ -269,10 +285,22 @@ class TopLeftDroneDisplay extends VBox {
         Platform.runLater(() -> {
             // Check if new (for animation logic)
             boolean isNew = !myDroneViews.containsKey(drone.getDroneID());
-            ImageView view = getOrCreateView(drone);
+            DroneShape view = getOrCreateView(drone);
 
-            // Updating the local world position
-            updateDronePosition(view, drone.getDroneTelemetry(), !isNew);
+            // Stop existing animation if running
+            if (activeTimelines.containsKey(drone.getDroneID())) {
+                activeTimelines.get(drone.getDroneID()).stop();
+            }
+
+            // Start new update
+            Timeline newAnim = updateDronePosition(view, drone.getDroneTelemetry(), !isNew);
+
+            // Store new animation
+            if (newAnim != null) {
+                activeTimelines.put(drone.getDroneID(), newAnim);
+                // Clean up map when done
+                newAnim.setOnFinished(_ -> activeTimelines.remove(drone.getDroneID()));
+            }
 
             MonitorDash.getInstance().updateStatsText(drone);
         });
@@ -285,7 +313,8 @@ class TopLeftDroneDisplay extends VBox {
      * @param theData is the telemetry data of the drone to update for.
      * @param theAnimate true to animate transition, or false for instant update instead.
      */
-    private void updateDronePosition(final ImageView theView, final TelemetryData theData, final boolean theAnimate) {
+    private Timeline updateDronePosition(final DroneShape theView, final TelemetryData theData, final boolean theAnimate) {
+        Timeline returnAnimation = new Timeline();
         // Calculates the Target (Local World coordinates) (1 meter = 1 pixel)
         double targetX = theData.getLongitude();
         // PS: Invert Y (Sim Up is +Y, Screen Down is +Y)
@@ -293,11 +322,9 @@ class TopLeftDroneDisplay extends VBox {
 
         // Calculating the size logic
         double altitudePercent = Math.min(Math.max(theData.getAltitude(), 0), 100) / 100.0;
-        double targetSize = MIN_DRONE_SIZE + (MAX_DRONE_SIZE - MIN_DRONE_SIZE) * altitudePercent;
+        double targetPixelSize = MIN_DRONE_SIZE + (MAX_DRONE_SIZE - MIN_DRONE_SIZE) * altitudePercent;
 
-        // Centering the icon
-        targetX -= targetSize / 2;
-        targetY -= targetSize / 2;
+        double targetScale = targetPixelSize / BASE_SHAPE_WIDTH;
         double targetAngle = theData.getOrientation();
 
         if (theAnimate) {
@@ -308,22 +335,25 @@ class TopLeftDroneDisplay extends VBox {
 
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.seconds(1),
-                            new KeyValue(theView.fitWidthProperty(), targetSize, Interpolator.EASE_BOTH),
-                            new KeyValue(theView.fitHeightProperty(), targetSize, Interpolator.EASE_BOTH),
+                            new KeyValue(theView.scaleXProperty(), targetScale, Interpolator.EASE_BOTH),
+                            new KeyValue(theView.scaleYProperty(), targetScale, Interpolator.EASE_BOTH),
                             new KeyValue(theView.layoutXProperty(), targetX, Interpolator.EASE_BOTH),
                             new KeyValue(theView.layoutYProperty(), targetY, Interpolator.EASE_BOTH),
                             new KeyValue(theView.rotateProperty(), shortestAngle, Interpolator.EASE_BOTH)
                     )
             );
             timeline.play();
+            returnAnimation = timeline;
         } else {
             // Instant Snap
-            theView.setFitWidth(targetSize);
-            theView.setFitHeight(targetSize);
+            theView.setScaleX(targetScale);
+            theView.setScaleY(targetScale);
             theView.setLayoutX(targetX);
             theView.setLayoutY(targetY);
             theView.setRotate(targetAngle);
+            returnAnimation = null;
         }
+        return returnAnimation;
     }
 
     /**
@@ -332,22 +362,45 @@ class TopLeftDroneDisplay extends VBox {
      * @param theDrone which is used to get and create a view for it.
      * @return the image view of the drones in the display.
      */
-    private ImageView getOrCreateView(final Drone theDrone) {
+    private DroneShape getOrCreateView(final Drone theDrone) {
         return myDroneViews.computeIfAbsent(theDrone.getDroneID(), id -> {
-            ImageView droneImage = new ImageView(myDroneImage);
-            droneImage.setPreserveRatio(true);
+            DroneShape droneShape = new DroneShape();
             // Positioning the drone  manually
-            droneImage.setManaged(false);
+            droneShape.setManaged(false);
+            droneShape.setColor(Color.WHITE);
 
-            Tooltip.install(droneImage, new Tooltip("Drone " + id));
-            droneImage.setOnMouseClicked(_ -> {
-                MonitorDash.getInstance().updateStatsTextLarge(theDrone);
-                MonitorDash.getInstance().swapRightPanel(true);
+            Tooltip.install(droneShape, new Tooltip("Drone " + id));
+
+            droneShape.setOnMouseClicked(e -> {
+                e.consume();
+
+                // logic to only choice one drone
+                if (mySelectedDrone == droneShape) {
+                    // Click on the same drone, then we deselect it
+                    droneShape.setColor(COLOR_DEFAULT);
+                    mySelectedDrone = null;
+
+                    // Close the detail view
+                    MonitorDash.getInstance().swapRightPanel(false);
+                } else {
+                    // If we select different drone -> switching selected drone
+                    if (mySelectedDrone != null) {
+                        mySelectedDrone.setColor(COLOR_DEFAULT);
+                    }
+
+                    // Setting this new drone the blue color
+                    mySelectedDrone = droneShape;
+                    droneShape.setColor(COLOR_SELECTED);
+
+                    // Updating the UI Panel
+                    MonitorDash.getInstance().updateStatsTextLarge(theDrone);
+                    MonitorDash.getInstance().swapRightPanel(true);
+                }
             });
 
             // Adding the Drone to the WORLD, NOT Viewport
-            myWorld.getChildren().add(droneImage);
-            return droneImage;
+            myWorld.getChildren().add(droneShape);
+            return droneShape;
         });
     }
 
@@ -376,6 +429,59 @@ class TopLeftDroneDisplay extends VBox {
     }
 
     /**
+     * Highlights a specific drone on the map (Blue).
+     *
+     * @param theDroneID represent the specific drone that's being selected.
+     */
+    public void selectDrone(int theDroneID) {
+        DroneShape shape = myDroneViews.get(theDroneID);
+        if (shape == null) return;
+
+        // 1. Reset the previous selection (Green)
+        if (mySelectedDrone != null) {
+            mySelectedDrone.setColor(Color.WHITE);
+        }
+
+        // 2. Select the new one (Blue)
+        mySelectedDrone = shape;
+        mySelectedDrone.setColor(COLOR_SELECTED);
+    }
+
+    /**
+     * Helper to deselect whatever is currently blue.
+     */
+    public void deselectAll() {
+        if (mySelectedDrone != null) {
+            mySelectedDrone.setColor(COLOR_DEFAULT); // Turn it White
+            mySelectedDrone = null;
+        }
+    }
+
+    /**
+     * Dims the screen to gray when paused.
+     */
+    public void setPausedMode(boolean isPaused) {
+        if (isPaused) {
+            // The world view is gray
+            myViewport.setStyle("-fx-background-color: rgba(50, 50, 50, 0.4);");
+            // Making the drones look dimmed
+            myWorld.setOpacity(0.5);
+            // Pausing all animation
+            activeTimelines.values().forEach(Timeline::pause);
+
+        } else {
+            // Reset to invisible (but clickable) background
+            myViewport.setStyle("-fx-background-color: rgba(255, 0, 0, 1);");
+            // Full brightness
+            myWorld.setOpacity(1.0);
+            // Resuming all animation
+            activeTimelines.values().forEach(Timeline::play);
+        }
+    }
+
+
+
+    /**
      * Getter method that returns the viewpoint pane that contains the drone.
      *
      * @return the viewport pane which shows the current view of drones
@@ -390,5 +496,7 @@ class TopLeftDroneDisplay extends VBox {
         myWorld.getChildren().clear();
         // Clear the map tracking them
         myDroneViews.clear();
+        // Clearing our animation timeline
+        activeTimelines.clear();
     }
 }
