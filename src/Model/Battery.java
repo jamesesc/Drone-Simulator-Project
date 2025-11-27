@@ -19,6 +19,8 @@ public class Battery {
     /** Represent the Battery Level of the Drone */
     private int myBattery;
 
+    private static final int RECHARGE_RATE = 15;
+
 
     /* CONSTANTS */
 
@@ -86,6 +88,18 @@ public class Battery {
     }
 
     /* LOGIC */
+
+    /**
+     * Recharge the battery by setting it back to 100.
+     */
+    public void recharge() {
+        myBattery += RECHARGE_RATE;
+
+        // Ensure we don't exceed 100%
+        if (myBattery > MAX_BATTERY_LEVEL) {
+            myBattery = MAX_BATTERY_LEVEL;
+        }
+    }
 
     /** Method that randomly weight the drone battery level when first initialize */
     private void initializeBatteryLevel() {

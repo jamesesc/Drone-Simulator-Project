@@ -13,24 +13,38 @@ import Model.TelemetryData;
 public class DroneFleetManager {
 
     /** Constant that represent the numbers of drones in the fleet */
-    private static final int DRONE_COUNT = 3;
+    private static int myDroneCount = 3;
 
     /** A TelemetryGenerator Object responsible for generating telemetry data */
-    private final TelemetryGenerator myTelemetryGen;
+    private TelemetryGenerator myTelemetryGen;
 
     /** Represent the current drone being simulated on */
-    private final Drone[] myDroneFleet;
+    private Drone[] myDroneFleet;
 
 
     /* CONSTRUCTOR */
 
     /** Public constructor for initializing the drone fleet and telemetry generator */
     public DroneFleetManager() {
-        myDroneFleet = new Drone[DRONE_COUNT];
+        myDroneFleet = new Drone[myDroneCount];
         myTelemetryGen = new TelemetryGenerator();
 
         initializeFleet();
-        initializeFleetPosition();
+    }
+
+    /**
+     * To change the new update drone count
+     */
+    public void updateDroneCount(int newCount) {
+        if (newCount <= 0) return;
+
+        Drone.resetIdCounter();
+
+        myDroneCount = newCount;
+        myDroneFleet = new Drone[myDroneCount];
+        // New generator
+        myTelemetryGen = new TelemetryGenerator();
+        initializeFleet();
     }
 
 
@@ -67,7 +81,7 @@ public class DroneFleetManager {
      * @return the number of drones in the fleet as an int.
      */
     public int getDroneCount() {
-        return DRONE_COUNT;
+        return myDroneCount;
     }
 
 
@@ -75,13 +89,13 @@ public class DroneFleetManager {
 
     /**  Initialize the drone fleet array with new Drone objects */
     private void initializeFleet() {
-        for (int i = 0; i < DRONE_COUNT; i++) {
+        for (int i = 0; i < myDroneCount; i++) {
             myDroneFleet[i] = new Drone();
         }
     }
 
     /**  Initialize every Drone object in the fleet to their starting position */
-    private void initializeFleetPosition() {
+    public void initializeFleetPosition() {
         for (Drone drone : myDroneFleet) {
             drone.updateTelemetryData(myTelemetryGen.generateStartPosition());
         }
@@ -103,7 +117,7 @@ public class DroneFleetManager {
      * @return an array of TelemetryData containing new telemetry data for each drone.
      */
     public TelemetryData[] generateFleetData() {
-        TelemetryData[] newTelemetryDataArray = new TelemetryData[DRONE_COUNT];
+        TelemetryData[] newTelemetryDataArray = new TelemetryData[myDroneCount];
 
         for (int i = 0; i < myDroneFleet.length; i++) {
             TelemetryData droneTelemetry = myDroneFleet[i].getDroneTelemetry();
