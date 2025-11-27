@@ -3,7 +3,7 @@ package controller;
 import java.util.Objects;
 
 /**
- * A Controller class that handles and mange the core system of the simulation.
+ * A Controller class that handles and manage the core system of the simulation.
  * The class uses many helper classes to help build the functionality and operation
  * of the simulation all together.
  *
@@ -18,13 +18,12 @@ public class DroneMonitorApp {
     private final SimulationScheduler mySchedulerOperator;
 
     /**
-     *  Public constructor to create the DroneMonitorApp instance
+     *  Public constructor to create the DroneMonitorApp instance.
      *
      * @param theTimerManager represents the TimeManager object to manage timer functionality.
      * @param theSchedulerOperator represents the SimulationScheduler object to handle the simulation tasks.
      */
     public DroneMonitorApp(final TimerManager theTimerManager, final SimulationScheduler theSchedulerOperator) {
-
         myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
         mySchedulerOperator = Objects.requireNonNull(theSchedulerOperator, "FleetManager can't be null");
     }

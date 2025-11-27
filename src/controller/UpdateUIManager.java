@@ -3,7 +3,6 @@ package controller;
 import Model.Drone;
 import view.MonitorDash;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -36,7 +35,12 @@ public class UpdateUIManager {
         myUI.refreshDroneDisplay(currentFleet);
     }
 
-    /** Updates the UI to display the current timer */
+    /**
+     * Updates the UI to display the current timer.
+     *
+     * @param theTime represents the new elapsed time.
+     * @throws IllegalArgumentException if the theTime is less than 0.
+     */
     public void updateTimer(final int theTime) {
         if (theTime < 0) {
             throw new IllegalArgumentException("theTime can't be less than 0");

@@ -106,8 +106,13 @@ public class Drone {
      * A setter to set the Drone On status.
      *
      * @param theDroneState represent whether the drone is on or not.
+     * @throws NullPointerException if theDroneState is null.
      */
     public void setDroneState(final Enum<DroneState> theDroneState) {
+        if (theDroneState == null) {
+            throw new NullPointerException("Drone state cannot be null");
+        }
+
         myDroneState = (DroneState) theDroneState;
     }
 
@@ -115,10 +120,11 @@ public class Drone {
      * A setter to set the Drone Battery Level.
      *
      * @param theNewBatteryLevel represents the new drone battery level.
+     * @throws IllegalArgumentException if theNewBatteryLevel is less than 0 or greater than 100.
      */
     public void setBatteryLevel(final int theNewBatteryLevel) {
         if (theNewBatteryLevel <= 0 || theNewBatteryLevel > 100) {
-            throw new IllegalArgumentException("Battery level must be between 0 and 100");
+            throw new IllegalArgumentException("Battery level must be between 0 and 100, got: " + theNewBatteryLevel);
         }
 
         myBattery.setLevel(theNewBatteryLevel);
@@ -128,8 +134,9 @@ public class Drone {
      * A setter to update the drone Telemetry Data
      *
      * @param theNewTelemetryData represent the telemetry data that is going to update the drone telemetry data.
+     * @throws NullPointerException if theNewTelemetryData is null.
      */
-    public void updateTelemetryData(final TelemetryData theNewTelemetryData) {
+    public void updateDroneNextMove(final TelemetryData theNewTelemetryData) {
         // Save the current state BEFORE overwriting it
         double prevOrientation = myTelemetryData.getOrientation();
         double prevLat = myTelemetryData.getLatitude();

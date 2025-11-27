@@ -1,7 +1,6 @@
 package controller;
 
 import Model.AnomalyRecord;
-import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
 
@@ -44,7 +43,6 @@ public class SimulationScheduler {
     public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
                                UpdateUIManager theUIUpdater) {
         // Safety check if the follow objects pass is not null
-        myScheduleOperation = Executors.newScheduledThreadPool(4);
         myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
         myFleetManger = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
         myUIUpdater = Objects.requireNonNull(theUIUpdater, "theUIUpdater can't be null");
@@ -53,14 +51,19 @@ public class SimulationScheduler {
     /**
      * Sets the simulation status to pause.
      *
-     * @param thePaused true to pause the simulation, otherwise false to resume.
+     * @param thePausedStatus is true to pause the simulation, otherwise false to resume.
      */
-    public void setPausedStatus(final boolean thePaused) {
-        myPausedStatus = thePaused;
+    public void setPausedStatus(final boolean thePausedStatus) {
+        // Updating only if there's an update change
+        if (myPausedStatus != thePausedStatus) {
+            myPausedStatus = thePausedStatus;
+        }
     }
 
     /** Method to start the simulation logic and schedule task */
     public void startSimulationTask() {
+        myScheduleOperation = Executors.newScheduledThreadPool(4);
+
         int updateInterval = myTimerManger.getUpdateInterval();
         int timerInterval = myTimerManger.getTimerInterval();
 
@@ -142,7 +145,7 @@ public class SimulationScheduler {
 //                if (affectedDrone != null) {
 //                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
 //                } else {
-//                    // if theres no matching drone use first drone as fallback
+//                    // if there's no matching drone use first drone as fallback
 //                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getSpecificDrone(0));
 //                }
 //            }
@@ -154,8 +157,7 @@ public class SimulationScheduler {
             myUIUpdater.updateDroneDisplay();
 
         } catch (Exception e) {
-            System.err.println("Theres a ERROR in updateDronesTask:");
-            e.printStackTrace();
+            System.err.println("Theres a ERROR in updateDronesTask:" + e.getMessage());
         }
     }
 
@@ -167,9 +169,10 @@ public class SimulationScheduler {
 
     /** To stop the reoccurring schedule tasks */
     public void stopSimulationSchedule() {
-
+        // Closing the DB
         myAnomalyDB.close();
 
+        // Handles the thread safety in shutting down
         if (myScheduleOperation != null) {
             myScheduleOperation.shutdownNow();
             try {
@@ -180,8 +183,5 @@ public class SimulationScheduler {
                 Thread.currentThread().interrupt();
             }
         }
-
-        myScheduleOperation = Executors.newSingleThreadScheduledExecutor();
-
     }
 }
