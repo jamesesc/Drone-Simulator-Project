@@ -284,6 +284,9 @@ public class MonitorDash extends Application {
         //Stuff the program runs after its build
         Platform.runLater(() -> {
             swapRightPanel(false); //Don't delete this part
+
+            AnomalyRecord test = new AnomalyRecord("What 9 + 10", 9, 10.0, "21", "you stupid");
+            addAnomalyRecord(test);
         });
     }
 
@@ -410,7 +413,7 @@ public class MonitorDash extends Application {
         lightTheme.setOnAction(_ -> {
             applyStylesheet("light_theme.css");
         });
-        MenuItem customTheme = new MenuItem("Special");
+        MenuItem customTheme = new MenuItem("Fabulous");
         customTheme.setOnAction(_ -> {
             applyStylesheet("special_theme.css");
         });
