@@ -1,5 +1,6 @@
 package view;
 
+import database.AnomalyDB;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -310,6 +311,7 @@ public class MonitorDash extends Application {
         // Exit Item action when click
         exitItem.setOnAction(_ -> {
             endGame(); // Ensure everything is shut down
+            AnomalyDB.close();
             thePrimaryStage.close();
         });
 

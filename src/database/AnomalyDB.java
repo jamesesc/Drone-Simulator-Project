@@ -10,7 +10,7 @@ public class AnomalyDB {
     //to do: put this into a db.property file, or configuration file for db lite
     private static final String DB_URL = "jdbc:sqlite:drone_anomalies.db";
     //connection to database
-    private Connection conn;
+    private static Connection conn;
 
     public AnomalyDB() {
         try {
@@ -101,7 +101,7 @@ public class AnomalyDB {
         }
     }
 
-    public void close() {
+    public static void close() {
         try {
             if (conn != null) conn.close();
         } catch (SQLException e) {

@@ -175,8 +175,6 @@ public class SimulationScheduler {
 
     /** To stop the reoccurring schedule tasks */
     public void stopSimulationSchedule() {
-        // Closing the DB
-        myAnomalyDB.close();
 
         // Handles the thread safety in shutting down
         if (myScheduleOperation != null) {
