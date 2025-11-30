@@ -3,7 +3,7 @@ https://github.com/jamesesc/Drone-Simulator-Project
 
 --Sixth Deliverable--
 
-Oisin Perkins-Gilbert:
+Oisin Perkins-Gilbert: The UI that James made was looking really sharp, and I especially love how the User can move and zoom around in the drone simulation (that looks difficult). Luckily for me, there was still work to do, as the MenuBar had some buttons that needed functionality, and I still needed UI for something to Query the database. By far the hardest part of this, again, was finding the time as this week was a pretty big holiday week and I had plans with family all the way in Oregon.
 
 James Escudero: For this deliverable, I had help out on Oisin UI that he made.
 I had enhanced and upgraded the look and feel of our UI system. 
