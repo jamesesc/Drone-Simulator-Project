@@ -1,11 +1,30 @@
 /* ----------------
 Variables for Color
 ------------------- */
+/* ----------------
+Variables for Color
+------------------- */
 .root {
-    -fx-base-dark: rgb(26,26,26);
-    -fx-base-medium: rgb(48,48,48);
-    -fx-base-gray: rgb(60,60,60);
-    -fx-base-text: rgb(255,255,255);
+    -fx-base-dark: linear-gradient(
+            to right,
+            red, orange, yellow, green, blue, indigo, violet
+    );
+
+    -fx-base-medium: linear-gradient(
+            to bottom,
+            violet, purple, indigo
+    );
+
+    -fx-base-gray: linear-gradient(
+            to right,
+            pink, purple, hotpink
+    );
+
+    -fx-base-text: rgb(255, 255, 255);
+
+    /* For fixing warnings about Gradients */
+    -fx-base-dark-solid: #FF0000;
+    -fx-base-gray-solid: #FFC0CB;
 }
 
 /* -----------
@@ -20,7 +39,7 @@ General layout
     -fx-background-color: -fx-base-dark;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
-    -fx-border-color: -fx-base-gray;
+    -fx-border-color: -fx-base-gray-solid;
     -fx-border-width: 1;
     -fx-padding: 8;
     -fx-effect: none;
@@ -88,7 +107,7 @@ General layout
 
 .stats-card-holder {
     -fx-background-color: -fx-base-dark;
-    -fx-border-color: -fx-base-gray;
+    -fx-border-color: -fx-base-gray-solid;
     -fx-border-width: 4;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
@@ -160,7 +179,7 @@ Dark text areas
 
 .stats-card-detail {
     -fx-background-color: -fx-base-dark;
-    -fx-border-color: -fx-base-gray;
+    -fx-border-color: -fx-base-gray-solid;
     -fx-border-width: 4;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
@@ -200,7 +219,8 @@ Dark Themed TableView
 }
 
 .dark-table .table-row-cell:odd {
-    -fx-background-color: derive(-fx-base-dark, 8%);
+    -fx-background-color: -fx-base-medium;
+    -fx-background-insets: 0, 0, 0, 0;
 }
 
 .dark-table .table-row-cell:selected {
@@ -301,4 +321,16 @@ MenuBar, Menu, MenuItem
 
 .separator {
     -fx-background-color: -fx-base-gray;
+}
+.separator:horizontal .line,
+.separator:vertical .line {
+    -fx-border-color: derive(-fx-base-gray-solid, 50%);
+    -fx-border-width: 1;
+}
+.scroll-bar:vertical > .increment-button > .increment-arrow,
+.scroll-bar:vertical > .decrement-button > .decrement-arrow,
+.scroll-bar:horizontal > .increment-button > .increment-arrow,
+.scroll-bar:horizontal > .decrement-button > .decrement-arrow {
+    -fx-effect: null;
+    -fx-background-color: transparent;
 }

@@ -20,9 +20,9 @@ public class MonitorTableEntry {
     }
 
     // Property getters with correct names + public
-    public StringProperty timestampProperty() { return myTimestamp; }
-    public StringProperty droneIdProperty() { return myDroneId; }
-    public StringProperty typeProperty() { return myType; }
-    public StringProperty severityProperty() { return mySeverity; }
-    public StringProperty detailsProperty() { return myDetails; }
+    public String getTimestamp() { return myTimestamp.get(); }
+    public String getDroneId() { return myDroneId.get(); }
+    public String getType() { return myType.get(); }
+    public String getSeverity() { return mySeverity.get(); }
+    public String getDetails() { return myDetails.get(); }
 }

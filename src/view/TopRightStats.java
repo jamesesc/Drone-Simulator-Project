@@ -13,6 +13,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TopRightStats extends StackPane {
@@ -79,13 +80,7 @@ class TopRightStats extends StackPane {
 
         //Header for our main vbox
         Label header = new Label("Live Telemetry");
-        header.setStyle(
-                "-fx-font-family: 'Segoe UI'; " +
-                "-fx-font-size: 21px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-text-fill: #effdff; " +
-                "-fx-effect: dropshadow(gaussian, rgba(68,245,71,0.45), 5, 0, 0, 0); "
-        );
+        header.getStyleClass().add("stats-header");
 
         //VBox that holds each RegionBox
         myDroneHolder = new VBox();
@@ -94,12 +89,7 @@ class TopRightStats extends StackPane {
         // Make it so we can scroll through all our stats
         ScrollPane sPane = new ScrollPane();
         // Scroll Pane settings
-        sPane.setStyle(
-                "-fx-background-color: transparent; " +
-                "-fx-background: transparent; " +
-                "-fx-scrollbar-track-color: #121212; " +
-                "-fx-scrollbar-thumb-color: #444;"
-        );
+        sPane.getStyleClass().add("stats-pane");
         sPane.setFitToHeight(true);
         sPane.setFitToWidth(true);
         sPane.setContent(myDroneHolder);
@@ -152,13 +142,7 @@ class TopRightStats extends StackPane {
         String borderColor = false ? "#FF1744" : "#333333";
 
         // Styling the drone statsCardHolder data itself color
-        statsCardHolder.setStyle(
-                "-fx-background-color: #252525; " +
-                "-fx-border-color: " + borderColor + "; " +
-                "-fx-border-width: 4 4 4 4; " +
-                "-fx-background-radius: 12; " +
-                "-fx-border-radius: 12;"
-        );
+        statsCardHolder.getStyleClass().add("stats-card-holder");
 
         // Creating the Top section of the card (aka topRow) of the stats Card: Contains the Drone ID & Drone Status
         HBox topRow = new HBox();
@@ -167,7 +151,7 @@ class TopRightStats extends StackPane {
         // Creating and Styling the Drone card ID Label
         Label droneCardLabel = new Label(theDroneID);
         droneCardLabel.setFont(Font.font(FONT_UI, FontWeight.BOLD, 14));
-        droneCardLabel.setTextFill(Color.WHITE);
+        droneCardLabel.getStyleClass().add("stats-card-label");
 
         // The spacer between the Drone ID label and the Status label
         Region spacer = new Region();
@@ -179,12 +163,8 @@ class TopRightStats extends StackPane {
 
         // Styling the Drone Status Label
         droneStatusLabel.setFont(Font.font(FONT_MONO, FontWeight.EXTRA_BOLD, 10));
-        droneStatusLabel.setStyle(
-                "-fx-background-color: " + statusColor + "; " +
-                "-fx-padding: 2 5; " +
-                "-fx-text-fill: white;" +
-                "-fx-background-radius: 4;"
-        );
+        droneStatusLabel.getStyleClass().add("drone-status");
+        droneStatusLabel.setStyle("-fx-background-color: " + statusColor);
 
         // Adding the DroneCardLabel, theSpacer, and the droneStatusLabel into one container
         topRow.getChildren().addAll(droneCardLabel, spacer, droneStatusLabel);
@@ -195,8 +175,7 @@ class TopRightStats extends StackPane {
         // Using a gridStats so we can organize and line up the stats together
         GridPane gridStats = new GridPane();
         // Setting the gaps for the gridStats
-        gridStats.setHgap(15);
-        gridStats.setVgap(5);
+        gridStats.getStyleClass().add("stats-grid");
 
         // Calling a method to create each stat to the gridStats
         addStatRow(gridStats, 0, "BATTERY : ", "0%");
@@ -233,60 +212,41 @@ class TopRightStats extends StackPane {
      * @return a detail stats card base on the drone that we passed (aka we click on).
      */
     private VBox createDetailedDroneCard(final Drone theClickDrone) {
-        // Null Safety check
         if (theClickDrone == null || theClickDrone.getDroneTelemetry() == null) return null;
 
-        // Getting the drone data
         TelemetryData data = theClickDrone.getDroneTelemetry();
 
-        // Creating the box for the detail stats
+        // Create main card VBox
         VBox card = new VBox(5);
-        // Styling the detail box
         card.setPadding(new Insets(10));
-        card.setStyle(
-                "-fx-background-color: #252525; " +
-                "-fx-border-color:  #333333; " +
-                "-fx-border-width: 4 4 4 4;" +
-                "-fx-background-radius: 12; " +
-                "-fx-border-radius: 12;"
-        );
+        card.getStyleClass().add("stats-card-detail");
 
-        // Top Row represent the Drone ID and Status
+        // Top Row: Drone ID + Status
         HBox topRow = new HBox();
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        // Setting and Styling Drone ID Label
+        // Drone ID Label
         Label droneIDLabel = new Label("DRONE-" + theClickDrone.getDroneID());
-        droneIDLabel.setFont(Font.font("Segue UI", FontWeight.BOLD, 14));
-        droneIDLabel.setTextFill(Color.WHITE);
+        droneIDLabel.getStyleClass().add("stats-card-label");
 
-        // Spacer between Drone ID and Status
+        // Spacer
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // --- Creating a dynamic status label ---
-        String droneStatusStr = theClickDrone.isDroneOn().toString(); // Getting the drone status (FLYING, etc.)
-        Label droneStatusLabel = new Label(droneStatusStr);   // Creating a label with the given string
-        String statusColor = getDroneStatusColor(droneStatusStr);   // Get the color for the drone status
+        // Drone Status Label
+        Label droneStatusLabel = new Label(theClickDrone.isDroneOn().toString());
+        droneStatusLabel.getStyleClass().add("drone-status");
 
-        // Styling up the Status Label
-        droneStatusLabel.setFont(Font.font("Monospace", 10));
-        droneStatusLabel.setStyle(
-                "-fx-background-color: " + statusColor + "; " +
-                "-fx-padding: 2 5; " +
-                "-fx-text-fill: white;" +
-                "-fx-background-radius: 4;"
-        );
-
-        // Adding everything up in the TopRow
+        // Add nodes to topRow
         topRow.getChildren().addAll(droneIDLabel, spacer, droneStatusLabel);
 
-        // Creating the Stats Grid now
+        // Stats Grid
         GridPane gridStats = new GridPane();
+        gridStats.getStyleClass().add("stats-grid"); // optional: use CSS for spacing if needed
         gridStats.setHgap(15);
         gridStats.setVgap(15);
 
-        // Using Helper method to create each individual stats
+        // Add stat rows
         addStatRow(gridStats, 0, "BATTERY: ", theClickDrone.getBatteryLevel() + "%");
         addStatRow(gridStats, 1, "ALTITUDE: ", data.getAltitude() + " m");
         addStatRow(gridStats, 2, "LATITUDE: ", String.valueOf(data.getLatitude()));
@@ -294,10 +254,10 @@ class TopRightStats extends StackPane {
         addStatRow(gridStats, 4, "VELOCITY: ", data.getVelocity() + "m/s");
         addStatRow(gridStats, 5, "ORIENTATION: ", data.getOrientation() + "°");
 
-        // Adding all the individual parts of the stats into the overall card
+        // Add topRow, separator, and grid to card
         card.getChildren().addAll(topRow, new Separator(), gridStats);
 
-        // Event action if clicked, swap card
+        // Click event to swap back
         card.setOnMouseClicked(_ -> MonitorDash.getInstance().swapRightPanel(false));
 
         return card;
@@ -316,13 +276,13 @@ class TopRightStats extends StackPane {
         // Creating the Stats Label on the left side
         Label statsLabel = new Label(theStatsLabel);
         // Styling the stats label
-        statsLabel.setTextFill(Color.GRAY);
+        statsLabel.getStyleClass().add("stats-card-label");
         statsLabel.setFont(Font.font(FONT_UI, 9));
 
         // Creating the Stats Value label on the right side
         Label statsValue = new Label(theValue);
         // Styling the stats value label
-        statsValue.setTextFill(Color.WHITE);
+        statsValue.getStyleClass().add("stats-card-label");
         statsValue.setFont(Font.font(FONT_MONO, 11));
 
         // Adding both labels to the grid
@@ -415,12 +375,7 @@ class TopRightStats extends StackPane {
                 // Only updating if changed to save performance
                 if (!statusLabel.getText().equals(droneStatusStr)) {
                     statusLabel.setText(droneStatusStr);
-                    statusLabel.setStyle(
-                            "-fx-background-color: " + getDroneStatusColor(droneStatusStr) + "; " +
-                            "-fx-padding: 2 5; " +
-                            "-fx-text-fill: white;" +
-                            "-fx-background-radius: 4;"
-                    );
+                    statusLabel.setStyle("-fx-background-color: " + getDroneStatusColor(droneStatusStr) + ";");
                 }
 
 
@@ -493,12 +448,7 @@ class TopRightStats extends StackPane {
 
         if (!statusLabel.getText().equals(droneStatusStr)) {
             statusLabel.setText(droneStatusStr);
-            statusLabel.setStyle(
-                    "-fx-background-color: " + getDroneStatusColor(droneStatusStr) + "; " +
-                    "-fx-padding: 2 5; " +
-                    "-fx-text-fill: white;" +
-                    "-fx-background-radius: 4;"
-            );
+            statusLabel.setStyle("-fx-background-color: " + getDroneStatusColor(droneStatusStr) + "; ");
         }
 
         // 2. Update Grid Stats
@@ -539,5 +489,12 @@ class TopRightStats extends StackPane {
      */
     public boolean getShowingStats() {
         return myShowingStats;
+    }
+
+    void applyStylesheet(String cssName) {
+        this.getStylesheets().clear();
+        this.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+        );
     }
 }
