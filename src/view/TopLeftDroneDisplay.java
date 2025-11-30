@@ -22,6 +22,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 class TopLeftDroneDisplay extends VBox {
@@ -123,42 +124,22 @@ class TopLeftDroneDisplay extends VBox {
         // Setting up the Panel Title Section
         HBox headerBox = new HBox(10);
         Label titleLabel = new Label("Drone Monitor");
-        titleLabel.setStyle(
-                "-fx-text-fill: white; " +
-                "-fx-font-size: 20px; " +
-                "-fx-font-weight: bold;" +
-                "-fx-effect: dropshadow(gaussian, rgba(68,245,71,0.45), 5, 0, 0, 0); "
-        );
+        titleLabel.getStyleClass().add("title-label");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         // Creating the Static Header Label
         Label timeLabel = new Label("TIME");
-        timeLabel.setStyle(
-                "-fx-text-fill: white; " +
-                "-fx-font-weight: bold; " +
-                "-fx-font-size: 14px;"
-        );
+        timeLabel.getStyleClass().add("time-label-label");
 
         // Styling the time number itself
         myTimeLabel.setText("00:00:00");
-        myTimeLabel.setStyle(
-                "-fx-font-family: 'Consolas', 'Monospace'; " +
-                "-fx-font-size: 16px; " +
-                "-fx-font-weight: bold; " +
-                "-fx-text-fill: #D3D3D3;" +
-                "-fx-font-style: italic;"
-        );
+        myTimeLabel.getStyleClass().add("time-label");
 
         //  Grouping up the Time Label and the TimeNumber
         HBox timeBox = new HBox(8, timeLabel, myTimeLabel);
         timeBox.setAlignment(Pos.CENTER);
-        timeBox.setStyle(
-                "-fx-background-color: #1a1a1a; " +
-                "-fx-padding: 5 10 5 10; " +
-                "-fx-background-radius: 4; " +
-                "-fx-border-radius: 4;"
-        );
+        timeBox.getStyleClass().add("time-box");
 
         // Adding the title, spacer and timeBox together under headers
         headerBox.getChildren().addAll(titleLabel, spacer, timeBox);
@@ -498,5 +479,12 @@ class TopLeftDroneDisplay extends VBox {
         myDroneViews.clear();
         // Clearing our animation timeline
         activeTimelines.clear();
+    }
+
+    void applyStylesheet(String cssName) {
+        this.getStylesheets().clear();
+        this.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+        );
     }
 }

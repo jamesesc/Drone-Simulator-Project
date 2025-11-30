@@ -2,10 +2,10 @@
 Variables for Color
 ------------------- */
 .root {
-    -fx-base-dark: rgb(26,26,26);
-    -fx-base-medium: rgb(48,48,48);
-    -fx-base-gray: rgb(60,60,60);
-    -fx-base-text: rgb(255,255,255);
+    -fx-base-dark: rgb(255,255,255);
+    -fx-base-medium: rgb(175,175,175);
+    -fx-base-gray: rgb(150,150,150);
+    -fx-base-text: rgb(0,0,0);
 }
 
 /* -----------

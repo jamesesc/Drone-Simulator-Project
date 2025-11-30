@@ -2,6 +2,8 @@ package view;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -10,6 +12,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,6 +23,7 @@ import controller.*;
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
 import Model.Drone;
+import javafx.util.Duration;
 
 /**
  * A Singleton class which houses our Graphical User Interface for the application.
@@ -76,12 +80,27 @@ public class MonitorDash extends Application {
      */
     private boolean myIsPaused = false;
 
+    /**
+     * Whether the audio for our UI is muted or not.
+     */
+    private boolean myIsMuted = false;
+
+    /**
+     * Volume of our UI audio
+     */
+    private int myVolume = 100;
+
+
     /* =============
     SECTIONS OF THE GUI
      ===============*/
     TopLeftDroneDisplay myTopLeft = new TopLeftDroneDisplay();
     BottomTable myBottomSide = new BottomTable();
     TopRightStats myTopRight = new TopRightStats();
+    DatabasePopup myDatabase;
+    private Scene myScene;
+    private MediaPlayer notificationPlayer;
+
 
     /*======================
     INTERACTING WITH THE GUI
@@ -186,6 +205,8 @@ public class MonitorDash extends Application {
      */
     public void addAnomalyRecord(AnomalyRecord theRecord) {
         myBottomSide.addAnomalyRecord(theRecord);
+
+        playNotificationSound();
     }
 
     /**
@@ -212,6 +233,8 @@ public class MonitorDash extends Application {
         myBottomSide.getAnomalyTable().getItems().clear();
 
         myBottomSide.refreshAnomalyRecords(theRecords);
+
+        playNotificationSound();
     }
 
     /* =====================
@@ -247,13 +270,15 @@ public class MonitorDash extends Application {
         root.setTop(menuBar);
         root.setCenter(mainBox);
 
-        Scene scene = new Scene(root, 800, 700);
-        scene.getStylesheets().add(
+        myScene = new Scene(root, 800, 700);
+        myScene.getStylesheets().add(
                 Objects.requireNonNull(getClass().getResource("dark_theme.css")).toExternalForm()
         );
 
+        myDatabase = new DatabasePopup(thePrimaryStage);
+
         thePrimaryStage.setTitle("Drone Simulation");
-        thePrimaryStage.setScene(scene);
+        thePrimaryStage.setScene(myScene);
         thePrimaryStage.show();
 
         //Stuff the program runs after its build
@@ -277,6 +302,17 @@ public class MonitorDash extends Application {
         }
     }
 
+    private void applyStylesheet(String cssName) {
+        myScene.getStylesheets().clear();
+        myScene.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+        );
+
+        myBottomSide.applyStylesheet(cssName);
+        myTopRight.applyStylesheet(cssName);
+        myTopLeft.applyStylesheet(cssName);
+    }
+
     /* ====================================
     MENU BAR
      ====================================*/
@@ -295,15 +331,27 @@ public class MonitorDash extends Application {
         // -- Menu 1: The File ---
         Menu fileMenu = new Menu("File");
 
+        //Opening the database manager
+        MenuItem databaseMenu = new MenuItem("Database Manager");
+        databaseMenu.setOnAction(_ -> {
+            showDatabase();
+        });
+
         // ---- File Menu Item 1: Export ----
-        Menu exportMenu = new Menu("Export");
+        Menu exportMenu = new Menu("Export Log");
 
         // ---- Export SubItem: PDF, CSV ----
-        MenuItem pdfItem = new MenuItem("PDF");
+        MenuItem txtItem = new MenuItem("TXT");
+        txtItem.setOnAction(_ -> {
+            myBottomSide.exportToTXTDialog(thePrimaryStage);
+        });
         MenuItem csvItem = new MenuItem("CSV");
+        csvItem.setOnAction(_ -> {
+            myBottomSide.exportToCSVDialog(thePrimaryStage);
+        });
 
         // Adding each sub-item to the Export Menu
-        exportMenu.getItems().addAll(pdfItem, csvItem);
+        exportMenu.getItems().addAll(txtItem, csvItem);
 
         // ---- File Menu Item 2: Exit ----
         MenuItem exitItem = new MenuItem("Exit");  // MenuItem, not Menu
@@ -314,7 +362,7 @@ public class MonitorDash extends Application {
         });
 
         // Adding the Exit Item to the File Menu
-        fileMenu.getItems().addAll(exportMenu, exitItem);
+        fileMenu.getItems().addAll(databaseMenu, exportMenu, exitItem);
 
         // -- Menu 2: The Setting --
         Menu settingMenu = new Menu("Settings");
@@ -355,8 +403,17 @@ public class MonitorDash extends Application {
 
         // ---- Theme SubItem: Dark, White, Special ----
         MenuItem darkTheme = new MenuItem("Dark Theme");
+        darkTheme.setOnAction(_ -> {
+            applyStylesheet("dark_theme.css");
+        });
         MenuItem lightTheme = new MenuItem("Light Theme");
+        lightTheme.setOnAction(_ -> {
+            applyStylesheet("light_theme.css");
+        });
         MenuItem customTheme = new MenuItem("Special");
+        customTheme.setOnAction(_ -> {
+            applyStylesheet("special_theme.css");
+        });
 
         // Adding each sub-item to the Theme Menu
         themeMenu.getItems().addAll(darkTheme, lightTheme, customTheme);
@@ -366,11 +423,20 @@ public class MonitorDash extends Application {
 
         // ---- Sound SubItem: Enable, Disable, Sound ----
         MenuItem enableSound = new MenuItem("Enable Sounds");
+        enableSound.setOnAction(_ -> {
+            myIsMuted = false;
+        });
         MenuItem disableSound = new MenuItem("Disable Sounds");
+        disableSound.setOnAction(_ -> {
+            myIsMuted = true;
+        });
         MenuItem volume = new MenuItem("Volume...");
+        volume.setOnAction(_ -> showVolumePopup());
+        MenuItem testSound = new MenuItem("Test Sound");
+        testSound.setOnAction(_ -> playNotificationSound());
 
         // Adding each sub-item to the Sound Menu
-        soundMenu.getItems().addAll(enableSound, disableSound, volume);
+        soundMenu.getItems().addAll(enableSound, disableSound, volume, testSound);
 
         // Adding all the Sub Menu to the Setting Menu
         settingMenu.getItems().addAll(droneCountMenu, probabilityMenu, themeMenu, soundMenu);
@@ -429,16 +495,42 @@ public class MonitorDash extends Application {
 
         // ---- Help Submenu: About, License, Version ----
         MenuItem aboutItem = new MenuItem("About");
-        MenuItem licenseItem = new MenuItem("License");
+        aboutItem.setOnAction(_ -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("About Application");
+            alert.setHeaderText("Drone Application - About");
+            alert.setContentText("An application used for simulating a fleet of drones.\n" +
+                    "Created by Oisin Perkins-Gilbert, Mankirat Mann, James Escudero\n" +
+                    "Created with Java, IntelliJ, and JavaFX\n" +
+                    "Made in 2025\n" +
+                    "Sound Effects taken from: https://pixabay.com/sound-effects/new-notification-010-352755/\n" +
+                    "Github: https://github.com/jamesesc/Drone-Simulator-Project");
+            alert.showAndWait();
+        });
+
         MenuItem versionItem = new MenuItem("Version");
+        versionItem.setOnAction(_ -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Application Version");
+            alert.setHeaderText("Drone Application - Version");
+            alert.setContentText("Current version: v5\n" +
+                    "Build date: 11/30/25\n" +
+                    "JavaFX Version: openjfx-25.0.1\n" +
+                    "Java Version: jdk-25");
+            alert.showAndWait();
+        });
 
         // Adding all the Sub Menu to the Help Menu
-        helpSetting.getItems().addAll(aboutItem, licenseItem, versionItem);
+        helpSetting.getItems().addAll(aboutItem, versionItem);
 
         // Adding all the menus to the MenuBar
         menuBar.getMenus().addAll(fileMenu, settingMenu, simMenu, helpSetting);
 
         return menuBar;
+    }
+
+    private void showDatabase() {
+        myDatabase.show();
     }
 
 
@@ -459,6 +551,85 @@ public class MonitorDash extends Application {
     /* ====================================
     HELPER METHODS
      ====================================*/
+
+    public void playNotificationSound() {
+        if (myIsMuted) return;
+
+        if (notificationPlayer == null) {
+            URL url = getClass().getResource("Assets/notification.wav");
+            if (url == null) {
+                System.out.println("ERROR in playNotificationSound(): no notification.wav found");
+                return;
+            }
+
+            try {
+                Media media = new Media(url.toExternalForm());
+                notificationPlayer = new MediaPlayer(media);
+
+                notificationPlayer.setOnEndOfMedia(() -> {
+                    notificationPlayer.stop();
+                });
+
+            } catch (Throwable theException) {
+                System.err.println("Audio not working: Ask Oisin (that's me!) for his Run Configuration");
+
+                //Mute when there's an error
+                myIsMuted = true;
+                return;
+            }
+        }
+
+        MediaPlayer.Status status = notificationPlayer.getStatus();
+
+        if (status == MediaPlayer.Status.PLAYING) {
+            return;
+        }
+
+        notificationPlayer.setVolume(myVolume / 100.0);
+        notificationPlayer.play();
+    }
+
+    private void showVolumePopup() {
+        Dialog<Integer> dialog = new Dialog<>();
+        dialog.setTitle("Adjust Volume");
+        dialog.setHeaderText("Set UI Audio Volume");
+
+        // OK & Cancel buttons
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        // Slider
+        Slider slider = new Slider(0, 100, myVolume);
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(25);
+        slider.setBlockIncrement(1);
+
+        Label valueLabel = new Label(Integer.toString(myVolume));
+
+        slider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            valueLabel.setText(String.valueOf(newVal.intValue()));
+        });
+
+        // Main box for popup
+        HBox box = new HBox(10, new Label("Volume:"), slider, valueLabel);
+        dialog.getDialogPane().setContent(box);
+
+        // Convert result to int
+        dialog.setResultConverter(button -> {
+            if (button == ButtonType.OK) {
+                return (int) slider.getValue();
+            }
+            return null;
+        });
+
+        // Show dialog
+        Optional<Integer> result = dialog.showAndWait();
+
+        result.ifPresent(newVol -> {
+            myVolume = newVol;
+            System.out.println("Volume set to: " + myVolume);
+        });
+    }
 
     /**
      * Help handle change the number of drone count

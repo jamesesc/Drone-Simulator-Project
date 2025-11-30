@@ -9,8 +9,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
+import java.io.*;
 import java.util.List;
+import java.util.Objects;
 
 class BottomTable extends VBox {
     /**
@@ -114,5 +118,99 @@ class BottomTable extends VBox {
 
     TableView<MonitorTableEntry> getAnomalyTable() {
         return myAnomalyTable;
+    }
+
+    public void exportToCSVDialog(Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save CSV");
+
+        // Set initial folder to current working directory
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+
+        // Set default file name
+        fileChooser.setInitialFileName("anomalies.csv");
+
+        // Restrict file types to CSV
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("CSV Files", "*.csv")
+        );
+
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            exportToCSV(file.getAbsolutePath());
+        }
+    }
+
+    public void exportToTXTDialog(Stage stage) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save TXT");
+
+        // Default to the working directory (same folder as application)
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+        fileChooser.setInitialFileName("anomalies.txt");
+
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Text Files", "*.txt")
+        );
+
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            exportToTXT(file.getAbsolutePath());
+        }
+    }
+
+    private void exportToTXT(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+
+            // Header line
+            writer.write("Timestamp | Drone ID | Type | Severity | Details");
+            writer.newLine();
+            writer.write("-------------------------------------------------------------");
+            writer.newLine();
+
+            // Table entries
+            for (MonitorTableEntry entry : myAnomalyTable.getItems()) {
+                String line = entry.getTimestamp() + " | "
+                        + entry.getDroneId() + " | "
+                        + entry.getType() + " | "
+                        + entry.getSeverity() + " | "
+                        + entry.getDetails();
+                writer.write(line);
+                writer.newLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void exportToCSV(String filePath) {
+        List<MonitorTableEntry> entries = myAnomalyTable.getItems();
+
+        try (FileWriter writer = new FileWriter(filePath)) {
+            // Write CSV header
+            writer.append("Timestamp,Drone ID,Type,Severity,Details\n");
+
+            // Write each row
+            for (MonitorTableEntry entry : entries) {
+                writer.append(entry.getTimestamp()).append(",");
+                writer.append(entry.getDroneId()).append(",");
+                writer.append(entry.getType()).append(",");
+                writer.append(entry.getSeverity()).append(",");
+                writer.append(entry.getDetails().replaceAll(",", ";")).append("\n");
+            }
+
+            writer.flush();
+            System.out.println("CSV Exported to: " + filePath);
+        } catch (IOException e) {
+            System.out.println("Error in exportToCSV: " + e);
+        }
+    }
+
+    void applyStylesheet(String cssName) {
+        this.getStylesheets().clear();
+        this.getStylesheets().add(
+                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+        );
     }
 }
