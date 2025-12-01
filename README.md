@@ -17,7 +17,7 @@ DRY, and other important concepts that we learned so far.
 The core functionality of displaying, generating and storing
 anomalies is quite complete. 
 
-Mankirat Mann: 
+Mankirat Mann: I was really busy this week, but I created the dark themed Leaflet map HTML and fixed some database issues, including a clearDatabase() method. I spend a lot of time and tried integrating the map into the simulation, but it kept showing different errors or something in the code would break, so I am trying a different approach right now which would hopefully work.
 
 --Fifth Deliverable--
 
