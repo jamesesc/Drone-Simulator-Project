@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import controller.*;
 import controller.DroneMonitorApp;
@@ -58,6 +59,13 @@ public class MonitorDash  {
      * Volume of our UI audio
      */
     private int myVolume = 100;
+
+
+    private Consumer<Integer> myDroneCountChangeRequest;
+
+    public void setMyDroneCountChangeRequest(Consumer<Integer> theDroneCountRequest) {
+        myDroneCountChangeRequest = theDroneCountRequest;
+    }
 
 
 
@@ -106,9 +114,8 @@ public class MonitorDash  {
 
     }
 
-    public void initializeBackend(DroneMonitorApp theController, DroneFleetManager theFleetManager) {
+    public void setController (DroneMonitorApp theController) {
         myController = Objects.requireNonNull(theController, "Controller cannot be null");
-        myFleet = Objects.requireNonNull(theFleetManager, "FleetManager cannot be null");
     }
 
 
@@ -460,37 +467,7 @@ public class MonitorDash  {
 
 
 
-    /**
-     * Help method to handle a pop screen for a custom amount
-     */
-    public void changeDroneCountCustom() {
-        // Pop up setting
-        TextInputDialog inputChat = new TextInputDialog("3");
-        inputChat.setTitle("Custom Drone Count");
-        inputChat.setHeaderText("Enter number of drones:");
-        inputChat.setContentText("Count:");
 
-        // Method to show the dialog box and waiting the user for input
-        Optional<String> result = inputChat.showAndWait();
-
-        // Handles the user input actions
-        if (result.isPresent()) {
-            // User entered, check if input is valid
-            try {
-                int count = Integer.parseInt(result.get());
-
-                // Values for the allowed min and max drones user can create
-                final int MIN_DRONES_ALLOWED = 1;
-                final int MAX_NUMBER_DRONES = 50;
-
-                if (count >= MIN_DRONES_ALLOWED && count <= MAX_NUMBER_DRONES) {
-                    changeDroneCount(count);
-                }
-            } catch (NumberFormatException e) {
-                // Input is bad, retry again
-            }
-        }
-    }
 
     /**
      * Help handle change the number of drone count
@@ -501,16 +478,26 @@ public class MonitorDash  {
         // Stopping the Sim, safety insurance
         endGame();
 
-        // Updating the backend for the new drone count
-        myFleet.updateDroneCount(theNewDroneCount);
-
         // Updating the UI by clearing the monitor, clearing the drone map, remaking the stats panel
         myTopLeft.clearAllDrones();
         myDrones.clear();
         myTopRight.recreateDroneCards();
 
+        // Telling the controller the new user input
+        if (myDroneCountChangeRequest != null) {
+            myDroneCountChangeRequest.accept(theNewDroneCount);
+        }
+
         System.out.println("MonitorDash: Drone count changed to " + theNewDroneCount);
     }
+
+
+
+
+
+
+
+
 
     /**
      * Tells the map to highlight a specific drone.

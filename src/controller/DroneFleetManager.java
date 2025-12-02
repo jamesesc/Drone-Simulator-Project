@@ -47,6 +47,8 @@ public class DroneFleetManager {
         myDroneCount = theNewCount;
         myDroneFleet = new Drone[myDroneCount];
         initializeFleet();
+        System.out.println(theNewCount + " Drones have been updated. This is in DroneFleetManager");
+
     }
 
 

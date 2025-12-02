@@ -19,9 +19,13 @@ public class Simulation extends Application {
         MonitorDash monitorDash = new MonitorDash();
         UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash, fleetManager);
         SimulationScheduler scheduler = new SimulationScheduler(timerManager, fleetManager, updateUIManager);
-        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler);
+        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
 
-        monitorDash.initializeBackend(controller, fleetManager);
+        monitorDash.setController(controller);
+
+        // Connects the View's "Request" to the Controller's "Action"
+        monitorDash.setMyDroneCountChangeRequest(controller::changeDroneCount);
+
         monitorDash.initializeSimulation(stage);
     }
 }

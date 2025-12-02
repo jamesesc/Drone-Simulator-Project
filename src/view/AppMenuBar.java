@@ -1,18 +1,15 @@
 package view;
 
 import database.AnomalyDB;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Build the Simulation App Menu Bar.
  *
- * @author James Escudero
  * @version Autumn 2025
  */
 public class AppMenuBar extends MenuBar {
@@ -132,12 +129,49 @@ public class AppMenuBar extends MenuBar {
         threeDroneItem.setOnAction(_ -> myMonitor.changeDroneCount(3));
         fiveDroneItem.setOnAction(_ -> myMonitor.changeDroneCount(5));
         tenDroneItem.setOnAction(_ -> myMonitor.changeDroneCount(10));
-        customDroneItem.setOnAction(_ -> myMonitor.changeDroneCountCustom());
+        customDroneItem.setOnAction(_ -> handleCustomDroneCountPopUp());
         // Adding each sub-item to the DroneCount Menu
         myDroneCountMenu.getItems().addAll(threeDroneItem, fiveDroneItem, tenDroneItem, customDroneItem);
 
         // Adding all the Sub Menu to the Setting Menu
         theSettingMenu.getItems().addAll(myDroneCountMenu);
+    }
+
+    /**
+     * Helper method to handle a pop screen for a custom amount of drones.
+     */
+    private void handleCustomDroneCountPopUp() {
+        // Pop up setting
+        TextInputDialog inputChat = new TextInputDialog("3");
+        inputChat.setTitle("Custom Drone Count");
+        inputChat.setHeaderText("Enter number of drones:");
+        inputChat.setContentText("Count:");
+
+        // Method to show the dialog box and waiting the user for input
+        Optional<String> result = inputChat.showAndWait();
+
+        // Handles the user input actions
+        if (result.isPresent()) {
+            // User entered, check if input is valid
+            try {
+                int count = Integer.parseInt(result.get());
+
+                // Values for the allowed min and max drones user can create
+                final int MIN_DRONES_ALLOWED = 1;
+                final int MAX_NUMBER_DRONES = 50;
+
+                if (count >= MIN_DRONES_ALLOWED && count <= MAX_NUMBER_DRONES) {
+                    myMonitor.changeDroneCount(count);
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter a number between 1 and 50");
+                    alert.showAndWait();
+                }
+            } catch (NumberFormatException e) {
+                // Input is bad, retry again
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid Number");
+                alert.show();
+            }
+        }
     }
 
     /**
