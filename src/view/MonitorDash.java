@@ -55,14 +55,24 @@ public class MonitorDash extends Application {
      */
     private final DroneMonitorApp myController = new DroneMonitorApp(myTimerManager, scheduler);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /* ===============================
     FIELDS FOR GUI ELEMENTS - Generally don't touch them
      ================================= */
 
-    /**
-     * Singleton variable for our JavaFX App instance.
-     */
-    private volatile static MonitorDash myInstance;
     /**
      * Map of all the drones currently in use by the GUI.
      */
@@ -92,6 +102,18 @@ public class MonitorDash extends Application {
     private int myVolume = 100;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     /* =============
     SECTIONS OF THE GUI
      ===============*/
@@ -103,32 +125,29 @@ public class MonitorDash extends Application {
     private MediaPlayer notificationPlayer;
 
 
+
+
+
+
+
+
+
+
     /*======================
     INTERACTING WITH THE GUI
      =======================*/
 
     /**
-     * Constructor of MyJavaFXApp, for Singleton stuff.
+     * Constructor of MyJavaFXApp
      */
     public MonitorDash() {
-        myInstance = this;
+
     }
 
-    /**
-     * Getter for the singleton instance of the Java Application.
-     *
-     * @return Singleton instance of Java application.
-     */
-    public static MonitorDash getInstance() {
-        if (myInstance == null) {
-            synchronized (MonitorDash.class) {
-                if (myInstance == null) {
-                    myInstance = new MonitorDash();
-                }
-            }
-        }
-        return myInstance;
-    }
+
+
+
+
 
     /**
      * Updates the time label with the specified time.
@@ -164,6 +183,8 @@ public class MonitorDash extends Application {
             }
     }
 
+
+
     /**
      * Update the large stats box at the top-right of the GUI.
      *
@@ -198,6 +219,9 @@ public class MonitorDash extends Application {
             updateStatsText(drone);
         }
     }
+
+
+
 
     /**
      * Add an anomaly record to the table in the GUI.
@@ -237,6 +261,14 @@ public class MonitorDash extends Application {
 
         playNotificationSound();
     }
+
+
+
+
+
+
+
+
 
     /* =====================
     BUILDING THE APPLICATION
@@ -291,6 +323,12 @@ public class MonitorDash extends Application {
         });
     }
 
+
+
+
+
+
+
     /**
      * Swaps between displaying the small stats boxes and the big stats box.
      *
@@ -317,9 +355,25 @@ public class MonitorDash extends Application {
         myTopLeft.applyStylesheet(cssName);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     /* ====================================
     MENU BAR
      ====================================*/
+
 
     /**
      * Setup for the GUI's menu bar.
@@ -534,9 +588,27 @@ public class MonitorDash extends Application {
         return menuBar;
     }
 
+
+
+
+
+
+
+
     private void showDatabase() {
         myDatabase.show();
     }
+
+
+
+
+
+
+
+
+
+
+
 
 
     /* ====================================
@@ -551,6 +623,18 @@ public class MonitorDash extends Application {
     public DroneFleetManager getFleetManager() {
         return myFleetManager;
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /* ====================================
@@ -696,6 +780,20 @@ public class MonitorDash extends Application {
     public void selectDroneOnMap(final int theDroneID) {
         myTopLeft.selectDrone(theDroneID);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /* ====================================
     Simulation Phases
