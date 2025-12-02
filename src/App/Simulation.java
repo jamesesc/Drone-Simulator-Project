@@ -25,15 +25,6 @@ public class Simulation extends Application {
         DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
 
         monitorDash.setController(controller);
-
-        // Connect the view "Request" to the Controller's "Action"
-        monitorDash.setMyDroneCountChangeRequest((newCount) -> {
-            // Controller action
-            controller.changeDroneCount(newCount);
-
-            // Returning new data back to MonitorDash
-            return fleetManager.getDroneFleet();
-        });
         monitorDash.initializeSimulation(stage);
     }
 }

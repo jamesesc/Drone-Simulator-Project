@@ -78,9 +78,9 @@ public class AppMenuBar extends MenuBar {
         Menu exportMenu = new Menu("Export Log");
         // Export SubItem: TXT, CSV
         MenuItem txtExportItem = new MenuItem("TXT");
-        txtExportItem.setOnAction(_ -> myMonitor.myBottomSide.exportToTXTDialog(myPrimaryStage));
+        txtExportItem.setOnAction(_ -> myMonitor.exportToCSV(myPrimaryStage));
         MenuItem csvExportItem = new MenuItem("CSV");
-        csvExportItem.setOnAction(_ -> myMonitor.myBottomSide.exportToCSVDialog(myPrimaryStage));
+        csvExportItem.setOnAction(_ -> myMonitor.exportToTXT(myPrimaryStage));
         // Adding each sub-item to the Export Menu
         exportMenu.getItems().addAll(txtExportItem, csvExportItem);
 
@@ -295,7 +295,7 @@ public class AppMenuBar extends MenuBar {
             myMonitor.togglePauseGame();
             
             // Update text based on state
-            if (myMonitor.myIsPaused) {
+            if (myMonitor.isPaused()) {
                 pauseItem.setText("Resume");
             } else {
                 pauseItem.setText("Pause");

@@ -12,40 +12,57 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
 import Model.Drone;
 
 public class MonitorDash  {
-    // --- Dependencies ---
-    DroneMonitorApp myController;
-    SoundManager mySoundManager;
+    /* =============
+    DEPENDENCIES
+     ===============*/
 
-    // --- State ---
+    /** Represents the Controller that the UI talks to */
+    private DroneMonitorApp myController;
 
-    /**
-     * Map of all the drones currently in use by the GUI.
-     */
+    /** Represents the Sound Manager for the UI */
+    private final SoundManager mySoundManager;
+
+
+    /* =============
+    STATE
+     ===============*/
+
+    /** Map of all the drones currently in use by the GUI. */
     final Map<Integer, Drone> myDrones = new ConcurrentHashMap<>();
-    /**
-     * Whether the game is paused. True = paused, False = not paused.
-     */
-    public boolean myIsPaused = false;
-    private Function<Integer, Drone[]> myDroneCountChangeRequest;
 
+    /** Whether the game is paused. True = paused, False = not paused. */
+    private boolean myIsPaused = false;
 
 
     /* =============
     SECTIONS OF THE GUI
      ===============*/
-    TopLeftDroneDisplay myTopLeft;
-    BottomTable myBottomSide;
-    TopRightStats myTopRight;
-    DatabasePopup myDatabase;
+
+    /** Represent the UI Drone display */
+    private final TopLeftDroneDisplay myTopLeft;
+
+    /** Represent the Drone Stats Panel display */
+    private final TopRightStats myTopRight;
+
+    /** Represent the Anomaly Log display */
+    private final BottomTable myBottomSide;
+
+    /** Represent the Database Manager */
+    private DatabasePopup myDatabase;
+
+    /** Represent the whole window application */
     private Scene myScene;
 
+
+    /* =============
+    CONSTRUCTOR
+     ===============*/
 
     /**
      * Constructor of MyJavaFXApp
@@ -53,7 +70,7 @@ public class MonitorDash  {
     public MonitorDash() {
         mySoundManager = new SoundManager();
 
-        // Initialize children, passing 'this' only if they strictly need callbacks
+        // Initializing all the parts and pieces of the UI
         myTopLeft = new TopLeftDroneDisplay(this);
         myBottomSide = new BottomTable();
         myTopRight = new TopRightStats(this);
@@ -70,6 +87,34 @@ public class MonitorDash  {
      * @param thePrimaryStage Our primary JavaFX stage.
      */
     public void initializeSimulation(final Stage thePrimaryStage) {
+        //Setting up the root to hold all the UI components
+        BorderPane root = setupLayout(thePrimaryStage);
+
+        // Creating the Window Application
+        myScene = new Scene(root, 800, 700);
+        applyStylesheet("dark_theme.css");
+
+        // Creating the Popup window for Database Manager
+        myDatabase = new DatabasePopup(thePrimaryStage);
+
+        // Stage Configuration
+        thePrimaryStage.setTitle("Drone Simulation");
+        thePrimaryStage.setScene(myScene);
+        thePrimaryStage.show();
+
+        // Stuff the program runs after its build
+        Platform.runLater(() -> {
+            swapRightPanel(false); //Don't delete this part
+        });
+    }
+
+    /**
+     * Private helper to set up the BorderPane of the Application.
+     *
+     * @param thePrimaryStage is the stage that this border pane is applying to.
+     * @return a BorderPane for the application.
+     */
+    private BorderPane setupLayout(final Stage thePrimaryStage) {
         //Main VBox that holds everything
         VBox mainBox = new VBox(10);
         mainBox.getStyleClass().add("main-box");
@@ -79,51 +124,40 @@ public class MonitorDash  {
         VBox.setVgrow(topSide, Priority.ALWAYS);
         HBox.setHgrow(myTopRight, Priority.NEVER);
 
-
         mainBox.getChildren().addAll(topSide, myBottomSide);
         topSide.getChildren().addAll(myTopLeft, myTopRight);
 
         //Menu bar
         AppMenuBar menuBar = new AppMenuBar(this, thePrimaryStage);
 
-        //Setting up the root to hold all our stuff
+        // Creating the Border root, and adding the components to it
         BorderPane root = new BorderPane();
         root.setTop(menuBar);
         root.setCenter(mainBox);
 
-        myScene = new Scene(root, 800, 700);
-        myScene.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource("dark_theme.css")).toExternalForm()
-        );
-
-        myDatabase = new DatabasePopup(thePrimaryStage);
-
-        thePrimaryStage.setTitle("Drone Simulation");
-        thePrimaryStage.setScene(myScene);
-        thePrimaryStage.show();
-
-        //Stuff the program runs after its build
-        Platform.runLater(() -> {
-            swapRightPanel(false); //Don't delete this part
-        });
+        return root;
     }
 
-
-    public void setController (DroneMonitorApp theController) {
+    /**
+     * Method that does Dependency Injection for the UI Controller.
+     *
+     * @param theController represents the Controller that the UI connects with.
+     */
+    public void setController (final DroneMonitorApp theController) {
         myController = Objects.requireNonNull(theController, "Controller cannot be null");
     }
 
 
+    /* =====================
+       VIEW UPDATES
+    ========================*/
 
-
-    // --- Updates (View Logic) ---
     /**
      * Updates the time label with the specified time.
      *
      * @param theTime The current time.
      */
     public void updateTime(final int theTime) {
-        // Will update to the UI thread safely
         myTopLeft.updateTime(theTime);
     }
 
@@ -134,32 +168,6 @@ public class MonitorDash  {
      */
     public void refreshDroneDisplay(final Drone drone) {
         myTopLeft.refreshDroneDisplay(drone);
-    }
-
-    /**
-     * Refresh the drone display for multiple drones.
-     *
-     * @param theDrones Drones you are showing
-     */
-    public void refreshDroneDisplay(final Drone[] theDrones) {
-        //If the array is null, do nothing
-        if (theDrones == null) return;
-
-        //Call single-drone version iteratively
-        for (Drone drone : theDrones) {
-            refreshDroneDisplay(drone);
-        }
-    }
-
-    /**
-     * Update the large stats box at the top-right of the GUI.
-     *
-     * @param theDrone The drone whose data we are looking at.
-     */
-    public void updateStatsTextLarge(final Drone theDrone) {
-        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
-
-        myTopRight.updateStatsTextLarge(theDrone);
     }
 
     /**
@@ -186,8 +194,21 @@ public class MonitorDash  {
         }
     }
 
+    /**
+     * Update the large stats box at the top-right of the GUI.
+     *
+     * @param theDrone The drone whose data we are looking at.
+     */
+    public void updateStatsTextLarge(final Drone theDrone) {
+        if (theDrone == null || theDrone.getDroneTelemetry() == null) return;
 
-    // --- Anomaly Handling ---
+        myTopRight.updateStatsTextLarge(theDrone);
+    }
+
+
+     /* =====================
+       ANOMALY HANDLING
+    ========================*/
 
     /**
      * Add an anomaly record to the table in the GUI.
@@ -196,7 +217,6 @@ public class MonitorDash  {
      */
     public void addAnomalyRecord(AnomalyRecord theRecord) {
         myBottomSide.addAnomalyRecord(theRecord);
-
         mySoundManager.playNotificationSound();
     }
 
@@ -214,6 +234,21 @@ public class MonitorDash  {
     }
 
     /**
+     * Refresh the drone display for multiple drones.
+     *
+     * @param theDrones Drones you are showing
+     */
+    public void refreshDroneDisplay(final Drone[] theDrones) {
+        //If the array is null, do nothing
+        if (theDrones == null) return;
+
+        //Call single-drone version iteratively
+        for (Drone drone : theDrones) {
+            refreshDroneDisplay(drone);
+        }
+    }
+
+    /**
      * Clears the anomaly table in the GUI, then replaces its contents with the given List.
      *
      * @param theRecords What we want the contents to be.
@@ -222,9 +257,7 @@ public class MonitorDash  {
         if (theRecords == null || theRecords.isEmpty()) { return; }
 
         myBottomSide.getAnomalyTable().getItems().clear();
-
         myBottomSide.refreshAnomalyRecords(theRecords);
-
         mySoundManager.playNotificationSound();
     }
 
@@ -238,15 +271,7 @@ public class MonitorDash  {
      */
     public void startGame() {
         myController.startSim();
-        Drone[] currentFleet = myController.getFleet();
-        myDrones.clear();
-        myTopLeft.clearAllDrones();
-        if (currentFleet != null) {
-            for (Drone drone : currentFleet) {
-                myDrones.put(drone.getDroneID(), drone);
-            }
-            myTopRight.recreateDroneCards(currentFleet);
-        }
+        reloadFleet(myController.getFleet());
         myTopLeft.getDroneDisplay().setStyle(null);
 
         System.out.print("MonitorDash: Started Game");
@@ -290,44 +315,36 @@ public class MonitorDash  {
         // Stopping the Sim, safety insurance
         endGame();
 
-        // Updating the UI by clearing the monitor, clearing the drone map, remaking the stats panel
-        myTopLeft.clearAllDrones();
-        myDrones.clear();
-
-        if (myDroneCountChangeRequest != null) {
-            Drone[] newFleet = myDroneCountChangeRequest.apply(theNewDroneCount);
-            reloadFleet(newFleet);
+        if (myController != null) {
+            myController.changeDroneCount(theNewDroneCount);
+            reloadFleet(myController.getFleet());
 
         }
     }
 
-    private void reloadFleet(Drone[] fleet) {
+    /**
+     * Helper method to go through and update the Stats Panel for drone count changes.
+     *
+     * @param theDroneFleet represent the Drone Fleet.
+     */
+    private void reloadFleet(final Drone[] theDroneFleet) {
+        // Cleaning the UI and Drone Map
         myTopLeft.clearAllDrones();
         myDrones.clear();
 
-        if (fleet != null) {
-            for (Drone drone : fleet) {
+        // Ensures that theDroneFleet isn't null, if not, then add drone to map and recreate stats panel
+        if (theDroneFleet != null) {
+            for (Drone drone : theDroneFleet) {
                 myDrones.put(drone.getDroneID(), drone);
             }
-            myTopRight.recreateDroneCards(fleet);
+            myTopRight.recreateDroneCards(theDroneFleet);
         }
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-    // --- UI Interactions ---
-
-
+    /* =====================
+       UI INTERACTIONS
+    ========================*/
 
     /**
      * Swaps between displaying the small stats boxes and the big stats box.
@@ -344,9 +361,6 @@ public class MonitorDash  {
         }
     }
 
-
-
-
     /**
      * Tells the map to highlight a specific drone.
      *
@@ -356,47 +370,65 @@ public class MonitorDash  {
         myTopLeft.selectDrone(theDroneID);
     }
 
-
-    public void updateDroneList(Drone[] theNewFleet) {
-        myTopRight.recreateDroneCards(theNewFleet);
-
-        myDrones.clear();
-        for(Drone drone : theNewFleet) {
-            myDrones.put(drone.getDroneID(), drone);
-        }
-    }
-
-
-
+    /**
+     * Method that allow to show the database popup.
+     */
     public void showDatabase() {
         myDatabase.show();
     }
 
-
-
-
-    public void applyStylesheet(String cssName) {
+    /**
+     * Method that applies a CSS style sheet to the whole application.
+     *
+     * @param theCSSName represent the CSS class to use to update the stylesheet.
+     */
+    public void applyStylesheet(String theCSSName) {
         myScene.getStylesheets().clear();
         myScene.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+                Objects.requireNonNull(getClass().getResource(theCSSName)).toExternalForm()
         );
 
-        myBottomSide.applyStylesheet(cssName);
-        myTopRight.applyStylesheet(cssName);
-        myTopLeft.applyStylesheet(cssName);
+        myBottomSide.applyStylesheet(theCSSName);
+        myTopRight.applyStylesheet(theCSSName);
+        myTopLeft.applyStylesheet(theCSSName);
+    }
+
+    /**
+     * Method to export the anomaly log as a txt file.
+     *
+     * @param theStage represent the stage of the application.
+     */
+    public void exportToTXT(final Stage theStage) {
+        myBottomSide.exportToTXTDialog(theStage);
+    }
+
+    /**
+     * Method to export the anomaly log as a CSV file.
+     *
+     * @param theStage represent the stage of the application.
+     */
+    public void exportToCSV(final Stage theStage) {
+        myBottomSide.exportToCSVDialog(theStage);
     }
 
 
+    /* =====================
+       GETTERS / SETTERS
+    ========================*/
 
-
-
-    public void setMyDroneCountChangeRequest(Function<Integer, Drone[]> theDroneCountChangeRequest) {
-        myDroneCountChangeRequest = theDroneCountChangeRequest;
+    /**
+     * Method to see if isPaused on or not.
+     *
+     * @return a boolean of the Stage paused status.
+     */
+    public boolean isPaused() {
+        return myIsPaused;
     }
 
-    // Expose the SoundManager so AppMenuBar can access it
+    /**
+     * Method to give the Sound Manager.
+      */
     public SoundManager getSoundManager() {
         return mySoundManager;
     }
-
 }
