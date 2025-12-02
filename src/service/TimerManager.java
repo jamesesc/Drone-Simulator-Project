@@ -1,4 +1,4 @@
-package controller;
+package service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,33 +8,29 @@ import java.time.format.DateTimeFormatter;
  * It is used by DroneMonitorApp to help and assist in the simulation time management.
  *
  * @author James Escudero
- * @author Autuman 2025
+ * @version Autumn 2025
  */
 public class TimerManager {
+    /*-- Constant --*/
 
-    /**
-     * Represent the update interval time to update the drone telemetry data.
-     */
+    /** Represent the update interval time to update the drone telemetry data. */
     private static final int UPDATE_INTERVAL = 1;
 
-    /**
-     * Represent the time interval.
-     */
+    /** Represent the time interval. */
     private static final int TIMER_INTERVAL = 1;
 
-    /**
-     * Represents the time when the simulation started.
-     */
+    /** Conversion factor from milliseconds to seconds */
+    private static final int MILLIS_TO_SECONDS = 1000;
+
+    /*-- Fields --*/
+
+    /** Represents the time when the simulation started. */
     private long myStartTime;
 
-    /**
-     * Represent the time when the simulation is pauseTimer.
-     */
+    /** Represent the time when the simulation is pauseTimer. */
     private long myPausedTime;
 
-    /**
-     * Represent the state of the simulation.
-     */
+    /** Represent the state of the simulation. */
     private Status mySimStatus = Status.STOPPED;
 
      /** Represents the current operational state of the simulation. */
@@ -43,7 +39,7 @@ public class TimerManager {
     }
 
 
-    /* GETTERS */
+    /*-- Getters --*/
 
     /**
      * Getter method that returns the current state of the simulation.
@@ -73,7 +69,7 @@ public class TimerManager {
     }
 
 
-    /* TIMER METHODS */
+    /*-- Timer Control Methods --*/
 
     /**
      * Method to start the timer.
@@ -110,10 +106,20 @@ public class TimerManager {
      */
     public void stopTimer() {
         mySimStatus = Status.STOPPED;
+        myStartTime = 0;
+        myPausedTime = 0;
     }
 
+    /**
+     * Method to reset the timer.
+     */
+    public void resetTimer() {
+        myStartTime = 0;
+        myPausedTime = 0;
+        mySimStatus = Status.STOPPED;
+    }
 
-    /* TIME METHODS */
+    /*-- Time Calculation Methods --*/
 
     /**
      * A method that calculates and returns the elapsed time since the simulation started.
@@ -125,9 +131,9 @@ public class TimerManager {
 
         if (mySimStatus == Status.RUNNING) {
             final long now = System.currentTimeMillis();
-            elapsedTime = (int) ((now - myStartTime) / 1000);
+            elapsedTime = (int) ((now - myStartTime) / MILLIS_TO_SECONDS);
         } else if (mySimStatus == Status.PAUSED ) {
-            elapsedTime = (int) ((myPausedTime - myStartTime) / 1000);
+            elapsedTime = (int) ((myPausedTime - myStartTime) / MILLIS_TO_SECONDS);
         } else {
             elapsedTime = 0;
         }
