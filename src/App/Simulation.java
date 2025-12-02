@@ -17,8 +17,11 @@ public class Simulation extends Application {
         TimerManager timerManager = new TimerManager();
         DroneFleetManager fleetManager = new DroneFleetManager();
         MonitorDash monitorDash = new MonitorDash();
-        UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash, fleetManager);
-        SimulationScheduler scheduler = new SimulationScheduler(timerManager, fleetManager, updateUIManager);
+        UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
+        SimulationScheduler scheduler = new SimulationScheduler(timerManager, fleetManager);
+
+        scheduler.setSimulationListener(updateUIManager);
+
         DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
 
         monitorDash.setController(controller);

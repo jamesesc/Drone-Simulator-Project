@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
  * A class that connects and ties all the connecting logic into the reoccurring tasks it needs to do.
  * It is used by DroneMonitorApp to help and assist in the simulation to run and start.
  *
- * @author James Escudero
  * @author Autumn 2025
  */
 public class SimulationScheduler {
@@ -29,7 +28,7 @@ public class SimulationScheduler {
     private final DroneFleetManager myFleetManger;
 
     /** Represent the UpdateUIManager object that sends and update to the UI */
-    private final UpdateUIManager myUIUpdater;
+    private SimulationListener myListener;
 
     /** Represent the AnomalyDetector object that detects any anomalies with the telemetry data */
     private final AnomalyDetector myAnomalyDetector = new AnomalyDetector();
@@ -41,12 +40,15 @@ public class SimulationScheduler {
     private volatile boolean myPausedStatus = false;
 
     /** Public constructor to call and use the 1 instance of each object */
-    public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
-                               UpdateUIManager theUIUpdater) {
+    public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager) {
         // Safety check if the follow objects pass is not null
         myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
         myFleetManger = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
-        myUIUpdater = Objects.requireNonNull(theUIUpdater, "theUIUpdater can't be null");
+    }
+
+    // Setter for the listener (Observer Pattern)
+    public void setSimulationListener(SimulationListener theListener) {
+        myListener = theListener;
     }
 
     /**
@@ -71,14 +73,17 @@ public class SimulationScheduler {
         myFleetManger.initializeFleetPosition();
 
         // Update the drone display for initial drone stats
-        myUIUpdater.updateDroneDisplay();
-
+        if (myListener != null) {
+            myListener.onDroneUpdate(myFleetManger.getDroneFleet());
+        }
         // Update drone when 3 seconds is up, meaning when it flies up
-        myScheduleOperation.schedule(
-                myUIUpdater::updateDroneDisplay,
-                updateInterval,
-                TimeUnit.SECONDS
-        );
+        myScheduleOperation.schedule(() -> {
+            myFleetManger.initializeFleetAltitude();
+
+            if (myListener != null) {
+                myListener.onDroneUpdate(myFleetManger.getDroneFleet());
+            }
+        }, updateInterval, TimeUnit.SECONDS);
 
         // First schedule task to initialize drone altitudes at 3 seconds (1st update)
         myScheduleOperation.schedule(
@@ -155,13 +160,15 @@ public class SimulationScheduler {
             // 4) Update fleet data
             myFleetManger.updateFleetData(newTelemetry);
 
-            // 5) Update the display
-            myUIUpdater.updateDroneDisplay();
+            if (myListener != null) {
+                // 5) Update the display
+                myListener.onDroneUpdate(myFleetManger.getDroneFleet()); // Pass the fleet
 
-            //TODO: Wait for Mani for his export anomalies list
-
-            // 6) Update the anomaly
-            myUIUpdater.updateAnomaly(anomalies);
+                if (anomalies.length > 0) {
+                    // 6) Update the anomaly
+                    myListener.onAnomaliesDetected(anomalies);
+                }
+            }
         } catch (Exception e) {
             System.err.println("Theres a ERROR in updateDronesTask:" + e.getMessage());
         }
@@ -170,7 +177,7 @@ public class SimulationScheduler {
     /** Helper method to do update time task */
     private void updateTime() {
         int elapseTime = myTimerManger.getElapsedTime();
-        myUIUpdater.updateTimer(elapseTime);
+        myListener.onTimeUpdate(elapseTime);
     }
 
     /** To stop the reoccurring schedule tasks */
