@@ -21,7 +21,19 @@ public class AppMenuBar extends MenuBar {
 
     /** The Primary Stage for the Simulation application */
     private final Stage myPrimaryStage;
-    
+
+
+    /*-- Constants --*/
+
+    /** Represent the Min Drones in a fleet, a user can change */
+    private static final int MIN_DRONES_ALLOWED = 1;
+
+    /** Represent the Max Drones in a fleet, a user can change */
+    private static final int MAX_NUMBER_DRONES = 50;
+
+    /*-- Fields --*/
+
+    /** Reference to the DroneCountMenu Item */
     private Menu myDroneCountMenu;
 
 
@@ -44,7 +56,6 @@ public class AppMenuBar extends MenuBar {
 
 
     /*-- Helper method to build all the menu item --*/
-
 
     /**
      * Sets up the application's menu bar by building all the menus.
@@ -78,9 +89,9 @@ public class AppMenuBar extends MenuBar {
         Menu exportMenu = new Menu("Export Log");
         // Export SubItem: TXT, CSV
         MenuItem txtExportItem = new MenuItem("TXT");
-        txtExportItem.setOnAction(_ -> myMonitor.exportToCSV(myPrimaryStage));
+        txtExportItem.setOnAction(_ -> myMonitor.exportToTXT(myPrimaryStage));
         MenuItem csvExportItem = new MenuItem("CSV");
-        csvExportItem.setOnAction(_ -> myMonitor.exportToTXT(myPrimaryStage));
+        csvExportItem.setOnAction(_ -> myMonitor.exportToCSV(myPrimaryStage));
         // Adding each sub-item to the Export Menu
         exportMenu.getItems().addAll(txtExportItem, csvExportItem);
 
@@ -149,30 +160,51 @@ public class AppMenuBar extends MenuBar {
         inputChat.setContentText("Count:");
 
         // Method to show the dialog box and waiting the user for input
-        Optional<String> result = inputChat.showAndWait();
+        while(true) {
+            Optional<String> result = inputChat.showAndWait();
 
-        // Handles the user input actions
-        if (result.isPresent()) {
-            // User entered, check if input is valid
+            if (result.isEmpty()) {
+                break;
+            }
+
+            // Showing an error if bad input
+            String input = result.get().trim();
+            if (input.isEmpty()) {
+                showErrorGuide(inputChat, "Please enter a number.");
+                continue;
+            }
+
+            // Will continue until user leave or valid input
             try {
-                int count = Integer.parseInt(result.get());
-
-                // Values for the allowed min and max drones user can create
-                final int MIN_DRONES_ALLOWED = 1;
-                final int MAX_NUMBER_DRONES = 50;
+                int count = Integer.parseInt(input);
 
                 if (count >= MIN_DRONES_ALLOWED && count <= MAX_NUMBER_DRONES) {
                     myMonitor.changeDroneCount(count);
+                    break;
                 } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Please enter a number between 1 and 50");
+                    Alert alert = new Alert(Alert.AlertType.ERROR,
+                            "Please enter a number between " + MIN_DRONES_ALLOWED + " and " + MAX_NUMBER_DRONES);
                     alert.showAndWait();
                 }
             } catch (NumberFormatException e) {
                 // Input is bad, retry again
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid Number");
-                alert.show();
+                showErrorGuide(inputChat, "Invalid number.");
             }
+
         }
+    }
+
+    /**
+     * Helper method to show the User bad input.
+     *
+     * @param theDialog represent the user input.
+     * @param theMessage represent the message base on the user input.
+     */
+     private void showErrorGuide(final TextInputDialog theDialog, String theMessage) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, theMessage, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.initOwner(theDialog.getOwner());
+        alert.showAndWait();
     }
 
     /**
@@ -206,9 +238,9 @@ public class AppMenuBar extends MenuBar {
         enableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().setMuted(false));
 
         MenuItem disableSoundItem = new MenuItem("Disable Sounds");
-        disableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().myIsMuted = true);
+        disableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().setMuted(true));
         MenuItem volume = new MenuItem("Volume...");
-        volume.setOnAction(t -> showVolumePopup());
+        volume.setOnAction(_ -> showVolumePopup());
         MenuItem testSoundItem = new MenuItem("Test Sound");
         testSoundItem.setOnAction(_ -> myMonitor.getSoundManager().playNotificationSound());
         // Adding each sub-item to the Sound Menu
@@ -218,6 +250,9 @@ public class AppMenuBar extends MenuBar {
         theSettingMenu.getItems().addAll(soundMenu);
     }
 
+    /**
+     * Helper method to show the Volume Popup
+     */
     private void showVolumePopup() {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Adjust Volume");
@@ -237,9 +272,9 @@ public class AppMenuBar extends MenuBar {
 
         Label valueLabel = new Label(String.valueOf(currentVolume));
 
-        slider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            valueLabel.setText(String.valueOf(newVal.intValue()));
-        });
+        slider.valueProperty().addListener((_, _, newVal) ->
+                valueLabel.setText(String.valueOf(newVal.intValue()))
+        );
 
         // Main box for popup
         HBox box = new HBox(10, new Label("Volume:"), slider, valueLabel);
@@ -258,7 +293,7 @@ public class AppMenuBar extends MenuBar {
 
         result.ifPresent(newVol -> {
             myMonitor.getSoundManager().setVolume(newVol);
-            System.out.println("Volume set to: " + currentVolume);
+            System.out.println("Volume set to: " + newVol);
         });
     }
 
@@ -308,7 +343,6 @@ public class AppMenuBar extends MenuBar {
             startItem.setDisable(false);
             myDroneCountMenu.setDisable(false); 
             stopItem.setDisable(true);
-            myDroneCountMenu.setDisable(false);
             pauseItem.setDisable(true);
             pauseItem.setText("Pause"); // Reset text
         });
