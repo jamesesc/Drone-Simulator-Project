@@ -286,7 +286,7 @@ public class MonitorDash extends Application {
         Platform.runLater(() -> {
             swapRightPanel(false); //Don't delete this part
 
-            AnomalyRecord test = new AnomalyRecord("What 9 + 10", 9, 10.0, "21", "you stupid");
+            AnomalyRecord test = new AnomalyRecord("What 9 + 10", 9, 10.0, "you stupid");
             addAnomalyRecord(test);
         });
     }
@@ -467,6 +467,7 @@ public class MonitorDash extends Application {
             probabilityMenu.setDisable(true);
             stopItem.setDisable(false);
             pauseItem.setDisable(false);
+            myBottomSide.clearTable();
         });
 
         // Pause Action

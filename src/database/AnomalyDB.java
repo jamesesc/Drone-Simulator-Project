@@ -83,7 +83,6 @@ public class AnomalyDB {
             pstmt.setDouble(7, data.getOrientation());
             pstmt.setDouble(8, data.getVelocity());
             pstmt.setString(9, record.getType());
-            pstmt.setString(10, record.getSeverity());
             pstmt.setString(11, record.getDetails());
 
             pstmt.executeUpdate();
@@ -124,7 +123,6 @@ public class AnomalyDB {
 
         // Create an anomaly record
         AnomalyRecord record = new AnomalyRecord("EngineFailure", 1, 325.8);
-        record.setSeverity("HIGH");
         record.setDetails("Engine temperature exceeded safe limit.");
 
         // Save the anomaly
