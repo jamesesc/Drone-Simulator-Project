@@ -27,45 +27,6 @@ import Model.Drone;
  * A Singleton class which houses our Graphical User Interface for the application.
  */
 public class MonitorDash  {
-   /* ===============================
-    Class Objects for the back end
-     ================================= */
-
-    /**
-     * Represents the Timer Controller for the simulation.
-     */
-    private final TimerManager myTimerManager = new TimerManager();
-    /**
-     * Represents the Drone Controller for the simulation.
-     */
-    private final DroneFleetManager myFleetManager = new DroneFleetManager();
-    /**
-     * Represents the Update UI Controller for the simulation.
-     */
-    private final UpdateUIManager myUpdateUIManager = new UpdateUIManager(this, myFleetManager);
-    /**
-     * Represents the Simulation Scheduler Controller for the simulation.
-     */
-    SimulationScheduler scheduler = new SimulationScheduler(myTimerManager, myFleetManager, myUpdateUIManager);
-    /**
-     * Represent the Organizer Controller for the simulation.
-     */
-    private final DroneMonitorApp myController = new DroneMonitorApp(myTimerManager, scheduler);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /* ===============================
     FIELDS FOR GUI ELEMENTS - Generally don't touch them
      ================================= */
@@ -127,6 +88,10 @@ public class MonitorDash  {
 
 
 
+    DroneMonitorApp myController;
+
+    DroneFleetManager myFleet;
+
 
 
 
@@ -139,6 +104,11 @@ public class MonitorDash  {
      */
     public MonitorDash() {
 
+    }
+
+    public void initializeBackend(DroneMonitorApp theController, DroneFleetManager theFleetManager) {
+        myController = Objects.requireNonNull(theController, "Controller cannot be null");
+        myFleet = Objects.requireNonNull(theFleetManager, "FleetManager cannot be null");
     }
 
 
@@ -389,7 +359,7 @@ public class MonitorDash  {
      * @return the DroneFleetManager to use.
      */
     public DroneFleetManager getFleetManager() {
-        return myFleetManager;
+        return myFleet;
     }
 
 
@@ -532,7 +502,7 @@ public class MonitorDash  {
         endGame();
 
         // Updating the backend for the new drone count
-        myFleetManager.updateDroneCount(theNewDroneCount);
+        myFleet.updateDroneCount(theNewDroneCount);
 
         // Updating the UI by clearing the monitor, clearing the drone map, remaking the stats panel
         myTopLeft.clearAllDrones();
