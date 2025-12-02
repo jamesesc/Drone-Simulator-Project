@@ -8,7 +8,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -64,9 +63,15 @@ class TopRightStats extends StackPane {
      */
     private static final String FONT_MONO = "Monospace";
 
+
+    private final MonitorDash myMonitor;
+
     // The constructor for the TopRightStats class
-    public TopRightStats() {
+    public TopRightStats(MonitorDash monitorDash) {
         HBox.setHgrow(this, Priority.NEVER);
+
+
+        myMonitor = Objects.requireNonNull(monitorDash, "monitorDash is null");
 
         //Setup for the VBox that's going to hold our small drone stats boxes.
         myLiveTelemetry = new VBox();
@@ -190,12 +195,12 @@ class TopRightStats extends StackPane {
             // Getting which drone card we got
             int droneId = Integer.parseInt(theDroneID.replace("DRONE-", ""));
             // Getting the drone info base on the drone card we click
-            Drone droneClick = MonitorDash.getInstance().myDrones.get(droneId);
+            Drone droneClick = myMonitor.myDrones.get(droneId);
             // Only show details stats if such drone exist
             if (droneClick != null) {
-                MonitorDash.getInstance().updateStatsTextLarge(droneClick);
-                MonitorDash.getInstance().swapRightPanel(true);
-                MonitorDash.getInstance().selectDroneOnMap(droneId);
+                myMonitor.updateStatsTextLarge(droneClick);
+                myMonitor.swapRightPanel(true);
+                myMonitor.selectDroneOnMap(droneId);
             }
         });
 
@@ -258,7 +263,7 @@ class TopRightStats extends StackPane {
         card.getChildren().addAll(topRow, new Separator(), gridStats);
 
         // Click event to swap back
-        card.setOnMouseClicked(_ -> MonitorDash.getInstance().swapRightPanel(false));
+        card.setOnMouseClicked(_ -> myMonitor.swapRightPanel(false));
 
         return card;
     }
@@ -322,7 +327,7 @@ class TopRightStats extends StackPane {
      */
     public void recreateDroneCards() {
         // Getting the Fleet Manager Controller
-        DroneFleetManager fleetManger = MonitorDash.getInstance().getFleetManager();
+        DroneFleetManager fleetManger = myMonitor.getFleetManager();
         // Null safety check
         if (fleetManger == null) return;
 

@@ -85,10 +85,16 @@ class TopLeftDroneDisplay extends VBox {
      */
     private final Map<Integer, DroneShape> myDroneViews = new ConcurrentHashMap<>();
 
+
+    private final MonitorDash myMonitor;
+
     /**
      * Constructor for the TopLeftDroneDisplay, that initialize and set up the display up.
      */
-    public TopLeftDroneDisplay() {
+    public TopLeftDroneDisplay(MonitorDash monitorDash) {
+
+         myMonitor = Objects.requireNonNull(monitorDash, "monitorDash is null");
+
 
         HBox.setHgrow(this, Priority.ALWAYS);
         VBox.setVgrow(this, Priority.ALWAYS);
@@ -218,7 +224,7 @@ class TopLeftDroneDisplay extends VBox {
                 if (mySelectedDrone != null) {
                     mySelectedDrone.setColor(Color.WHITE);
                     mySelectedDrone = null;
-                    MonitorDash.getInstance().swapRightPanel(false);
+                    myMonitor.swapRightPanel(false);
                 }
             }
         });
@@ -261,7 +267,7 @@ class TopLeftDroneDisplay extends VBox {
      */
     public void refreshDroneDisplay(Drone drone) {
         if (drone == null) return;
-        MonitorDash.getInstance().myDrones.put(drone.getDroneID(), drone);
+        myMonitor.myDrones.put(drone.getDroneID(), drone);
 
         Platform.runLater(() -> {
             // Check if new (for animation logic)
@@ -283,7 +289,7 @@ class TopLeftDroneDisplay extends VBox {
                 newAnim.setOnFinished(_ -> activeTimelines.remove(drone.getDroneID()));
             }
 
-            MonitorDash.getInstance().updateStatsText(drone);
+            myMonitor.updateStatsText(drone);
         });
     }
 
@@ -362,7 +368,7 @@ class TopLeftDroneDisplay extends VBox {
                     mySelectedDrone = null;
 
                     // Close the detail view
-                    MonitorDash.getInstance().swapRightPanel(false);
+                    myMonitor.swapRightPanel(false);
                 } else {
                     // If we select different drone -> switching selected drone
                     if (mySelectedDrone != null) {
@@ -374,8 +380,8 @@ class TopLeftDroneDisplay extends VBox {
                     droneShape.setColor(COLOR_SELECTED);
 
                     // Updating the UI Panel
-                    MonitorDash.getInstance().updateStatsTextLarge(theDrone);
-                    MonitorDash.getInstance().swapRightPanel(true);
+                    myMonitor.updateStatsTextLarge(theDrone);
+                    myMonitor.swapRightPanel(true);
                 }
             });
 

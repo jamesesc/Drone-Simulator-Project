@@ -24,7 +24,6 @@ import controller.*;
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
 import Model.Drone;
-import javafx.util.Duration;
 
 /**
  * A Singleton class which houses our Graphical User Interface for the application.
@@ -89,12 +88,12 @@ public class MonitorDash extends Application {
     /**
      * Whether the game is paused. True = paused, False = not paused.
      */
-    private boolean myIsPaused = false;
+    public boolean myIsPaused = false;
 
     /**
      * Whether the audio for our UI is muted or not.
      */
-    private boolean myIsMuted = false;
+    public boolean myIsMuted = false;
 
     /**
      * Volume of our UI audio
@@ -117,9 +116,9 @@ public class MonitorDash extends Application {
     /* =============
     SECTIONS OF THE GUI
      ===============*/
-    TopLeftDroneDisplay myTopLeft = new TopLeftDroneDisplay();
+    TopLeftDroneDisplay myTopLeft = new TopLeftDroneDisplay(this);
     BottomTable myBottomSide = new BottomTable();
-    TopRightStats myTopRight = new TopRightStats();
+    TopRightStats myTopRight = new TopRightStats(this);
     DatabasePopup myDatabase;
     private Scene myScene;
     private MediaPlayer notificationPlayer;
@@ -295,8 +294,9 @@ public class MonitorDash extends Application {
         //Adding the respective sections to either the top or bottom
         topSide.getChildren().addAll(myTopLeft, myTopRight);
 
+
         //Menu bar
-        MenuBar menuBar = buildMenuBar(thePrimaryStage);
+        AppMenuBar menuBar = new AppMenuBar(this, thePrimaryStage);
 
         //Setting up the root to hold all our stuff
         BorderPane root = new BorderPane();
@@ -334,7 +334,7 @@ public class MonitorDash extends Application {
      *
      * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
      */
-    void swapRightPanel(boolean theBigStatsBox) {
+    public void swapRightPanel(boolean theBigStatsBox) {
         if (!theBigStatsBox) {
             myTopLeft.deselectAll();
         }
@@ -344,7 +344,7 @@ public class MonitorDash extends Application {
         }
     }
 
-    private void applyStylesheet(String cssName) {
+    public void applyStylesheet(String cssName) {
         myScene.getStylesheets().clear();
         myScene.getStylesheets().add(
                 Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
@@ -365,237 +365,7 @@ public class MonitorDash extends Application {
 
 
 
-
-
-
-
-
-    /* ====================================
-    MENU BAR
-     ====================================*/
-
-
-    /**
-     * Setup for the GUI's menu bar.
-     *
-     * @param thePrimaryStage The primary stage of the JavaFX GUI.
-     * @return The GUI's menu bar.
-     */
-    private MenuBar buildMenuBar(final Stage thePrimaryStage) {
-        // A MenuBar that will hold all the Menu
-        MenuBar menuBar = new MenuBar();
-
-
-        // -- Menu 1: The File ---
-        Menu fileMenu = new Menu("File");
-
-        //Opening the database manager
-        MenuItem databaseMenu = new MenuItem("Database Manager");
-        databaseMenu.setOnAction(_ -> {
-            showDatabase();
-        });
-
-        // ---- File Menu Item 1: Export ----
-        Menu exportMenu = new Menu("Export Log");
-
-        // ---- Export SubItem: PDF, CSV ----
-        MenuItem txtItem = new MenuItem("TXT");
-        txtItem.setOnAction(_ -> {
-            myBottomSide.exportToTXTDialog(thePrimaryStage);
-        });
-        MenuItem csvItem = new MenuItem("CSV");
-        csvItem.setOnAction(_ -> {
-            myBottomSide.exportToCSVDialog(thePrimaryStage);
-        });
-
-        // Adding each sub-item to the Export Menu
-        exportMenu.getItems().addAll(txtItem, csvItem);
-
-        // ---- File Menu Item 2: Exit ----
-        MenuItem exitItem = new MenuItem("Exit");  // MenuItem, not Menu
-        // Exit Item action when click
-        exitItem.setOnAction(_ -> {
-            endGame(); // Ensure everything is shut down
-            AnomalyDB.close();
-            thePrimaryStage.close();
-        });
-
-        // Adding the Exit Item to the File Menu
-        fileMenu.getItems().addAll(databaseMenu, exportMenu, exitItem);
-
-        // -- Menu 2: The Setting --
-        Menu settingMenu = new Menu("Settings");
-
-        // ---- File Setting Item 1: Drone Count ----
-        Menu droneCountMenu = new Menu("Drone Count");
-
-        // ---- Drone Count SubItem: 3 Drones, 5 Drones, 10 Drones, Custom ----
-        MenuItem droneCount3 = new MenuItem("3 Drones");
-        MenuItem droneCount5 = new MenuItem("5 Drones");
-        MenuItem droneCount10 = new MenuItem("10 Drones");
-        MenuItem customDroneCount = new MenuItem("Custom...");
-
-        // Event Action for each Sub-item
-        droneCount3.setOnAction(_ -> changeDroneCount(3));
-        droneCount5.setOnAction(_ -> changeDroneCount(5));
-        droneCount10.setOnAction(_ -> changeDroneCount(10));
-        customDroneCount.setOnAction(_ -> changeDroneCountCustom());
-
-        // Adding each sub-item to the DroneCount Menu
-        droneCountMenu.getItems().addAll(droneCount3, droneCount5, droneCount10, customDroneCount);
-
-
-        // ---- File Setting Item 2: Probability ----
-        Menu probabilityMenu = new Menu("Probability Settings");
-
-        // ---- Probability SubItem: Velocity, Altitude, Orientation ----
-        MenuItem velocityProbability = new MenuItem("Velocity Probability");
-        MenuItem altitudeProbability = new MenuItem("Altitude Probability");
-        MenuItem orientationProbability = new MenuItem("Orientation Probability");
-
-
-        // Adding each sub-item to the Probability Menu
-        probabilityMenu.getItems().addAll(velocityProbability, altitudeProbability, orientationProbability);
-
-        // -- File Setting Item 3: Theme --
-        Menu themeMenu = new Menu("Theme");
-
-        // ---- Theme SubItem: Dark, White, Special ----
-        MenuItem darkTheme = new MenuItem("Dark Theme");
-        darkTheme.setOnAction(_ -> {
-            applyStylesheet("dark_theme.css");
-        });
-        MenuItem lightTheme = new MenuItem("Light Theme");
-        lightTheme.setOnAction(_ -> {
-            applyStylesheet("light_theme.css");
-        });
-        MenuItem customTheme = new MenuItem("Fabulous");
-        customTheme.setOnAction(_ -> {
-            applyStylesheet("special_theme.css");
-        });
-
-        // Adding each sub-item to the Theme Menu
-        themeMenu.getItems().addAll(darkTheme, lightTheme, customTheme);
-
-        // -- File Setting Item 4: Sound --
-        Menu soundMenu = new Menu("Sound");
-
-        // ---- Sound SubItem: Enable, Disable, Sound ----
-        MenuItem enableSound = new MenuItem("Enable Sounds");
-        enableSound.setOnAction(_ -> {
-            myIsMuted = false;
-        });
-        MenuItem disableSound = new MenuItem("Disable Sounds");
-        disableSound.setOnAction(_ -> {
-            myIsMuted = true;
-        });
-        MenuItem volume = new MenuItem("Volume...");
-        volume.setOnAction(_ -> showVolumePopup());
-        MenuItem testSound = new MenuItem("Test Sound");
-        testSound.setOnAction(_ -> playNotificationSound());
-
-        // Adding each sub-item to the Sound Menu
-        soundMenu.getItems().addAll(enableSound, disableSound, volume, testSound);
-
-        // Adding all the Sub Menu to the Setting Menu
-        settingMenu.getItems().addAll(droneCountMenu, probabilityMenu, themeMenu, soundMenu);
-
-
-        // -- Menu 3: The Sim Control ---
-        Menu simMenu = new Menu("Simulation");
-
-        // ---- Sound Submenu: Start, Pause, Stop ----
-        MenuItem startItem = new MenuItem("Start");
-        MenuItem pauseItem = new MenuItem("Pause");
-        MenuItem stopItem = new MenuItem("Stop");
-
-        // Default states
-        pauseItem.setDisable(true);
-        stopItem.setDisable(true);
-
-        // Start Action
-        startItem.setOnAction(_ -> {
-            startGame();
-            startItem.setDisable(true);
-            droneCountMenu.setDisable(true); // Prevent changing drones while running
-            probabilityMenu.setDisable(true);
-            stopItem.setDisable(false);
-            pauseItem.setDisable(false);
-        });
-
-        // Pause Action
-        pauseItem.setOnAction(_ -> {
-            togglePauseGame();
-            // Update text based on state
-            if (myIsPaused) {
-                pauseItem.setText("Resume");
-            } else {
-                pauseItem.setText("Pause");
-            }
-        });
-
-        // Stop Action
-        stopItem.setOnAction(_ -> {
-            endGame();
-            startItem.setDisable(false);
-            droneCountMenu.setDisable(false); // Re-enable drone settings
-            stopItem.setDisable(true);
-            probabilityMenu.setDisable(false);
-            pauseItem.setDisable(true);
-            pauseItem.setText("Pause"); // Reset text
-        });
-
-        // Adding all the Sub Menu to the Sim Menu
-        simMenu.getItems().addAll(startItem, pauseItem, stopItem);
-
-
-        // -- Menu 4: The Help ---
-        Menu helpSetting = new Menu("Help");
-
-        // ---- Help Submenu: About, License, Version ----
-        MenuItem aboutItem = new MenuItem("About");
-        aboutItem.setOnAction(_ -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("About Application");
-            alert.setHeaderText("Drone Application - About");
-            alert.setContentText("An application used for simulating a fleet of drones.\n" +
-                    "Created by Oisin Perkins-Gilbert, Mankirat Mann, James Escudero\n" +
-                    "Created with Java, IntelliJ, and JavaFX\n" +
-                    "Made in 2025\n" +
-                    "Sound Effects taken from: https://pixabay.com/sound-effects/new-notification-010-352755/\n" +
-                    "Github: https://github.com/jamesesc/Drone-Simulator-Project");
-            alert.showAndWait();
-        });
-
-        MenuItem versionItem = new MenuItem("Version");
-        versionItem.setOnAction(_ -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Application Version");
-            alert.setHeaderText("Drone Application - Version");
-            alert.setContentText("Current version: v5\n" +
-                    "Build date: 11/30/25\n" +
-                    "JavaFX Version: openjfx-25.0.1\n" +
-                    "Java Version: jdk-25");
-            alert.showAndWait();
-        });
-
-        // Adding all the Sub Menu to the Help Menu
-        helpSetting.getItems().addAll(aboutItem, versionItem);
-
-        // Adding all the menus to the MenuBar
-        menuBar.getMenus().addAll(fileMenu, settingMenu, simMenu, helpSetting);
-
-        return menuBar;
-    }
-
-
-
-
-
-
-
-
-    private void showDatabase() {
+    public void showDatabase() {
         myDatabase.show();
     }
 
@@ -678,7 +448,7 @@ public class MonitorDash extends Application {
         notificationPlayer.play();
     }
 
-    private void showVolumePopup() {
+    public void showVolumePopup() {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Adjust Volume");
         dialog.setHeaderText("Set UI Audio Volume");
@@ -720,30 +490,12 @@ public class MonitorDash extends Application {
         });
     }
 
-    /**
-     * Help handle change the number of drone count
-     *
-     * @param theNewDroneCount is the new number for the amount of drones.
-     */
-    private void changeDroneCount(int theNewDroneCount) {
-        // Stopping the Sim, safety insurance
-        endGame();
 
-        // Updating the backend for the new drone count
-        myFleetManager.updateDroneCount(theNewDroneCount);
-
-        // Updating the UI by clearing the monitor, clearing the drone map, remaking the stats panel
-        myTopLeft.clearAllDrones();
-        myDrones.clear();
-        myTopRight.recreateDroneCards();
-
-        System.out.println("MonitorDash: Drone count changed to " + theNewDroneCount);
-    }
 
     /**
      * Help method to handle a pop screen for a custom amount
      */
-    private void changeDroneCountCustom() {
+    public void changeDroneCountCustom() {
         // Pop up setting
         TextInputDialog inputChat = new TextInputDialog("3");
         inputChat.setTitle("Custom Drone Count");
@@ -773,6 +525,26 @@ public class MonitorDash extends Application {
     }
 
     /**
+     * Help handle change the number of drone count
+     *
+     * @param theNewDroneCount is the new number for the amount of drones.
+     */
+    public void changeDroneCount(int theNewDroneCount) {
+        // Stopping the Sim, safety insurance
+        endGame();
+
+        // Updating the backend for the new drone count
+        myFleetManager.updateDroneCount(theNewDroneCount);
+
+        // Updating the UI by clearing the monitor, clearing the drone map, remaking the stats panel
+        myTopLeft.clearAllDrones();
+        myDrones.clear();
+        myTopRight.recreateDroneCards();
+
+        System.out.println("MonitorDash: Drone count changed to " + theNewDroneCount);
+    }
+
+    /**
      * Tells the map to highlight a specific drone.
      *
      * @param theDroneID is the drone ID that's being used to which selected drone we are clicking.
@@ -792,9 +564,6 @@ public class MonitorDash extends Application {
 
 
 
-
-
-
     /* ====================================
     Simulation Phases
      ====================================*/
@@ -802,7 +571,7 @@ public class MonitorDash extends Application {
     /**
      * Tell the controller DroneMonitorApp to start the game.
      */
-    private void startGame() {
+    public void startGame() {
         myController.startSim();
         myTopLeft.getDroneDisplay().setStyle(null);
         System.out.print("MonitorDash: Started Game");
@@ -811,7 +580,7 @@ public class MonitorDash extends Application {
     /**
      * Tell the controller DroneMonitorApp to toggle pausing.
      */
-    private void togglePauseGame() {
+    public void togglePauseGame() {
         if (myIsPaused) {
             // Was paused, now resuming
             myController.continueSim();
@@ -831,7 +600,7 @@ public class MonitorDash extends Application {
     /**
      * Tell the controller DroneMonitorApp to end the game.
      */
-    private void endGame() {
+    public void endGame() {
         myController.stopSim();
         myTopLeft.getDroneDisplay().setStyle("-fx-background-color: null;");
         // Clearing the drones on the screen
@@ -840,6 +609,19 @@ public class MonitorDash extends Application {
         myDrones.clear();
         System.out.println("MonitorDash: stopped game");
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //Start the application
     public static void main(final String[] theArgs) {
