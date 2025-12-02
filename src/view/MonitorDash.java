@@ -1,7 +1,5 @@
 package view;
 
-import database.AnomalyDB;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -28,7 +26,7 @@ import Model.Drone;
 /**
  * A Singleton class which houses our Graphical User Interface for the application.
  */
-public class MonitorDash extends Application {
+public class MonitorDash  {
    /* ===============================
     Class Objects for the back end
      ================================= */
@@ -278,7 +276,7 @@ public class MonitorDash extends Application {
      *
      * @param thePrimaryStage Our primary JavaFX stage.
      */
-    public void start(final Stage thePrimaryStage) {
+    public void initializeSimulation(final Stage thePrimaryStage) {
         //Main VBox that holds everything
         VBox mainBox = new VBox(10);
         mainBox.getStyleClass().add("main-box");
@@ -608,23 +606,5 @@ public class MonitorDash extends Application {
         myTopRight.recreateDroneCards();
         myDrones.clear();
         System.out.println("MonitorDash: stopped game");
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //Start the application
-    public static void main(final String[] theArgs) {
-        launch(theArgs);
     }
 }
