@@ -4,6 +4,10 @@ import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
+import service.AnomalyDetector;
+import service.DroneFleetManager;
+import service.TimerManager;
+import view.SimulationListener;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;

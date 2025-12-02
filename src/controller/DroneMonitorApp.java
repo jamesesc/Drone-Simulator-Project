@@ -1,6 +1,8 @@
 package controller;
 
 import Model.Drone;
+import service.DroneFleetManager;
+import service.TimerManager;
 
 import java.util.Objects;
 
@@ -13,30 +15,39 @@ import java.util.Objects;
  * @version Fall 2025
  */
 public class DroneMonitorApp {
+    /*-- Dependency Interjection Classes --*/
+
     /* A class object that help manage the time system of the simulation */
     private final TimerManager myTimerManager;
 
     /* A class object that help manage run the tasks needed for the simulation */
-    private final SimulationScheduler mySchedulerOperator;
+    private final SimulationController mySchedulerOperator;
 
+    /** A class object that helps manage the fleet of drones for the simulation */
     private final DroneFleetManager myDroneFleet;
+
+
+    /*-- Constructor --*/
 
     /**
      *  Public constructor to create the DroneMonitorApp instance.
      *
      * @param theTimerManager represents the TimeManager object to manage timer functionality.
-     * @param theSchedulerOperator represents the SimulationScheduler object to handle the simulation tasks.
+     * @param theSchedulerOperator represents the SimulationController object to handle the simulation tasks.
      */
-    public DroneMonitorApp(final TimerManager theTimerManager, final SimulationScheduler theSchedulerOperator,
+    public DroneMonitorApp(final TimerManager theTimerManager, final SimulationController theSchedulerOperator,
                            final DroneFleetManager theDroneFleet) {
         myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
         mySchedulerOperator = Objects.requireNonNull(theSchedulerOperator, "FleetManager can't be null");
         myDroneFleet = Objects.requireNonNull(theDroneFleet, "DroneFleet can't be null");
     }
 
-    /* Methods: Different Simulation "Stages/Phases" */
 
-    /** Method to start the simulation */
+    /*-- Different Simulation "Stages/Phases" Methods --*/
+
+    /**
+     * Method to start the simulation
+     */
     public void startSim() {
         myTimerManager.startTimer();
         myDroneFleet.resetFleet();
@@ -44,25 +55,32 @@ public class DroneMonitorApp {
         mySchedulerOperator.startSimulationTask();
     }
 
-    /** Method to pause the simulation */
+    /**
+     * Method to pause the simulation
+     */
     public void pauseSim() {
         mySchedulerOperator.setPausedStatus(true);
         myTimerManager.pauseTimer();
     }
 
-    /** Method to continue the simulation after simulation has been pauseTimer */
+    /**
+     * Method to continue the simulation after simulation has been pauseTimer
+     */
     public void continueSim() {
         mySchedulerOperator.setPausedStatus(false);
         myTimerManager.resumeTimer();
     }
 
-    /** Method to stop the simulation all together */
+    /**
+     * Method to stop the simulation all together
+     */
     public void stopSim() {
         myTimerManager.stopTimer();
         mySchedulerOperator.stopSimulationSchedule();
     }
 
-    /*-- Implementation --*/
+
+    /*-- Configuration --*/
 
     /**
      * Helps allow the configuration and changing of the number of drones in the fleet.
@@ -74,6 +92,14 @@ public class DroneMonitorApp {
         myDroneFleet.updateDroneCount(theNewCount);
     }
 
+
+    /*-- Getters --*/
+
+    /**
+     * Get a copy of the current drone fleet.
+     *
+     * @return an array of all drones in the fleet.
+     */
     public Drone[] getFleet() {
         return myDroneFleet.getDroneFleet();
     }
