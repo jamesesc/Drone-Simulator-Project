@@ -325,14 +325,9 @@ class TopRightStats extends StackPane {
     /**
      * Used to clear the existing drone cards setup, and rebuilds them base on the # of drones is in FleetManager.
      */
-    public void recreateDroneCards() {
-        // Getting the Fleet Manager Controller
-        DroneFleetManager fleetManger = myMonitor.getFleetManager();
+    public void recreateDroneCards(final Drone[] theDroneFleet) {
         // Null safety check
-        if (fleetManger == null) return;
-
-        // Getting the drone array
-        Drone[] currentFleet = fleetManger.getDroneFleet();
+        if (theDroneFleet == null) return;
 
         // Running to clear, and updating the Drone Stats Card
         Platform.runLater(() -> {
@@ -340,7 +335,7 @@ class TopRightStats extends StackPane {
             myDroneHolder.getChildren().clear();
 
             // Looping through to the # of drones in order to make the # of stats card to make
-            for (Drone drone : currentFleet) {
+            for (Drone drone : theDroneFleet) {
                 VBox card = createDroneCard("DRONE-" + drone.getDroneID());
                 myDroneBoxes.put(drone.getDroneID(), card);
                 myDroneHolder.getChildren().add(card);

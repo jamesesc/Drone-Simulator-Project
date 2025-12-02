@@ -13,7 +13,7 @@ public class Simulation extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         TimerManager timerManager = new TimerManager();
         DroneFleetManager fleetManager = new DroneFleetManager();
         MonitorDash monitorDash = new MonitorDash();
@@ -23,9 +23,14 @@ public class Simulation extends Application {
 
         monitorDash.setController(controller);
 
-        // Connects the View's "Request" to the Controller's "Action"
-        monitorDash.setMyDroneCountChangeRequest(controller::changeDroneCount);
+        // Connect the view "Request" to the Controller's "Action"
+        monitorDash.setMyDroneCountChangeRequest((newCount) -> {
+            // Controller action
+            controller.changeDroneCount(newCount);
 
+            // Returning new data back to MonitorDash
+            return fleetManager.getDroneFleet();
+        });
         monitorDash.initializeSimulation(stage);
     }
 }

@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import controller.*;
 import controller.DroneMonitorApp;
@@ -61,10 +62,10 @@ public class MonitorDash  {
     private int myVolume = 100;
 
 
-    private Consumer<Integer> myDroneCountChangeRequest;
+    private Function<Integer, Drone[]> myDroneCountChangeRequest;
 
-    public void setMyDroneCountChangeRequest(Consumer<Integer> theDroneCountRequest) {
-        myDroneCountChangeRequest = theDroneCountRequest;
+    public void setMyDroneCountChangeRequest(Function<Integer, Drone[]> theDroneCountChangeRequest) {
+        myDroneCountChangeRequest = theDroneCountChangeRequest;
     }
 
 
@@ -481,14 +482,20 @@ public class MonitorDash  {
         // Updating the UI by clearing the monitor, clearing the drone map, remaking the stats panel
         myTopLeft.clearAllDrones();
         myDrones.clear();
-        myTopRight.recreateDroneCards();
 
-        // Telling the controller the new user input
         if (myDroneCountChangeRequest != null) {
-            myDroneCountChangeRequest.accept(theNewDroneCount);
-        }
+            Drone[] newFleet = myDroneCountChangeRequest.apply(theNewDroneCount);
 
-        System.out.println("MonitorDash: Drone count changed to " + theNewDroneCount);
+            myDrones.clear();
+            if (newFleet != null) {
+                for (Drone drone : newFleet) {
+                    myDrones.put(drone.getDroneID(), drone);
+                }
+
+                myTopRight.recreateDroneCards(newFleet);
+            }
+
+        }
     }
 
 
@@ -509,7 +516,14 @@ public class MonitorDash  {
     }
 
 
+    public void updateDroneList(Drone[] theNewFleet) {
+        myTopRight.recreateDroneCards(theNewFleet);
 
+        myDrones.clear();
+        for(Drone drone : theNewFleet) {
+            myDrones.put(drone.getDroneID(), drone);
+        }
+    }
 
 
 
@@ -528,7 +542,17 @@ public class MonitorDash  {
      */
     public void startGame() {
         myController.startSim();
+        Drone[] currentFleet = myController.getFleet();
+        myDrones.clear();
+        myTopLeft.clearAllDrones();
+        if (currentFleet != null) {
+            for (Drone drone : currentFleet) {
+                myDrones.put(drone.getDroneID(), drone);
+            }
+            myTopRight.recreateDroneCards(currentFleet);
+        }
         myTopLeft.getDroneDisplay().setStyle(null);
+
         System.out.print("MonitorDash: Started Game");
     }
 
@@ -558,10 +582,6 @@ public class MonitorDash  {
     public void endGame() {
         myController.stopSim();
         myTopLeft.getDroneDisplay().setStyle("-fx-background-color: null;");
-        // Clearing the drones on the screen
-        myTopLeft.clearAllDrones();
-        myTopRight.recreateDroneCards();
-        myDrones.clear();
         System.out.println("MonitorDash: stopped game");
     }
 }

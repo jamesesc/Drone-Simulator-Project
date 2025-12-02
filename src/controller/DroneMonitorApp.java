@@ -1,5 +1,7 @@
 package controller;
 
+import Model.Drone;
+
 import java.util.Objects;
 
 /**
@@ -37,6 +39,7 @@ public class DroneMonitorApp {
     /** Method to start the simulation */
     public void startSim() {
         myTimerManager.startTimer();
+        myDroneFleet.resetFleet();
         mySchedulerOperator.setPausedStatus(false);
         mySchedulerOperator.startSimulationTask();
     }
@@ -59,6 +62,8 @@ public class DroneMonitorApp {
         mySchedulerOperator.stopSimulationSchedule();
     }
 
+    /*-- Implementation --*/
+
     /**
      * Helps allow the configuration and changing of the number of drones in the fleet.
      *
@@ -67,5 +72,9 @@ public class DroneMonitorApp {
     public void changeDroneCount(final int theNewCount) {
         stopSim();
         myDroneFleet.updateDroneCount(theNewCount);
+    }
+
+    public Drone[] getFleet() {
+        return myDroneFleet.getDroneFleet();
     }
 }

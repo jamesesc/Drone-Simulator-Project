@@ -92,6 +92,17 @@ public class DroneFleetManager {
 
     /* DRONE FLEET LOGIC METHODS */
 
+    public void resetFleet() {
+        Drone.resetIdCounter();
+
+        initializeFleet();
+
+        initializeFleetPosition();
+        initializeFleetAltitude();
+    }
+
+
+
     /**  Initialize the drone fleet array with new Drone objects */
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
