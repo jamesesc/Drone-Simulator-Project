@@ -1,7 +1,8 @@
-package controller;
+package service;
 
 import Model.Drone;
 import Model.TelemetryData;
+import java.util.Objects;
 
 /**
  * A class that handles and manage all the drones in the simulation.
@@ -10,13 +11,21 @@ import Model.TelemetryData;
  * @author James Escudero
  * @version Autumn 2025
  */
-public class DroneFleetManager {
+public final class DroneFleetManager {
+    /*-- Constant --*/
 
     /** Constant that represent the default numbers of drones in the fleet */
-    private static int myDroneCount = 3;
+    private int myDroneCount = 3;
 
+
+    /*-- Dependency Injection *--/
+
+     */
     /** A TelemetryGenerator Object responsible for generating telemetry data */
     private final TelemetryGenerator myTelemetryGen;
+
+
+    /*-- Fields --*/
 
     /** Represent the current drone being simulated on */
     private Drone[] myDroneFleet;
@@ -25,12 +34,14 @@ public class DroneFleetManager {
     /* CONSTRUCTOR */
 
     /** Public constructor for initializing the drone fleet and telemetry generator */
-    public DroneFleetManager() {
+    public DroneFleetManager(final TelemetryGenerator theTelemetryGen) {
         myDroneFleet = new Drone[myDroneCount];
-        myTelemetryGen = new TelemetryGenerator();
+        myTelemetryGen = Objects.requireNonNull(theTelemetryGen, "theTelemetryGen can't be null");
 
         initializeFleet();
     }
+
+    /*-- Updating --*/
 
     /**
      * To change the number of drones to make int the fleet.
@@ -47,8 +58,6 @@ public class DroneFleetManager {
         myDroneCount = theNewCount;
         myDroneFleet = new Drone[myDroneCount];
         initializeFleet();
-        System.out.println(theNewCount + " Drones have been updated. This is in DroneFleetManager");
-
     }
 
 
@@ -89,9 +98,27 @@ public class DroneFleetManager {
         return myDroneCount;
     }
 
+    /**
+     * Method to find the id of a drone.
+     *
+     * @param theRequestDroneId represents the id of the drone we want to find.
+     * @return the drone base on the id.
+     */
+    public Drone getDroneById(final int theRequestDroneId) {
+        for (Drone drone : myDroneFleet) {
+            if (drone.getDroneID() == theRequestDroneId) {
+                return drone;
+            }
+        }
+        throw new IllegalArgumentException("Drone with ID " + theRequestDroneId + " not found in fleet");
+    }
+
 
     /* DRONE FLEET LOGIC METHODS */
 
+    /**
+     * Method to reset the entire fleet.
+     */
     public void resetFleet() {
         Drone.resetIdCounter();
 
@@ -101,23 +128,27 @@ public class DroneFleetManager {
         initializeFleetAltitude();
     }
 
-
-
-    /**  Initialize the drone fleet array with new Drone objects */
+    /**
+     * Initialize the drone fleet array with new Drone objects
+     */
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
             myDroneFleet[i] = new Drone();
         }
     }
 
-    /**  Initialize every Drone object in the fleet to their starting position */
+    /**
+     * Initialize every Drone object in the fleet to their starting position
+     */
     public void initializeFleetPosition() {
         for (Drone drone : myDroneFleet) {
             drone.updateDroneNextMove(myTelemetryGen.generateStartPosition());
         }
     }
 
-    /** Initialize all drones in the fleet with their starting attitude */
+    /**
+     * Initialize all drones in the fleet with their starting attitude
+     */
     public void initializeFleetAltitude() {
         for (Drone drone : myDroneFleet) {
             TelemetryData droneCurrData = drone.getDroneTelemetry();

@@ -1,7 +1,8 @@
-package controller;
+package service;
 
 import Model.AnomalyRecord;
 import Model.Drone;
+import view.SimulationListener;
 import view.MonitorDash;
 
 import java.util.List;
@@ -9,12 +10,12 @@ import java.util.Objects;
 
 /**
  * A class that handles and manage in updating the UI with the needed data for the simulation.
- * It is used by SimulationScheduler to help and assist in updating the front end with new data.
+ * It is used by SimulationController to help and assist in updating the front end with new data.
  *
  * @author James Escudero
  * @version Autumn 2025
  */
-public class UpdateUIManager implements SimulationListener{
+public class UpdateUIManager implements SimulationListener {
     /** A MonitorDash Object responsible for displaying the UI */
     private final MonitorDash myUI;
 
