@@ -23,7 +23,7 @@ public class MonitorDash  {
      ===============*/
 
     /** Represents the Controller that the UI talks to */
-    private DroneMonitorApp myController;
+    private final DroneMonitorApp myController;
 
     /** Represents the Sound Manager for the UI */
     private final SoundManager mySoundManager;
@@ -67,7 +67,9 @@ public class MonitorDash  {
     /**
      * Constructor of MyJavaFXApp
      */
-    public MonitorDash() {
+    public MonitorDash(final DroneMonitorApp theController) {
+        myController = Objects.requireNonNull(theController, "Controller can't be null");
+
         mySoundManager = new SoundManager();
 
         // Initializing all the parts and pieces of the UI
@@ -137,16 +139,6 @@ public class MonitorDash  {
 
         return root;
     }
-
-    /**
-     * Method that does Dependency Injection for the UI Controller.
-     *
-     * @param theController represents the Controller that the UI connects with.
-     */
-    public void setController (final DroneMonitorApp theController) {
-        myController = Objects.requireNonNull(theController, "Controller cannot be null");
-    }
-
 
     /* =====================
        VIEW UPDATES
@@ -315,11 +307,8 @@ public class MonitorDash  {
         // Stopping the Sim, safety insurance
         endGame();
 
-        if (myController != null) {
-            myController.changeDroneCount(theNewDroneCount);
-            reloadFleet(myController.getFleet());
-
-        }
+        myController.changeDroneCount(theNewDroneCount);
+        reloadFleet(myController.getFleet());
     }
 
     /**

@@ -16,15 +16,12 @@ public class Simulation extends Application {
     public void start(Stage stage) {
         TimerManager timerManager = new TimerManager();
         DroneFleetManager fleetManager = new DroneFleetManager();
-        MonitorDash monitorDash = new MonitorDash();
-        UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
         SimulationScheduler scheduler = new SimulationScheduler(timerManager, fleetManager);
+        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
+        MonitorDash monitorDash = new MonitorDash(controller);
+        UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
 
         scheduler.setSimulationListener(updateUIManager);
-
-        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
-
-        monitorDash.setController(controller);
         monitorDash.initializeSimulation(stage);
     }
 }
