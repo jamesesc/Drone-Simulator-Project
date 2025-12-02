@@ -2,6 +2,7 @@ package view;
 
 import database.AnomalyDB;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.util.Objects;
@@ -202,18 +203,63 @@ public class AppMenuBar extends MenuBar {
         Menu soundMenu = new Menu("Sound");
         // Sound SubItem: Enable, Disable, Sound
         MenuItem enableSoundItem = new MenuItem("Enable Sounds");
-        enableSoundItem.setOnAction(_ -> myMonitor.myIsMuted = false);
+        enableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().setMuted(false));
+
         MenuItem disableSoundItem = new MenuItem("Disable Sounds");
-        disableSoundItem.setOnAction(_ -> myMonitor.myIsMuted = true);
+        disableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().myIsMuted = true);
         MenuItem volume = new MenuItem("Volume...");
-        volume.setOnAction(_ -> myMonitor.showVolumePopup());
+        volume.setOnAction(t -> showVolumePopup());
         MenuItem testSoundItem = new MenuItem("Test Sound");
-        testSoundItem.setOnAction(_ -> myMonitor.playNotificationSound());
+        testSoundItem.setOnAction(_ -> myMonitor.getSoundManager().playNotificationSound());
         // Adding each sub-item to the Sound Menu
         soundMenu.getItems().addAll(enableSoundItem, disableSoundItem, volume, testSoundItem);
 
         // Adding all the Sub Menu to the Setting Menu
         theSettingMenu.getItems().addAll(soundMenu);
+    }
+
+    private void showVolumePopup() {
+        Dialog<Integer> dialog = new Dialog<>();
+        dialog.setTitle("Adjust Volume");
+        dialog.setHeaderText("Set UI Audio Volume");
+
+        // OK & Cancel buttons
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        int currentVolume = myMonitor.getSoundManager().getVolume();
+
+        // Slider
+        Slider slider = new Slider(0, 100, currentVolume);
+        slider.setShowTickLabels(true);
+        slider.setShowTickMarks(true);
+        slider.setMajorTickUnit(25);
+        slider.setBlockIncrement(1);
+
+        Label valueLabel = new Label(String.valueOf(currentVolume));
+
+        slider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            valueLabel.setText(String.valueOf(newVal.intValue()));
+        });
+
+        // Main box for popup
+        HBox box = new HBox(10, new Label("Volume:"), slider, valueLabel);
+        dialog.getDialogPane().setContent(box);
+
+        // Convert result to int
+        dialog.setResultConverter(button -> {
+            if (button == ButtonType.OK) {
+                return (int) slider.getValue();
+            }
+            return null;
+        });
+
+        // Show dialog
+        Optional<Integer> result = dialog.showAndWait();
+
+        result.ifPresent(newVol -> {
+            myMonitor.getSoundManager().setVolume(newVol);
+            System.out.println("Volume set to: " + currentVolume);
+        });
     }
 
 
