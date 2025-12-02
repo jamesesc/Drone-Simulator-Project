@@ -20,7 +20,17 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Autumn 2025
  */
-public class SimulationScheduler {
+public class SimulationController {
+    /*-- Constant --*/
+
+    /** Number of threads for scheduled task execution */
+    private static final int THREAD_POOL_SIZE = 4;
+
+    /** Timeout duration for graceful shutdown (seconds) */
+    private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
+
+
+    /*-- Dependency Injection --*/
 
     /** Represents the java import scheduler use to schedule a task */
     private ScheduledExecutorService myScheduleOperation;
@@ -31,26 +41,51 @@ public class SimulationScheduler {
     /** Represents the Fleet manger object that manges all drone fleet */
     private final DroneFleetManager myFleetManger;
 
+    /** Represent the AnomalyDetector object that detects any anomalies with the telemetry data */
+    private final AnomalyDetector myAnomalyDetector;
+
+    /** Represent the AnomalyDB object that stores and handles all the anomalies records */
+    private final AnomalyDB myAnomalyDB;
+
     /** Represent the UpdateUIManager object that sends and update to the UI */
     private SimulationListener myListener;
 
-    /** Represent the AnomalyDetector object that detects any anomalies with the telemetry data */
-    private final AnomalyDetector myAnomalyDetector = new AnomalyDetector();
 
-    /** Represent the AnomalyDB object that stores and handles all the anomalies records */
-    private final AnomalyDB myAnomalyDB = new AnomalyDB();
+    /*-- State --*/
 
     /** Represents the current status of the simulation; true = running, false for stopped */
     private volatile boolean myPausedStatus = false;
 
-    /** Public constructor to call and use the 1 instance of each object */
-    public SimulationScheduler(final TimerManager theTimerManager, final DroneFleetManager theFleetManager) {
+
+    /*-- Constructor --*/
+
+    /**
+     * Creates a SimulationController with required dependencies.
+     *
+     * @param theTimerManager manages simulation time
+     * @param theFleetManager manages the drone fleet
+     * @param theAnomalyDetector detects anomalies in telemetry
+     * @param theAnomalyDB stores anomaly records
+     * @throws NullPointerException if any parameter is null
+     */
+    public SimulationController(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
+                                final AnomalyDetector theAnomalyDetector, final AnomalyDB theAnomalyDB) {
         // Safety check if the follow objects pass is not null
         myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
         myFleetManger = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
+        myAnomalyDetector = Objects.requireNonNull(theAnomalyDetector, "AnomalyDetector can't be null");
+        myAnomalyDB = Objects.requireNonNull(theAnomalyDB, "AnomalyDB can't be null");
+
     }
 
-    // Setter for the listener (Observer Pattern)
+
+    /*-- Configuration --*/
+
+    /**
+     * Setter for the listener (Observer Pattern)
+     *
+     * @param theListener is the observer to notify of simulation events.
+     */
     public void setSimulationListener(SimulationListener theListener) {
         myListener = theListener;
     }
@@ -67,19 +102,24 @@ public class SimulationScheduler {
         }
     }
 
-    /** Method to start the simulation logic and schedule task */
-    public void startSimulationTask() {
-        myScheduleOperation = Executors.newScheduledThreadPool(4);
 
-        int updateInterval = myTimerManger.getUpdateInterval();
-        int timerInterval = myTimerManger.getTimerInterval();
+    /*-- Simulation Cycle --*/
+
+    /**
+     * Method to start the simulation logic and schedule task
+     */
+    public void startSimulationTask() {
+        myScheduleOperation = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
+
+        final int updateInterval = myTimerManger.getUpdateInterval();
+        final int timerInterval = myTimerManger.getTimerInterval();
 
         myFleetManger.initializeFleetPosition();
 
         // Update the drone display for initial drone stats
-        if (myListener != null) {
-            myListener.onDroneUpdate(myFleetManger.getDroneFleet());
-        }
+        notifyDroneUpdate();
+
+
         // Update drone when 3 seconds is up, meaning when it flies up
         myScheduleOperation.schedule(() -> {
             myFleetManger.initializeFleetAltitude();
@@ -88,13 +128,6 @@ public class SimulationScheduler {
                 myListener.onDroneUpdate(myFleetManger.getDroneFleet());
             }
         }, updateInterval, TimeUnit.SECONDS);
-
-        // First schedule task to initialize drone altitudes at 3 seconds (1st update)
-        myScheduleOperation.schedule(
-                myFleetManger::initializeFleetAltitude,
-                updateInterval,
-                TimeUnit.SECONDS
-        );
 
         // Fixed Schedule Task that updates drones telemetry data every 3 seconds (it starts after 6 sec)
         myScheduleOperation.scheduleAtFixedRate(
@@ -114,7 +147,28 @@ public class SimulationScheduler {
         );
     }
 
-    /* Helper Methods to start the simulation */
+    /**
+     * To stop the reoccurring schedule tasks
+     */
+    public void stopSimulationSchedule() {
+
+        // Handles the thread safety in shutting down
+        if (myScheduleOperation != null) {
+            myScheduleOperation.shutdownNow();
+            try {
+                if (!myScheduleOperation.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    System.err.println("The Simulation Scheduler did not terminate");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println("Simulation scheduler shutdown was interrupted");
+            }
+        }
+    }
+
+
+
+    /*-- Schedule Tasks --*/
 
     /**
      * The Main task method that handles the whole drone update
@@ -125,77 +179,119 @@ public class SimulationScheduler {
         if (myPausedStatus) {
             return;
         }
+
         try {
             // 1) Generate new telemetry for all drones
-            TelemetryData[] newTelemetry = myFleetManger.generateFleetData();
+            TelemetryData[] newTelemetry = generateTelemetry();
 
             // 2) Detect anomalies
-            AnomalyRecord[] anomalies = myAnomalyDetector.analyzeDrones(
-                    newTelemetry,
-                    myFleetManger.getDroneFleet(),
-                    myTimerManger.getElapsedTime(),
-                    myTimerManger.getUpdateInterval()
-            );
+            AnomalyRecord[] anomalies = detectAnomalies(newTelemetry);
 
             // 3) Save anomalies
-            for (AnomalyRecord anomaly : anomalies) {
-                // get id of drone that had the anomaly
-                int droneID = anomaly.getID();
-
-                // find which drone in the fleet matches the drone id
-                Drone affectedDrone = null;
-                for (Drone drone : myFleetManger.getDroneFleet()) {
-                    if (drone.getDroneID() == droneID) {
-                        affectedDrone = drone; // found drone
-                        break;
-                    }
-                }
-
-                // save the anomaly
-                if (affectedDrone != null) {
-                    myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
-                } else {
-                    // if there's no matching drone use first drone as fallback
-                    myAnomalyDB.saveAnomaly(anomaly, myFleetManger.getSpecificDrone(0));
-                }
-            }
-
+            saveAnomalies(anomalies);
 
             // 4) Update fleet data
-            myFleetManger.updateFleetData(newTelemetry);
+            updateFleet(newTelemetry);
 
-            if (myListener != null) {
-                // 5) Update the display
-                myListener.onDroneUpdate(myFleetManger.getDroneFleet()); // Pass the fleet
+            // 5) Notifying listeners for the new anomalies
+            notifyListeners(anomalies);
 
-                if (anomalies.length > 0) {
-                    // 6) Update the anomaly
-                    myListener.onAnomaliesDetected(anomalies);
-                }
-            }
         } catch (Exception e) {
             System.err.println("Theres a ERROR in updateDronesTask:" + e.getMessage());
         }
     }
 
-    /** Helper method to do update time task */
+    /**
+     * Updates the timer display.
+     * This method is called periodically by the scheduler.
+     */
     private void updateTime() {
-        int elapseTime = myTimerManger.getElapsedTime();
-        myListener.onTimeUpdate(elapseTime);
+        if (myListener != null) {
+            int elapsedTime = myTimerManger.getElapsedTime();
+            myListener.onTimeUpdate(elapsedTime);
+        }
     }
 
-    /** To stop the reoccurring schedule tasks */
-    public void stopSimulationSchedule() {
 
-        // Handles the thread safety in shutting down
-        if (myScheduleOperation != null) {
-            myScheduleOperation.shutdownNow();
-            try {
-                if (!myScheduleOperation.awaitTermination(5, TimeUnit.SECONDS)) {
-                    System.err.println("The Simulation Scheduler did not terminate");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+    /*-- Helper method --*/
+
+    /**
+     * Notifies listeners of drone updates (convenience method).
+     */
+    private void notifyDroneUpdate() {
+        if (myListener != null) {
+            myListener.onDroneUpdate(myFleetManger.getDroneFleet());
+        }
+    }
+
+    /**
+     * Generates new telemetry data for all drones in the fleet.
+     *
+     * @return array of new telemetry data
+     */
+    private TelemetryData[] generateTelemetry() {
+        return myFleetManger.generateFleetData();
+    }
+
+    /**
+     * Detects anomalies in the provided telemetry data.
+     *
+     * @param newTelemetry the telemetry data to analyze
+     * @return array of detected anomaly records
+     */
+    private AnomalyRecord[] detectAnomalies(TelemetryData[] newTelemetry) {
+        return myAnomalyDetector.analyzeDrones(
+                newTelemetry,
+                myFleetManger.getDroneFleet(),
+                myTimerManger.getElapsedTime(),
+                myTimerManger.getUpdateInterval()
+        );
+    }
+
+    /**
+     * Saves all detected anomalies to the database.
+     *
+     * @param anomalies the anomaly records to save
+     */
+    private void saveAnomalies(AnomalyRecord[] anomalies) {
+        for (AnomalyRecord anomaly : anomalies) {
+            // get id of drone that had the anomaly
+            int droneID = anomaly.getID();
+
+            // find which drone in the fleet matches the drone id
+            Drone affectedDrone = myFleetManger.getDroneById(droneID);
+
+            // save the anomaly
+            if (affectedDrone != null) {
+                myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
+            } else {
+                System.err.println("Warning: Could not save anomaly - Drone ID " + droneID + " not found in fleet");
+            }
+        }
+    }
+
+    /**
+     * Updates the fleet with new telemetry data.
+     *
+     * @param newTelemetry the new telemetry data
+     */
+    private void updateFleet(TelemetryData[] newTelemetry) {
+        myFleetManger.updateFleetData(newTelemetry);
+    }
+
+    /**
+     * Notifies listeners of drone updates and any detected anomalies.
+     *
+     * @param anomalies the anomalies detected in this update cycle
+     */
+    private void notifyListeners(AnomalyRecord[] anomalies) {
+        if (myListener != null) {
+            // Update the display
+            myListener.onDroneUpdate(myFleetManger.getDroneFleet()); // Pass the fleet
+
+            if (anomalies.length > 0) {
+                // Update the anomaly
+                myListener.onAnomaliesDetected(anomalies);
             }
         }
     }
