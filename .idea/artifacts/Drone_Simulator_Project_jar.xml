@@ -1,0 +1,29 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Drone Simulator Project:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Drone_Simulator_Project_jar</output-path>
+    <root id="archive" name="Drone Simulator Project.jar">
+      <element id="module-output" name="Drone Simulator Project" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-richtext/26-ea+18/jfx-incubator-richtext-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-richtext/26-ea+18/jfx-incubator-richtext-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/26-ea+18/javafx-controls-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/26-ea+18/javafx-controls-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-input/26-ea+18/jfx-incubator-input-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-input/26-ea+18/jfx-incubator-input-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/26-ea+18/javafx-swing-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/26-ea+18/javafx-swing-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-web/26-ea+18/javafx-web-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-web/26-ea+18/javafx-web-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-media/26-ea+18/javafx-media-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-media/26-ea+18/javafx-media-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/jdk-jsobject/26-ea+18/jdk-jsobject-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/jdk-jsobject/26-ea+18/jdk-jsobject-26-ea+18-win.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.51.1.0/sqlite-jdbc-3.51.1.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-fxml/26-ea+18/javafx-fxml-26-ea+18.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-fxml/26-ea+18/javafx-fxml-26-ea+18-win.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

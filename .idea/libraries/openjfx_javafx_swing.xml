@@ -1,0 +1,22 @@
+<component name="libraryTable">
+  <library name="openjfx.javafx.swing" type="repository">
+    <properties maven-id="org.openjfx:javafx-swing:26-ea+18" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/26-ea+18/javafx-swing-26-ea+18.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/26-ea+18/javafx-swing-26-ea+18-win.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18-win.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18-win.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/26-ea+18/javafx-swing-26-ea+18-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/26-ea+18/javafx-swing-26-ea+18-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>
