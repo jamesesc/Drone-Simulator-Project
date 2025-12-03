@@ -7,20 +7,20 @@ import java.time.format.DateTimeFormatter;
  * A class that handles and manage the internal time system of the simulation.
  * It is used by DroneMonitorApp to help and assist in the simulation time management.
  *
- * @author James Escudero
  * @version Autumn 2025
  */
 public class TimerManager {
     /*-- Constant --*/
 
     /** Represent the update interval time to update the drone telemetry data. */
-    private static final int UPDATE_INTERVAL = 1;
+    private static final int UPDATE_INTERVAL_SECONDS = 1;
 
     /** Represent the time interval. */
-    private static final int TIMER_INTERVAL = 1;
+    private static final int TIMER_INTERVAL_SECONDS = 1;
 
     /** Conversion factor from milliseconds to seconds */
     private static final int MILLIS_TO_SECONDS = 1000;
+
 
     /*-- Fields --*/
 
@@ -56,7 +56,7 @@ public class TimerManager {
      * @return the update interval as an int.
      */
     public int getUpdateInterval() {
-        return UPDATE_INTERVAL;
+        return UPDATE_INTERVAL_SECONDS;
     }
 
     /**
@@ -65,7 +65,7 @@ public class TimerManager {
      * @return the timer interval as an int.
      */
     public int getTimerInterval() {
-        return TIMER_INTERVAL;
+        return TIMER_INTERVAL_SECONDS;
     }
 
 
@@ -108,15 +108,6 @@ public class TimerManager {
         mySimStatus = Status.STOPPED;
         myStartTime = 0;
         myPausedTime = 0;
-    }
-
-    /**
-     * Method to reset the timer.
-     */
-    public void resetTimer() {
-        myStartTime = 0;
-        myPausedTime = 0;
-        mySimStatus = Status.STOPPED;
     }
 
     /*-- Time Calculation Methods --*/
