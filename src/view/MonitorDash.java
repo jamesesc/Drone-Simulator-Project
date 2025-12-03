@@ -310,6 +310,11 @@ public class MonitorDash  {
             myMenuBar.updateSimulationStatus(theStatus);
         }
 
+        // Update stats panel with simulation status
+        if (myTopRight != null) {
+            myTopRight.updateSimulationStatus(theStatus);
+        }
+
         // Log status change
         System.out.println("MonitorDash: Status changed to " + theStatus);
     }

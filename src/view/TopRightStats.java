@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import service.TimerManager;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -118,6 +119,9 @@ public class TopRightStats extends StackPane {
     /*-- Represnt the Selected Drone Listener --*/
     private DroneSelectionListener mySelectionListener;
 
+    /** Tracks the current simulation status */
+    private TimerManager.Status mySimulationStatus = TimerManager.Status.STOPPED;
+
 
     /**
      * Constructor to create the right stats display.
@@ -220,12 +224,9 @@ public class TopRightStats extends StackPane {
 
         // Setting up the Label for the drone
         Label droneStatusLabel = new Label("INACTIVE");
-        String statusColor = getDroneStatusColor("INACTIVE");
-
-        // Styling the Drone Status Label
         droneStatusLabel.setFont(Font.font(FONT_MONO, FontWeight.EXTRA_BOLD, DRONE_STATUS_LABEL_FONT_SIZE));
         droneStatusLabel.getStyleClass().add("drone-status");
-        droneStatusLabel.setStyle("-fx-background-color: " + statusColor);
+
 
         // Adding the DroneCardLabel, theSpacer, and the droneStatusLabel into one container
         topRow.getChildren().addAll(droneCardLabel, spacer, droneStatusLabel);
@@ -248,6 +249,10 @@ public class TopRightStats extends StackPane {
 
         // Event Action when click on the statsCardHolder, it will switch over to the detail view
         statsCardHolder.setOnMouseClicked(_ -> {
+            if (mySimulationStatus == TimerManager.Status.STOPPED) {
+                return;
+            }
+
             int droneId = Integer.parseInt(theDroneID.replace("DRONE-", ""));
             if (mySelectionListener != null) {
                 mySelectionListener.onDroneSelected(droneId);
@@ -292,15 +297,16 @@ public class TopRightStats extends StackPane {
         // Drone Status Label
         Label droneStatusLabel = new Label(theClickDrone.isDroneOn().toString());
         droneStatusLabel.getStyleClass().add("drone-status");
+        droneStatusLabel.setStyle("-fx-background-color: " + getDroneStatusColor(theClickDrone.isDroneOn().toString()));
 
         // Add nodes to topRow
         topRow.getChildren().addAll(droneIDLabel, spacer, droneStatusLabel);
 
         // Stats Grid
         GridPane gridStats = new GridPane();
-        gridStats.getStyleClass().add("stats-grid"); // optional: use CSS for spacing if needed
+        gridStats.getStyleClass().add("stats-grid");
         gridStats.setHgap(15);
-        gridStats.setVgap(15);
+        gridStats.setVgap(5);
 
         // Add stat rows
         addStatRow(gridStats, 0, "BATTERY: ", theClickDrone.getBatteryLevel() + "%");
@@ -404,7 +410,6 @@ public class TopRightStats extends StackPane {
                 // Only updating if changed to save performance
                 if (!statusLabel.getText().equals(droneStatusStr)) {
                     statusLabel.setText(droneStatusStr);
-                    statusLabel.setStyle("-fx-background-color: " + getDroneStatusColor(droneStatusStr) + ";");
                 }
 
 
@@ -574,6 +579,23 @@ public class TopRightStats extends StackPane {
         if (nodeIndex < theGrid.getChildren().size()) {
             Label valueLabel = (Label) theGrid.getChildren().get(nodeIndex);
             valueLabel.setText(theNewValue);
+        }
+    }
+
+    /**
+     * Updates the simulation status for this component.
+     * This allows the stats panel to know when cards should be clickable.
+     *
+     * @param theStatus the current simulation status
+     */
+    public void updateSimulationStatus(final TimerManager.Status theStatus) {
+        mySimulationStatus = theStatus;
+
+        // If simulation is stopped, return to small view
+        if (theStatus == TimerManager.Status.STOPPED && myShowingStats) {
+            if (mySelectionListener != null) {
+                mySelectionListener.onDroneSelected(-1);
+            }
         }
     }
 }
