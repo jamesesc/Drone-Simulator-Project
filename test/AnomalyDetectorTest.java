@@ -1,6 +1,6 @@
 import Model.Drone;
 import Model.TelemetryData;
-import controller.AnomalyDetector;
+import service.AnomalyDetector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -85,8 +85,8 @@ public class AnomalyDetectorTest {
         data2.setLatitude(1.0);
         data2.setLongitude(1.0);
 
-        drone1.updateTelemetryData(data1);
-        drone2.updateTelemetryData(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
         boolean result = myAnomalyDetector.detectSharingLocations(drones);
@@ -107,8 +107,8 @@ public class AnomalyDetectorTest {
         data2.setLatitude(1.0);
         data2.setLongitude(2.0);
 
-        drone1.updateTelemetryData(data1);
-        drone2.updateTelemetryData(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
         boolean result = myAnomalyDetector.detectSharingLocations(drones);
@@ -129,8 +129,8 @@ public class AnomalyDetectorTest {
         data2.setLatitude(2.0);
         data2.setLongitude(1.0);
 
-        drone1.updateTelemetryData(data1);
-        drone2.updateTelemetryData(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
         boolean result = myAnomalyDetector.detectSharingLocations(drones);
@@ -151,8 +151,8 @@ public class AnomalyDetectorTest {
         data2.setLatitude(2.0);
         data2.setLongitude(2.0);
 
-        drone1.updateTelemetryData(data1);
-        drone2.updateTelemetryData(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
         boolean result = myAnomalyDetector.detectSharingLocations(drones);

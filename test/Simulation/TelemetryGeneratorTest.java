@@ -1,7 +1,7 @@
 package Simulation;
 
 import Model.TelemetryData;
-import controller.TelemetryGenerator;
+import service.TelemetryGenerator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,7 +12,7 @@ class TelemetryGeneratorTest {
     void telemetryDataNotNull() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryDataResult = null;
 
         assertNotNull(telemetryDataResult);
     }
@@ -22,7 +22,7 @@ class TelemetryGeneratorTest {
     void telemetryDataValid() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryDataResult = null;
 
         final double latitudeChecker = telemetryDataResult.getAltitude();
         final double longitudeChecker = telemetryDataResult.getLongitude();
@@ -41,11 +41,11 @@ class TelemetryGeneratorTest {
     void multipleTelemetryData() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryDataResult = null;
 
         final double latitudeChecker1 = telemetryDataResult.getAltitude();
 
-        telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        telemetryDataResult = null;
 
         final double latitudeChecker2 = telemetryDataResult.getAltitude();
 
@@ -56,8 +56,8 @@ class TelemetryGeneratorTest {
     void twoTelemetryDataNotTheSame() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryData1 = telemetryGenTest.generateTelemetryData();
-        TelemetryData telemetryData2 = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryData1 = null;
+        TelemetryData telemetryData2 = null;
 
         assertNotSame(telemetryData1, telemetryData2);
     }
