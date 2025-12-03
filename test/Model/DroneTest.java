@@ -36,14 +36,14 @@ class DroneTest {
     void isDroneOnTest() {
         Drone droneTest = new Drone();
 
-        assertTrue(droneTest.isDroneOn());
+        assertSame(Drone.DroneState.STARTING, droneTest.isDroneOn());
     }
 
     @Test
     void decreaseBatteryTest() {
         Drone droneTest = new Drone();
         droneTest.setBatteryLevel(100);
-        droneTest.decrementBattery();
+        droneTest.simulateBatteryDrain();
 
         assertEquals(90, droneTest.getBatteryLevel());
     }

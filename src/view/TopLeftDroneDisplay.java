@@ -149,9 +149,9 @@ class TopLeftDroneDisplay extends VBox {
         getChildren().add(droneBox);
 
         // Updating our viewport aka our camera on resize
-        myViewport.widthProperty().addListener((obs, oldVal, newVal) ->
+        myViewport.widthProperty().addListener((_, _, _) ->
                 updateCameraTransform());
-        myViewport.heightProperty().addListener((obs, oldVal, newVal) ->
+        myViewport.heightProperty().addListener((_, _, _) ->
                 updateCameraTransform());
 
         setupInputHandlers();
@@ -205,7 +205,7 @@ class TopLeftDroneDisplay extends VBox {
         });
 
         // Drag end
-        myViewport.setOnMouseReleased(event -> myViewport.setCursor(Cursor.DEFAULT));
+        myViewport.setOnMouseReleased(_ -> myViewport.setCursor(Cursor.DEFAULT));
 
         // Reset
         myViewport.setOnMouseClicked(event -> {
@@ -295,7 +295,7 @@ class TopLeftDroneDisplay extends VBox {
      * @param theAnimate true to animate transition, or false for instant update instead.
      */
     private Timeline updateDronePosition(final DroneShape theView, final TelemetryData theData, final boolean theAnimate) {
-        Timeline returnAnimation = new Timeline();
+        Timeline returnAnimation;
         // Calculates the Target (Local World coordinates) (1 meter = 1 pixel)
         double targetX = theData.getLongitude();
         // PS: Invert Y (Sim Up is +Y, Screen Down is +Y)
