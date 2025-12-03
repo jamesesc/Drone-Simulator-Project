@@ -164,10 +164,10 @@ public class Drone {
                 break;
             case STARTING:
                 myDroneState = DroneState.FLYING;
-                flyOperation(myTelemetryData);
+                flyOperation(theNewTelemetryData);
                 break;
             case FLYING:
-                flyOperation(myTelemetryData);
+                flyOperation(theNewTelemetryData);
                 break;
             case LANDING:
                 landingOperation();
