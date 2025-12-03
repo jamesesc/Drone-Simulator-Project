@@ -5,7 +5,6 @@ import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
 import view.SimulationListener;
-
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -17,73 +16,75 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Autumn 2025
  */
-public class SimulationController {
+public class SimulationEngine {
     /*-- Constant --*/
 
-    /** Number of threads for scheduled task execution */
+    /** Number of threads for scheduled task execution. */
     private static final int THREAD_POOL_SIZE = 4;
 
-    /** Timeout duration for graceful shutdown (seconds) */
+    /** Timeout duration for graceful shutdown (seconds). */
     private static final int SHUTDOWN_TIMEOUT_SECONDS = 5;
+
+    /** Multiplier for initial drone update delay (starts after updateInterval * 2). */
+    private static final int INITIAL_UPDATE_DELAY_MULTIPLIER = 2;
 
 
     /*-- Dependency Injection --*/
 
-    /** Represents the java import scheduler use to schedule a task */
+    /** Represents the java import scheduler use to schedule a task. */
     private ScheduledExecutorService myScheduleOperation;
 
-    /** Represents the timer object to manage the simulation timer */
-    private final TimerManager myTimerManger;
+    /** Represents the timer object to manage the simulation timer. */
+    private final TimerManager myTimerManager;
 
-    /** Represents the Fleet manger object that manges all drone fleet */
-    private final DroneFleetManager myFleetManger;
+    /** Represents the Fleet manger object that manges all drone fleet. */
+    private final DroneFleetManager myFleetManager;
 
-    /** Represent the AnomalyDetector object that detects any anomalies with the telemetry data */
+    /** Represent the AnomalyDetector object that detects any anomalies with the telemetry data. */
     private final AnomalyDetector myAnomalyDetector;
 
-    /** Represent the AnomalyDB object that stores and handles all the anomalies records */
+    /** Represent the AnomalyDB object that stores and handles all the anomalies records. */
     private final AnomalyDB myAnomalyDB;
 
-    /** Represent the UpdateUIManager object that sends and update to the UI */
+    /** Represent the UpdateUIManager object that sends and update to the UI. */
     private SimulationListener myListener;
 
 
     /*-- State --*/
 
-    /** Represents the current status of the simulation; true = running, false for stopped */
+    /** Represents the current status of the simulation; true = running, false for stopped. */
     private volatile boolean myPausedStatus = false;
 
 
     /*-- Constructor --*/
 
     /**
-     * Creates a SimulationController with required dependencies.
+     * Creates a SimulationEngine with required dependencies.
      *
-     * @param theTimerManager manages simulation time
-     * @param theFleetManager manages the drone fleet
-     * @param theAnomalyDetector detects anomalies in telemetry
-     * @param theAnomalyDB stores anomaly records
-     * @throws NullPointerException if any parameter is null
+     * @param theTimerManager manages simulation time.
+     * @param theFleetManager manages the drone fleet.
+     * @param theAnomalyDetector detects anomalies in telemetry.
+     * @param theAnomalyDB stores anomaly records.
+     * @throws NullPointerException if any parameter is null.
      */
-    public SimulationController(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
-                                final AnomalyDetector theAnomalyDetector, final AnomalyDB theAnomalyDB) {
+    public SimulationEngine(final TimerManager theTimerManager, final DroneFleetManager theFleetManager,
+                            final AnomalyDetector theAnomalyDetector, final AnomalyDB theAnomalyDB) {
         // Safety check if the follow objects pass is not null
-        myTimerManger = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
-        myFleetManger = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
+        myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
+        myFleetManager = Objects.requireNonNull(theFleetManager, "FleetManager can't be null");
         myAnomalyDetector = Objects.requireNonNull(theAnomalyDetector, "AnomalyDetector can't be null");
         myAnomalyDB = Objects.requireNonNull(theAnomalyDB, "AnomalyDB can't be null");
-
     }
 
 
     /*-- Configuration --*/
 
     /**
-     * Setter for the listener (Observer Pattern)
+     * Setter for the listener (Observer Pattern).
      *
      * @param theListener is the observer to notify of simulation events.
      */
-    public void setSimulationListener(SimulationListener theListener) {
+    public void setSimulationListener(final SimulationListener theListener) {
         myListener = theListener;
     }
 
@@ -93,46 +94,38 @@ public class SimulationController {
      * @param thePausedStatus is true to pause the simulation, otherwise false to resume.
      */
     public void setPausedStatus(final boolean thePausedStatus) {
-        // Updating only if there's an update change
-        if (myPausedStatus != thePausedStatus) {
-            myPausedStatus = thePausedStatus;
-        }
+        myPausedStatus = thePausedStatus;
     }
 
 
     /*-- Simulation Cycle --*/
 
     /**
-     * Method to start the simulation logic and schedule task
+     * Method to start the simulation logic and schedule task.
      */
     public void startSimulationTask() {
         myScheduleOperation = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
 
-        final int updateInterval = myTimerManger.getUpdateInterval();
-        final int timerInterval = myTimerManger.getTimerInterval();
-
-        myFleetManger.initializeFleetPosition();
+        final int updateInterval = myTimerManager.getUpdateInterval();
+        final int timerInterval = myTimerManager.getTimerInterval();
 
         // Update the drone display for initial drone stats
+        myFleetManager.initializeFleetPosition();
         notifyDroneUpdate();
 
         // Update drone when 3 seconds is up, meaning when it flies up
         myScheduleOperation.schedule(() -> {
-            myFleetManger.initializeFleetAltitude();
-
-            if (myListener != null) {
-                myListener.onDroneUpdate(myFleetManger.getDroneFleet());
-            }
+            myFleetManager.initializeFleetAltitude();
+            notifyDroneUpdate();
         }, updateInterval, TimeUnit.SECONDS);
 
         // Fixed Schedule Task that updates drones telemetry data every 3 seconds (it starts after 6 sec)
         myScheduleOperation.scheduleAtFixedRate(
                 this::updateDronesTask,
-                updateInterval * 2L,
+                (long) updateInterval * INITIAL_UPDATE_DELAY_MULTIPLIER,
                 updateInterval,
                 TimeUnit.SECONDS
         );
-
 
         // Timer Update to the UI
         myScheduleOperation.scheduleAtFixedRate(
@@ -144,34 +137,37 @@ public class SimulationController {
     }
 
     /**
-     * To stop the reoccurring schedule tasks
+     * To stop the reoccurring schedule tasks.
      */
     public void stopSimulationSchedule() {
+        if (myScheduleOperation == null) {
+            return;
+        }
 
         // Handles the thread safety in shutting down
-        if (myScheduleOperation != null) {
-            myScheduleOperation.shutdownNow();
-            try {
-                if (!myScheduleOperation.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    System.err.println("The Simulation Scheduler did not terminate");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.err.println("Simulation scheduler shutdown was interrupted");
-            }
-        }
-    }
+        myScheduleOperation.shutdownNow();
 
+        // Try catch to ensure it shut-downs
+        try {
+            if (!myScheduleOperation.awaitTermination(SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                System.err.println("The Simulation Scheduler did not terminate");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.err.println("Simulation scheduler shutdown was interrupted");
+        }
+
+    }
 
 
     /*-- Schedule Tasks --*/
 
     /**
-     * The Main task method that handles the whole drone update
+     * The Main task method that handles the whole drone update.
      * Generating telemetry data, detecting anomalies and updating the drone with the new telemetry.
      */
     private void updateDronesTask() {
-        // If the Simulator is paused, don't update
+        // If the Simulator is paused, don't update, so skip
         if (myPausedStatus) {
             return;
         }
@@ -203,8 +199,7 @@ public class SimulationController {
      */
     private void updateTime() {
         if (myListener != null) {
-            int elapsedTime = myTimerManger.getElapsedTime();
-            myListener.onTimeUpdate(elapsedTime);
+            myListener.onTimeUpdate(myTimerManager.getElapsedTime());
         }
     }
 
@@ -216,52 +211,56 @@ public class SimulationController {
      */
     private void notifyDroneUpdate() {
         if (myListener != null) {
-            myListener.onDroneUpdate(myFleetManger.getDroneFleet());
+            Drone[] fleet = myFleetManager.getDroneFleet();
+            if (fleet != null) {
+                myListener.onDroneUpdate(fleet);
+            }
         }
     }
 
     /**
      * Generates new telemetry data for all drones in the fleet.
      *
-     * @return array of new telemetry data
+     * @return array of new telemetry data.
      */
     private TelemetryData[] generateTelemetry() {
-        return myFleetManger.generateFleetData();
+        return myFleetManager.generateFleetData();
     }
 
     /**
      * Detects anomalies in the provided telemetry data.
      *
-     * @param newTelemetry the telemetry data to analyze
-     * @return array of detected anomaly records
+     * @param theNewTelemetry the telemetry data to analyze.
+     * @return array of detected anomaly records.
      */
-    private AnomalyRecord[] detectAnomalies(TelemetryData[] newTelemetry) {
+    private AnomalyRecord[] detectAnomalies(final TelemetryData[] theNewTelemetry) {
         return myAnomalyDetector.analyzeDrones(
-                newTelemetry,
-                myFleetManger.getDroneFleet(),
-                myTimerManger.getElapsedTime(),
-                myTimerManger.getUpdateInterval()
+                theNewTelemetry,
+                myFleetManager.getDroneFleet(),
+                myTimerManager.getElapsedTime(),
+                myTimerManager.getUpdateInterval()
         );
     }
 
     /**
-     * Saves all detected anomalies to the database.
+     * Saves all detected theAnomalies to the database.
      *
-     * @param anomalies the anomaly records to save
+     * @param theAnomalies the anomaly records to save.
      */
-    private void saveAnomalies(AnomalyRecord[] anomalies) {
-        for (AnomalyRecord anomaly : anomalies) {
+    private void saveAnomalies(final AnomalyRecord[] theAnomalies) {
+        for (AnomalyRecord anomaly : theAnomalies) {
             // get id of drone that had the anomaly
             int droneID = anomaly.getID();
 
             // find which drone in the fleet matches the drone id
-            Drone affectedDrone = myFleetManger.getDroneById(droneID);
+            Drone affectedDrone = myFleetManager.getDroneById(droneID);
 
             // save the anomaly
             if (affectedDrone != null) {
                 myAnomalyDB.saveAnomaly(anomaly, affectedDrone);
             } else {
-                System.err.println("Warning: Could not save anomaly - Drone ID " + droneID + " not found in fleet");
+                System.err.println("Warning: Cannot save anomaly - Drone ID "
+                        + droneID + " not found in fleet");
             }
         }
     }
@@ -271,8 +270,8 @@ public class SimulationController {
      *
      * @param newTelemetry the new telemetry data
      */
-    private void updateFleet(TelemetryData[] newTelemetry) {
-        myFleetManger.updateFleetData(newTelemetry);
+    private void updateFleet(final TelemetryData[] newTelemetry) {
+        myFleetManager.updateFleetData(newTelemetry);
     }
 
     /**
@@ -280,15 +279,20 @@ public class SimulationController {
      *
      * @param anomalies the anomalies detected in this update cycle
      */
-    private void notifyListeners(AnomalyRecord[] anomalies) {
-        if (myListener != null) {
-            // Update the display
-            myListener.onDroneUpdate(myFleetManger.getDroneFleet()); // Pass the fleet
+    private void notifyListeners(final AnomalyRecord[] anomalies) {
+        if (myListener == null) {
+            return;
+        }
 
-            if (anomalies.length > 0) {
-                // Update the anomaly
-                myListener.onAnomaliesDetected(anomalies);
-            }
+        // Notify drone updates
+        Drone[] fleet = myFleetManager.getDroneFleet();
+        if (fleet != null) {
+            myListener.onDroneUpdate(fleet);
+        }
+
+        // Notify anomalies only if any were detected
+        if (anomalies != null && anomalies.length > 0) {
+            myListener.onAnomaliesDetected(anomalies);
         }
     }
 }
