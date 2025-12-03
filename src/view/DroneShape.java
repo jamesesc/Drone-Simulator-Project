@@ -19,7 +19,7 @@ public class DroneShape extends Polygon {
                 0.0, -15.0,  // Represent the Tip
                 10.0, 10.0,  // Represent the Bottom Right
                 0.0,  5.0,   // Represent like an indent on top
-                -10.0, 10.0   // Represnt the Bottom Left
+                -10.0, 10.0   // Represent the Bottom Left
         );
 
         // Default Style

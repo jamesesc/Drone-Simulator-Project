@@ -176,7 +176,7 @@ class BottomTable extends VBox {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("There was an error exporting the AnomalyLog to TXT (exportToTXT) " + e);
         }
     }
 
@@ -196,9 +196,9 @@ class BottomTable extends VBox {
             }
 
             writer.flush();
-            System.out.println("CSV Exported to: " + filePath);
+            System.err.println("CSV Exported to: " + filePath);
         } catch (IOException e) {
-            System.out.println("Error in exportToCSV: " + e);
+            System.err.println("Error in exportToCSV: " + e);
         }
     }
 

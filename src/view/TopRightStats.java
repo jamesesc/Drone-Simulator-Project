@@ -8,7 +8,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -29,7 +28,7 @@ class TopRightStats extends StackPane {
      */
     private final VBox myLargeStatsView;
     /**
-     * Represnt the box that contains all the drones stats.
+     * Represent the box that contains all the drones stats.
      */
     private final VBox myDroneHolder;
 
@@ -138,8 +137,8 @@ class TopRightStats extends StackPane {
         VBox statsCardHolder = new VBox(5);
         statsCardHolder.setPadding(new Insets(10));
 
-        // Potential feature where if anomaly, will flash red
-        String borderColor = false ? "#FF1744" : "#333333";
+        // TODO: Potential feature where if anomaly, will flash red
+        //String borderColor = false ? "#FF1744" : "#333333";
 
         // Styling the drone statsCardHolder data itself color
         statsCardHolder.getStyleClass().add("stats-card-holder");

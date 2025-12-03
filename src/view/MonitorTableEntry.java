@@ -3,7 +3,7 @@ package view;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class MonitorTableEntry {
+class MonitorTableEntry {
     private final StringProperty myTimestamp;
     private final StringProperty myDroneId;
     private final StringProperty myType;
