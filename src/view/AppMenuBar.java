@@ -4,7 +4,7 @@ import database.AnomalyDB;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-
+import service.TimerManager;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -35,6 +35,9 @@ public class AppMenuBar extends MenuBar {
 
     /** Reference to the DroneCountMenu Item */
     private Menu myDroneCountMenu;
+
+    /** Reference to pause/resume menu item */
+    private MenuItem myPauseItem;
 
 
     /*-- Constructor --*/
@@ -309,33 +312,24 @@ public class AppMenuBar extends MenuBar {
 
         // Simulation SubItem: Start, Pause, Stop
         MenuItem startItem = new MenuItem("Start");
-        MenuItem pauseItem = new MenuItem("Pause");
+        myPauseItem = new MenuItem("Pause");
         MenuItem stopItem = new MenuItem("Stop");
 
         // Default states
-        pauseItem.setDisable(true);
+        myPauseItem.setDisable(true);
         stopItem.setDisable(true);
 
         // Start Action
         startItem.setOnAction(_ -> {
             myMonitor.startGame();
             startItem.setDisable(true);
-            pauseItem.setDisable(false);
+            myPauseItem.setDisable(false);
             stopItem.setDisable(false);
             myDroneCountMenu.setDisable(true);
         });
 
-        // Pause Action
-        pauseItem.setOnAction(_ -> {
-            myMonitor.togglePauseGame();
-            
-            // Update text based on state
-            if (myMonitor.isPaused()) {
-                pauseItem.setText("Resume");
-            } else {
-                pauseItem.setText("Pause");
-            }
-        });
+        // Pause Action (Pure Push)
+        myPauseItem.setOnAction(_ -> myMonitor.togglePauseGame());
 
         // Stop Action
         stopItem.setOnAction(_ -> {
@@ -343,16 +337,41 @@ public class AppMenuBar extends MenuBar {
             startItem.setDisable(false);
             myDroneCountMenu.setDisable(false); 
             stopItem.setDisable(true);
-            pauseItem.setDisable(true);
-            pauseItem.setText("Pause"); // Reset text
+            myPauseItem.setDisable(true);
+            myPauseItem.setText("Pause"); // Reset text
         });
 
         // Adding all the Sub Menu to the Sim Menu
-        simMenu.getItems().addAll(startItem, pauseItem, stopItem);
+        simMenu.getItems().addAll(startItem, myPauseItem, stopItem);
 
         return simMenu;
     }
 
+    /**
+     * Method that updates the menu bar based on the current simulation status.
+     * Called automatically when simulation status changes.
+     *
+     * @param theStatus the current simulation status
+     */
+    public void updateSimulationStatus(final TimerManager.Status theStatus) {
+        // Update pause/resume menu item
+        if (myPauseItem != null) {
+            switch (theStatus) {
+                case RUNNING:
+                    myPauseItem.setText("Pause");
+                    myPauseItem.setDisable(false);
+                    break;
+                case PAUSED:
+                    myPauseItem.setText("Resume");
+                    myPauseItem.setDisable(false);
+                    break;
+                case STOPPED:
+                    myPauseItem.setText("Pause");
+                    myPauseItem.setDisable(true);
+                    break;
+            }
+        }
+    }
 
     /**
      * Build the Helper Menu.
