@@ -7,16 +7,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
 import Model.Drone;
+import service.TimerManager;
 
+/**
+ * A class that represents the whole Front End UI.
+ *
+ * @version Autumn 2025
+ */
 public class MonitorDash  {
     /* =============
     DEPENDENCIES
@@ -36,9 +40,6 @@ public class MonitorDash  {
     /** Map of all the drones currently in use by the GUI. */
     final Map<Integer, Drone> myDrones = new ConcurrentHashMap<>();
 
-    /** Whether the game is paused. True = paused, False = not paused. */
-    private boolean myIsPaused = false;
-
 
     /* =============
     SECTIONS OF THE GUI
@@ -56,6 +57,9 @@ public class MonitorDash  {
     /** Represent the Database Manager */
     private DatabasePopup myDatabase;
 
+    /** Represents the menu bar of the application */
+    private AppMenuBar myMenuBar;
+
     /** Represent the whole window application */
     private Scene myScene;
 
@@ -65,7 +69,9 @@ public class MonitorDash  {
      ===============*/
 
     /**
-     * Constructor of MyJavaFXApp
+     * Constructor for the front end of the simulation software.
+     *
+     * @param theController represents the back end controller.
      */
     public MonitorDash(final DroneMonitorApp theController) {
         myController = Objects.requireNonNull(theController, "Controller can't be null");
@@ -75,7 +81,20 @@ public class MonitorDash  {
         // Initializing all the parts and pieces of the UI
         myTopLeft = new TopLeftDroneDisplay(this);
         myBottomSide = new BottomTable();
-        myTopRight = new TopRightStats(this);
+        myTopRight = new TopRightStats();
+
+        myTopRight.setMySelectionListener(droneId -> {
+            if (droneId == -1) {
+                swapRightPanel(false);
+            } else {
+                Drone drone = myDrones.get(droneId);
+                if (drone != null) {
+                    updateStatsTextLarge(drone);
+                    swapRightPanel(true);
+                    selectDroneOnMap(droneId);
+                }
+            }
+        });
     }
 
 
@@ -130,15 +149,16 @@ public class MonitorDash  {
         topSide.getChildren().addAll(myTopLeft, myTopRight);
 
         //Menu bar
-        AppMenuBar menuBar = new AppMenuBar(this, thePrimaryStage);
+        myMenuBar = new AppMenuBar(this, thePrimaryStage);
 
         // Creating the Border root, and adding the components to it
         BorderPane root = new BorderPane();
-        root.setTop(menuBar);
+        root.setTop(myMenuBar);
         root.setCenter(mainBox);
 
         return root;
     }
+
 
     /* =====================
        VIEW UPDATES
@@ -207,7 +227,7 @@ public class MonitorDash  {
      *
      * @param theRecord The anomaly record we'll be adding.
      */
-    public void addAnomalyRecord(AnomalyRecord theRecord) {
+    public void addAnomalyRecord(final AnomalyRecord theRecord) {
         myBottomSide.addAnomalyRecord(theRecord);
         mySoundManager.playNotificationSound();
     }
@@ -217,7 +237,7 @@ public class MonitorDash  {
      *
      * @param theRecords The anomaly records we'll be adding.
      */
-    public void addAnomalyRecord(List<AnomalyRecord> theRecords) {
+    public void addAnomalyRecord(final List<AnomalyRecord> theRecords) {
         if (theRecords == null || theRecords.isEmpty()) { return; }
 
         for (AnomalyRecord record : theRecords) {
@@ -245,7 +265,7 @@ public class MonitorDash  {
      *
      * @param theRecords What we want the contents to be.
      */
-    public void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
+    public void refreshAnomalyRecords(final List<AnomalyRecord> theRecords) {
         if (theRecords == null || theRecords.isEmpty()) { return; }
 
         myBottomSide.getAnomalyTable().getItems().clear();
@@ -263,7 +283,6 @@ public class MonitorDash  {
      */
     public void startGame() {
         myController.startSim();
-        reloadFleet(myController.getFleet());
         myTopLeft.getDroneDisplay().setStyle(null);
 
         System.out.print("MonitorDash: Started Game");
@@ -273,19 +292,26 @@ public class MonitorDash  {
      * Tell the controller DroneMonitorApp to toggle pausing.
      */
     public void togglePauseGame() {
-        if (myIsPaused) {
-            // Was paused, now resuming
-            myController.continueSim();
-            myTopLeft.setPausedMode(false);
-            System.out.println("MonitorDash: Resumed");
-        } else {
-            // Was running, now pausing
-            myController.pauseSim();
-            myTopLeft.setPausedMode(true);
-            System.out.println("MonitorDash: Paused");
+        myController.togglePause();
+    }
+
+    /**
+     * Updates the UI to reflect the current simulation status.
+     * This is called automatically when the simulation status changes.
+     *
+     * @param theStatus the current simulation status
+     */
+    public void updateSimulationStatus(final TimerManager.Status theStatus) {
+        boolean isPaused = (theStatus == TimerManager.Status.PAUSED);
+        myTopLeft.setPausedMode(isPaused);
+
+        // Update menu bar
+        if (myMenuBar != null) {
+            myMenuBar.updateSimulationStatus(theStatus);
         }
 
-        myIsPaused = !myIsPaused;
+        // Log status change
+        System.out.println("MonitorDash: Status changed to " + theStatus);
     }
 
 
@@ -295,6 +321,7 @@ public class MonitorDash  {
     public void endGame() {
         myController.stopSim();
         myTopLeft.getDroneDisplay().setStyle("-fx-background-color: null;");
+        myTopLeft.stopAllAnimations();
         System.out.println("MonitorDash: stopped game");
     }
 
@@ -303,12 +330,11 @@ public class MonitorDash  {
      *
      * @param theNewDroneCount is the new number for the amount of drones.
      */
-    public void changeDroneCount(int theNewDroneCount) {
+    public void changeDroneCount(final int theNewDroneCount) {
         // Stopping the Sim, safety insurance
         endGame();
 
         myController.changeDroneCount(theNewDroneCount);
-        reloadFleet(myController.getFleet());
     }
 
     /**
@@ -316,7 +342,7 @@ public class MonitorDash  {
      *
      * @param theDroneFleet represent the Drone Fleet.
      */
-    private void reloadFleet(final Drone[] theDroneFleet) {
+    public void reloadFleet(final Drone[] theDroneFleet) {
         // Cleaning the UI and Drone Map
         myTopLeft.clearAllDrones();
         myDrones.clear();
@@ -340,7 +366,7 @@ public class MonitorDash  {
      *
      * @param theBigStatsBox True = show big stats box, False = show small stats boxes.
      */
-    public void swapRightPanel(boolean theBigStatsBox) {
+    public void swapRightPanel(final boolean theBigStatsBox) {
         if (!theBigStatsBox) {
             myTopLeft.deselectAll();
         }
@@ -371,7 +397,7 @@ public class MonitorDash  {
      *
      * @param theCSSName represent the CSS class to use to update the stylesheet.
      */
-    public void applyStylesheet(String theCSSName) {
+    public void applyStylesheet(final String theCSSName) {
         myScene.getStylesheets().clear();
         myScene.getStylesheets().add(
                 Objects.requireNonNull(getClass().getResource(theCSSName)).toExternalForm()
@@ -404,15 +430,6 @@ public class MonitorDash  {
     /* =====================
        GETTERS / SETTERS
     ========================*/
-
-    /**
-     * Method to see if isPaused on or not.
-     *
-     * @return a boolean of the Stage paused status.
-     */
-    public boolean isPaused() {
-        return myIsPaused;
-    }
 
     /**
      * Method to give the Sound Manager.
