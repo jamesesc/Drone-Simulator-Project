@@ -39,16 +39,14 @@ class BottomTable extends VBox {
         TableColumn<MonitorTableEntry, String> col1 = new TableColumn<>("Timestamp");
         TableColumn<MonitorTableEntry, String> col2 = new TableColumn<>("Drone ID");
         TableColumn<MonitorTableEntry, String> col3 = new TableColumn<>("Type");
-        TableColumn<MonitorTableEntry, String> col4 = new TableColumn<>("Severity");
         TableColumn<MonitorTableEntry, String> col5 = new TableColumn<>("Details");
 
         col1.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         col2.setCellValueFactory(new PropertyValueFactory<>("droneId"));
         col3.setCellValueFactory(new PropertyValueFactory<>("type"));
-        col4.setCellValueFactory(new PropertyValueFactory<>("severity"));
         col5.setCellValueFactory(new PropertyValueFactory<>("details"));
 
-        myAnomalyTable.getColumns().addAll(List.of(col1, col2, col3, col4, col5));
+        myAnomalyTable.getColumns().addAll(List.of(col1, col2, col3, col5));
         myAnomalyTable.getStyleClass().add("dark-table");
 
         //Box that'll be holding everything at the bottom
@@ -90,7 +88,6 @@ class BottomTable extends VBox {
                 timeString,
                 idString,
                 theRecord.getType(),
-                theRecord.getSeverity(),
                 theRecord.getDetails()
         );
 
@@ -163,7 +160,7 @@ class BottomTable extends VBox {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
 
             // Header line
-            writer.write("Timestamp | Drone ID | Type | Severity | Details");
+            writer.write("Timestamp | Drone ID | Type | Details");
             writer.newLine();
             writer.write("-------------------------------------------------------------");
             writer.newLine();
@@ -173,7 +170,6 @@ class BottomTable extends VBox {
                 String line = entry.getTimestamp() + " | "
                         + entry.getDroneId() + " | "
                         + entry.getType() + " | "
-                        + entry.getSeverity() + " | "
                         + entry.getDetails();
                 writer.write(line);
                 writer.newLine();
@@ -189,14 +185,13 @@ class BottomTable extends VBox {
 
         try (FileWriter writer = new FileWriter(filePath)) {
             // Write CSV header
-            writer.append("Timestamp,Drone ID,Type,Severity,Details\n");
+            writer.append("Timestamp,Drone ID,Type,Details\n");
 
             // Write each row
             for (MonitorTableEntry entry : entries) {
                 writer.append(entry.getTimestamp()).append(",");
                 writer.append(entry.getDroneId()).append(",");
                 writer.append(entry.getType()).append(",");
-                writer.append(entry.getSeverity()).append(",");
                 writer.append(entry.getDetails().replaceAll(",", ";")).append("\n");
             }
 

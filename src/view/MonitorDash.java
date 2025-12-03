@@ -242,6 +242,7 @@ public class MonitorDash  {
 
         for (AnomalyRecord record : theRecords) {
             myBottomSide.addAnomalyRecord(record);
+            myDatabase.addAnomalyRecord(record);
         }
     }
 

@@ -1,8 +1,10 @@
 package view;
 
+import Model.AnomalyRecord;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -18,63 +20,49 @@ import java.util.List;
 import java.util.Objects;
 
 public class DatabasePopup {
-    private final int CONTROL_WIDTH = 150;
-    private Stage stage;
-    private TableView<MonitorTableEntry> table;
-    private FilteredList<MonitorTableEntry> filteredList;
-    private SortedList<MonitorTableEntry> sortedList;
+    private final Stage myStage;
+    private final TableView<MonitorTableEntry> myTable;
 
-    private TableColumn<MonitorTableEntry, String> colTimestamp;
-    private TableColumn<MonitorTableEntry, String> colDroneId;
-    private TableColumn<MonitorTableEntry, String> colType;
-    private TableColumn<MonitorTableEntry, String> colSeverity;
-    private TableColumn<MonitorTableEntry, String> colDetails;
-
+    private final ObservableList<MonitorTableEntry> myObservableList;
+    private final FilteredList<MonitorTableEntry> myFilteredList;
 
     DatabasePopup(Stage thePrimaryStage) {
         //Setting up our stage
-        stage = new Stage();
-        stage.initOwner(thePrimaryStage);
-        stage.initModality(Modality.NONE);
-        stage.initStyle(StageStyle.DECORATED);
-        stage.setTitle("SQLite Database");
+        myStage = new Stage();
+        myStage.initOwner(thePrimaryStage);
+        myStage.initModality(Modality.NONE);
+        myStage.initStyle(StageStyle.DECORATED);
+        myStage.setTitle("SQLite Database");
 
         //Building out our sections
-        MenuBar menuBar = buildMenuBar(stage);
+        MenuBar menuBar = buildMenuBar(myStage);
         HBox controlStrip = buildControls();
 
-        //Table setup
-        table = new TableView<>();
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);
+        myObservableList = FXCollections.observableArrayList();
+        myFilteredList = new FilteredList<>(myObservableList, _ -> true);
 
-        colTimestamp = new TableColumn<>("Timestamp");
-        colDroneId = new TableColumn<>("Drone ID");
-        colType = new TableColumn<>("Type");
-        colSeverity = new TableColumn<>("Severity");
-        colDetails = new TableColumn<>("Details");
+        //Table setup
+        myTable = new TableView<>();
+
+        TableColumn<MonitorTableEntry, String> colTimestamp = new TableColumn<>("Timestamp");
+        TableColumn<MonitorTableEntry, String> colDroneId = new TableColumn<>("Drone ID");
+        TableColumn<MonitorTableEntry, String> colType = new TableColumn<>("Type");
+        TableColumn<MonitorTableEntry, String> colDetails = new TableColumn<>("Details");
 
         colTimestamp.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         colDroneId.setCellValueFactory(new PropertyValueFactory<>("droneId"));
         colType.setCellValueFactory(new PropertyValueFactory<>("type"));
-        colSeverity.setCellValueFactory(new PropertyValueFactory<>("severity"));
         colDetails.setCellValueFactory(new PropertyValueFactory<>("details"));
 
-        table.getColumns().addAll(List.of(colTimestamp, colDroneId, colType, colSeverity, colDetails));
-        table.getStyleClass().add("dark-table");
-
-        // Later, when data is loaded, wrap in filteredList
-        filteredList = new FilteredList<>(FXCollections.observableArrayList(), p -> true);
-        //filteredList.getSource().setAll(resultsFromDB);
-
-        sortedList = new SortedList<>(filteredList);
-        sortedList.comparatorProperty().bind(table.comparatorProperty());
-
-        table.setItems(sortedList);
+        myTable.getColumns().addAll(List.of(colTimestamp, colDroneId, colType, colDetails));
+        myTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);
+        myTable.getStyleClass().add("dark-table");
+        myTable.setItems(myFilteredList);
 
         //Setting the scene
         BorderPane root = new BorderPane();
         root.setTop(new VBox(menuBar, controlStrip));
-        root.setCenter(table);
+        root.setCenter(myTable);
 
         Scene scene = new Scene(root, 900, 600);
         scene.getStylesheets().add(
@@ -83,77 +71,85 @@ public class DatabasePopup {
 
         root.getStyleClass().add("root");
 
-        stage.setScene(scene);
+        myStage.setScene(scene);
     }
 
     void show() {
-        stage.show();
+        myStage.show();
     }
 
-    TableView<MonitorTableEntry> getTable() {
-        return table;
+    public void addAnomalyRecord(AnomalyRecord record) {
+        if (record == null) return;
+
+        //Whether or not the ID is null, otherwise turn it into a String
+        String idString = (record.getID() == null) ? "—" : String.valueOf(record.getID());
+
+        //Turn the time into a string
+        String timeString = Double.toString(record.getTime());
+
+        //Make a new AnomalyEntry record for our table
+        MonitorTableEntry entry = new MonitorTableEntry(
+                timeString,
+                idString,
+                record.getType(),
+                record.getDetails()
+        );
+
+        Platform.runLater(() -> {
+            myObservableList.add(entry);
+            myTable.scrollTo(entry);
+        });
     }
 
-    //TODO:
-    /*
-    public void loadData(List<MonitorTableEntry> items) {
-    if (filteredList == null) {
-        filteredList = new FilteredList<>(FXCollections.observableArrayList(items), p -> true);
-        sortedList = new SortedList<>(filteredList);
-        sortedList.comparatorProperty().bind(table.comparatorProperty());
-        table.setItems(sortedList);
-    } else {
-        filteredList.getSource().setAll(items);
-    }
-}
-     */
+    public void refreshAnomalyRecords(List<AnomalyRecord> records) {
+        if (records == null) return;
 
-    private void applySort(ComboBox<String> sortBox) {
-        TableColumn<MonitorTableEntry, ?> column = switch (sortBox.getValue()) {
-            case "Timestamp" -> colTimestamp;
-            case "Drone ID" -> colDroneId;
-            case "Type" -> colType;
-            case "Severity" -> colSeverity;
-            case "Details" -> colDetails;
-            default -> null;
-        };
+        List<MonitorTableEntry> entries = records.stream()
+                .map(this::convert)
+                .toList();
 
-        if (column != null) {
-            table.getSortOrder().setAll(column);
-            column.setSortType(TableColumn.SortType.ASCENDING);
-        }
+        Platform.runLater(() -> {
+            myObservableList.setAll(entries);
+            if (!entries.isEmpty()) {
+                myTable.scrollTo(entries.getLast());
+            }
+        });
     }
 
+    private MonitorTableEntry convert(AnomalyRecord r) {
+        String id = (r.getID() == null) ? "—" : r.getID().toString();
+        return new MonitorTableEntry(
+                Double.toString(r.getTime()),
+                id,
+                r.getType(),
+                r.getDetails()
+        );
+    }
 
     private void applySearch(String category, String text) {
-        if (filteredList == null) return;
-
-        filteredList.setPredicate(entry -> {
+        myFilteredList.setPredicate(entry -> {
             if (text == null || text.isEmpty() || category == null) return true;
 
-            String lower = text.toLowerCase();
+            String needle = text.toLowerCase();
 
             return switch (category) {
-                case "Timestamp" -> entry.getTimestamp().toLowerCase().contains(lower);
-                case "Drone ID" -> entry.getDroneId().toLowerCase().contains(lower);
-                case "Type" -> entry.getType().toLowerCase().contains(lower);
-                case "Severity" -> entry.getSeverity().toLowerCase().contains(lower);
-                case "Details" -> entry.getDetails().toLowerCase().contains(lower);
+                case "Timestamp" -> entry.getTimestamp().toLowerCase().contains(needle);
+                case "Drone ID" -> entry.getDroneId().toLowerCase().contains(needle);
+                case "Type" -> entry.getType().toLowerCase().contains(needle);
+                case "Details" -> entry.getDetails().toLowerCase().contains(needle);
                 default -> true;
             };
         });
     }
 
-
     private MenuBar buildMenuBar(Stage thePopupStage) {
         MenuBar menuBar = new MenuBar();
         Menu fileMenu = new Menu("File");
 
-        MenuItem exportItem = new MenuItem("Export");
         MenuItem closeItem = new MenuItem("Close");
         closeItem.setOnAction(_ -> thePopupStage.close());
 
-        fileMenu.getItems().addAll(exportItem, closeItem);
+        fileMenu.getItems().addAll(closeItem);
         menuBar.getMenus().addAll(fileMenu);
 
         menuBar.getStyleClass().add("menu-bar");
@@ -162,36 +158,26 @@ public class DatabasePopup {
     }
 
     private HBox buildControls() {
-        //Sort by section
-        Label sortLabel = new Label("Sort by:  ");
-        sortLabel.getStyleClass().add("time-label");
-
-        ComboBox<String> sortBox = new ComboBox<>();
-        sortBox.getItems().addAll("Timestamp", "Drone ID", "Type", "Severity", "Details");
-        sortBox.setOnAction(_ -> applySort(sortBox)); //The action
-        sortBox.setPrefWidth(CONTROL_WIDTH);
-
-        HBox sortContainer = new HBox();
-        sortContainer.getChildren().addAll(sortLabel, sortBox);
-        sortContainer.getStyleClass().add("main-box");
-
         //Search section
         Label searchLabel = new Label("Search:  ");
         searchLabel.getStyleClass().add("time-label");
 
         ComboBox<String> searchBox = new ComboBox<>();
-        searchBox.getItems().addAll("Timestamp", "Drone ID", "Type", "Severity", "Details");
-        searchBox.setPrefWidth(CONTROL_WIDTH);
+        searchBox.getItems().addAll("Timestamp", "Drone ID", "Type", "Details");
+        searchBox.setPrefWidth(150);
+        searchBox.getSelectionModel().selectFirst();
 
         TextField searchField = new TextField();
         searchField.setPromptText("Enter text here...");
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
-            applySearch(searchBox.getValue(), newVal);
-        });
+        //Search per key press (we'll see how this does performance wise)
+        searchField.textProperty().addListener((_, _, newVal) -> applySearch(searchBox.getValue(), newVal));
+        //Search by pressing enter
+        searchField.setOnAction(_ -> {
+            searchField.clear();
+            applySearch(searchBox.getValue(), searchField.getText()); });
         searchField.getStyleClass().add("dark-text-area");
 
         searchBox.setOnAction(_ -> applySearch(searchBox.getValue(), searchField.getText()));
-
 
         HBox searchContainer = new HBox();
         searchContainer.getChildren().addAll(searchLabel, searchBox, searchField);
@@ -203,7 +189,7 @@ public class DatabasePopup {
 
         //HBox we'll be returning
         HBox controlStrip = new HBox();
-        controlStrip.getChildren().addAll(sortContainer, searchContainer);
+        controlStrip.getChildren().addAll(searchContainer);
         controlStrip.setMaxWidth(Double.MAX_VALUE);
         controlStrip.setSpacing(10);
         HBox.setHgrow(controlStrip, Priority.ALWAYS);
