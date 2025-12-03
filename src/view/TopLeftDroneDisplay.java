@@ -25,76 +25,99 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TopLeftDroneDisplay extends VBox {
+/**
+ * Class creation for the display screen for the simulation.
+ *
+ * @version Autumn 2025.
+ */
+public class TopLeftDroneDisplay extends VBox {
+    /*-- Camera Setting --*/
 
-    // Camera Setting
     /** Represent the zoom scale; 1.0 = 1 pixel  */
-    private double ZOOM_SCALE = 1.0;
-    // Represents the world X coordinate (the center of screen)
-    private double CAM_X = 0.0;
-    // Represents the world Y coordinate (the center of screen)
-    private double CAM_Y = 0.0;
+    private double myZoomScale = 1.0;
 
-    // Configuration
+    /** Represents the world X coordinate (the center of screen) */
+    private double myCameraX = 0.0;
+
+    // Represents the world Y coordinate (the center of screen)
+    private double myCameraY = 0.0;
+
+
+    /*-- Configuration --*/
+
     /** Represents the min zoom level */
     private static final double MIN_ZOOM = 0.1;
+
     /** Represents the max zoom level */
     private static final double MAX_ZOOM = 5.0;
+
     /** Represents the min Drone size */
     private static final double MIN_DRONE_SIZE = 20;
+
     /** Represents the max Drone size */
     private static final double MAX_DRONE_SIZE = 80;
+
     /* The width of the DroneShape polygon (-10 to 10 = 20px width) */
     private static final double BASE_SHAPE_WIDTH = 20.0;
 
-    // Dragging Fields
+
+    /*-- Dragging Fields --*/
+
     /** Represents the drag mouse in the x direction */
     private double lastMouseX;
+
     /** Represents the drag mouse in the y direction */
     private double lastMouseY;
 
-    // Scene Graph
+    /*-- Scene Graph --*/
+
     /** Represents the "window"; its fix size, and clips the content */
     private final Pane myViewport;
+
     /** Represents the "map" (infinite size, and can scale/moves around) */
     private final Pane myWorld;
 
 
-    // Drone Color Settings
+    /*-- Drone Color Settings --*/
+
     /** Represents the selected drone the user is looking at */
     private DroneShape mySelectedDrone;
+
     /** Represents the default drone color */
     private static final Color COLOR_DEFAULT = Color.WHITE;
+
     /** Represents the color when a drone is selected */
     private static final Color COLOR_SELECTED = Color.DEEPSKYBLUE;
 
-    //Drone animation tracking
-    /*
-     * Map to track the active Timeline for each drone ID
-     */
+    /*-- Drone animation tracking --*/
+
+    /* Map to track the active Timeline for each drone ID */
     private final Map<Integer, Timeline> activeTimelines = new ConcurrentHashMap<>();
 
-    /**
-     * Represents the time label of the simulation.
-     */
+    /** Represents the time label of the simulation. */
     private final Label myTimeLabel = new Label("Time: 00:00:00");
 
-    /**
-     * Map of Images representing Drones (Drone ID -> ImageView), concurrent since
-     * singleton stuff makes us gotta worry about multiple threads.
-     */
+    /** Map of Images representing Drones (Drone ID -> ImageView) */
     private final Map<Integer, DroneShape> myDroneViews = new ConcurrentHashMap<>();
 
+    /** Represent how long the fade takes in milliseconds */
+    private static final double FADE_DURATION_MILLIS = 150;
 
+
+    /*-- Dependency Injection --*/
+
+    /** Represent the MonitorDash this Display goes on */
     private final MonitorDash myMonitor;
+
+
+    /*-- Constructor --*/
 
     /**
      * Constructor for the TopLeftDroneDisplay, that initialize and set up the display up.
      */
     public TopLeftDroneDisplay(MonitorDash monitorDash) {
-
-         myMonitor = Objects.requireNonNull(monitorDash, "monitorDash is null");
-
+        // Safety Check
+        myMonitor = Objects.requireNonNull(monitorDash, "monitorDash is null");
 
         HBox.setHgrow(this, Priority.ALWAYS);
         VBox.setVgrow(this, Priority.ALWAYS);
@@ -155,13 +178,16 @@ class TopLeftDroneDisplay extends VBox {
         getChildren().add(droneBox);
 
         // Updating our viewport aka our camera on resize
-        myViewport.widthProperty().addListener((obs, oldVal, newVal) ->
+        myViewport.widthProperty().addListener((_, _, _) ->
                 updateCameraTransform());
-        myViewport.heightProperty().addListener((obs, oldVal, newVal) ->
+        myViewport.heightProperty().addListener((_, _, _) ->
                 updateCameraTransform());
 
         setupInputHandlers();
     }
+
+
+    /*-- Camera Setup --*/
 
     /**
      * Handles all the Mouse Interactions (Pan & Zoom).
@@ -179,7 +205,7 @@ class TopLeftDroneDisplay extends VBox {
             } else {
                 zoomFactor = 0.9;
             }
-            ZOOM_SCALE = Math.max(MIN_ZOOM, Math.min(ZOOM_SCALE * zoomFactor, MAX_ZOOM));
+            myZoomScale = Math.max(MIN_ZOOM, Math.min(myZoomScale * zoomFactor, MAX_ZOOM));
 
             updateCameraTransform();
             event.consume();
@@ -202,23 +228,23 @@ class TopLeftDroneDisplay extends VBox {
             lastMouseY = event.getY();
 
             // Converting the screen pixels to our world units to shift camera
-            CAM_X -= changeX / ZOOM_SCALE;
+            myCameraX -= changeX / myZoomScale;
             // It's + because screen Y is inverted relative to the World Y
-            CAM_Y += changeY / ZOOM_SCALE;
+            myCameraY += changeY / myZoomScale;
 
             updateCameraTransform();
             event.consume();
         });
 
         // Drag end
-        myViewport.setOnMouseReleased(event -> myViewport.setCursor(Cursor.DEFAULT));
+        myViewport.setOnMouseReleased(_ -> myViewport.setCursor(Cursor.DEFAULT));
 
         // Reset
         myViewport.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
-                CAM_X = 0;
-                CAM_Y = 0;
-                ZOOM_SCALE = 1.0;
+                myCameraX = 0;
+                myCameraY = 0;
+                myZoomScale = 1.0;
                 updateCameraTransform();
             } else if (event.getClickCount() == 1) { // Single Click = Deselect Drone
                 if (mySelectedDrone != null) {
@@ -231,7 +257,7 @@ class TopLeftDroneDisplay extends VBox {
     }
 
     /**
-     * Applying the current CAM_X, CAM_Y, and Zoom to the World Pane.
+     * Applying the current myCameraX, myCameraY, and Zoom to the World Pane.
      * This handles and adjusts the movement to the entire map instantly.
      */
     private void updateCameraTransform() {
@@ -239,27 +265,29 @@ class TopLeftDroneDisplay extends VBox {
         double height = myViewport.getHeight();
 
         // The world scale
-        myWorld.setScaleX(ZOOM_SCALE);
-        myWorld.setScaleY(ZOOM_SCALE);
+        myWorld.setScaleX(myZoomScale);
+        myWorld.setScaleY(myZoomScale);
 
         // Translating (aka movement of our world)
-        // We want the World Point (CAM_X, -CAM_Y) to be at Screen Center (width/2, height/2).
+        // We want the World Point (myCameraX, -myCameraY) to be at Screen Center (width/2, height/2).
         // Formula: Screen = (World - Cam) * Scale + Center
 
         // Since the myWorld is unmanaged, its default origin is (0,0) of Viewport.
-        // We just need to shift it so (CamX, -CamY) aligns with Viewport Center.
+        // Just shift the camera so (CamX, -CamY) aligns with Viewport Center.
 
         double centerX = width / 2.0;
         double centerY = height / 2.0;
 
         // World(0,0) position on screen:
-        double originScreenX = centerX - (CAM_X * ZOOM_SCALE);
-        // REMEMBER: -CAM_Y because Y is inverted
-        double originScreenY = centerY - (-CAM_Y * ZOOM_SCALE);
+        double originScreenX = centerX - (myCameraX * myZoomScale);
+        // REMEMBER: -myCameraY because Y is inverted
+        double originScreenY = centerY - (-myCameraY * myZoomScale);
 
         myWorld.setTranslateX(originScreenX);
         myWorld.setTranslateY(originScreenY);
     }
+
+    /*-- Updates Methods --*/
 
     /**
      * A method being called by Backend.
@@ -267,7 +295,6 @@ class TopLeftDroneDisplay extends VBox {
      */
     public void refreshDroneDisplay(Drone drone) {
         if (drone == null) return;
-        myMonitor.myDrones.put(drone.getDroneID(), drone);
 
         Platform.runLater(() -> {
             // Check if new (for animation logic)
@@ -301,7 +328,7 @@ class TopLeftDroneDisplay extends VBox {
      * @param theAnimate true to animate transition, or false for instant update instead.
      */
     private Timeline updateDronePosition(final DroneShape theView, final TelemetryData theData, final boolean theAnimate) {
-        Timeline returnAnimation = new Timeline();
+        Timeline returnAnimation;
         // Calculates the Target (Local World coordinates) (1 meter = 1 pixel)
         double targetX = theData.getLongitude();
         // PS: Invert Y (Sim Up is +Y, Screen Down is +Y)
@@ -406,7 +433,7 @@ class TopLeftDroneDisplay extends VBox {
             myTimeLabel.setText(String.format("%02d:%02d:%02d", h, m, s));
 
             // Flashing ONLY myTimeLabel in light gray
-            FadeTransition flash = new FadeTransition(Duration.millis(150), myTimeLabel);
+            FadeTransition flash = new FadeTransition(Duration.millis(FADE_DURATION_MILLIS), myTimeLabel);
             flash.setFromValue(1.0);
             flash.setToValue(0.5);
             flash.setCycleCount(2);
@@ -415,12 +442,14 @@ class TopLeftDroneDisplay extends VBox {
         });
     }
 
+    /*-- Selection Functionality --*/
+
     /**
      * Highlights a specific drone on the map (Blue).
      *
      * @param theDroneID represent the specific drone that's being selected.
      */
-    public void selectDrone(int theDroneID) {
+    public void selectDrone(final int theDroneID) {
         DroneShape shape = myDroneViews.get(theDroneID);
         if (shape == null) return;
 
@@ -444,11 +473,23 @@ class TopLeftDroneDisplay extends VBox {
         }
     }
 
+    /*-- UI Calls --*/
+
+    /**
+     * Stops all drone animations immediately (for when simulation stops).
+     */
+    public void stopAllAnimations() {
+        activeTimelines.values().forEach(Timeline::stop);
+        activeTimelines.clear();
+    }
+
     /**
      * Dims the screen to gray when paused.
+     *
+     * @param myPause represent whether pause is on or not.
      */
-    public void setPausedMode(boolean isPaused) {
-        if (isPaused) {
+    public void setPausedMode(final boolean myPause) {
+        if (myPause) {
             // The world view is gray
             myViewport.setStyle("-fx-background-color: rgba(50, 50, 50, 0.4);");
             // Making the drones look dimmed
@@ -458,22 +499,13 @@ class TopLeftDroneDisplay extends VBox {
 
         } else {
             // Reset to invisible (but clickable) background
-            myViewport.setStyle("-fx-background-color: rgba(255, 0, 0, 1);");
+            myViewport.setStyle("-fx-background-color: rgba(0, 0, 0, 0.01);");
             // Full brightness
             myWorld.setOpacity(1.0);
             // Resuming all animation
             activeTimelines.values().forEach(Timeline::play);
         }
     }
-
-
-
-    /**
-     * Getter method that returns the viewpoint pane that contains the drone.
-     *
-     * @return the viewport pane which shows the current view of drones
-     */
-    public Pane getDroneDisplay() { return myViewport; }
 
     /**
      * Removes all drone images from the world but KEEPS the world pane intact.
@@ -487,10 +519,22 @@ class TopLeftDroneDisplay extends VBox {
         activeTimelines.clear();
     }
 
-    void applyStylesheet(String cssName) {
+    /**
+     * Getter method that returns the viewpoint pane that contains the drone.
+     *
+     * @return the viewport pane which shows the current view of drones
+     */
+    public Pane getDroneDisplay() { return myViewport; }
+
+    /**
+     * method to set the CSS style for this panel.
+     *
+     * @param theCSSName represent the CSS file to apply for.
+     */
+    public void applyStylesheet(final String theCSSName) {
         this.getStylesheets().clear();
         this.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+                Objects.requireNonNull(getClass().getResource(theCSSName)).toExternalForm()
         );
     }
 }
