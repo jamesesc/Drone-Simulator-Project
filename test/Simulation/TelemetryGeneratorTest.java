@@ -12,7 +12,8 @@ class TelemetryGeneratorTest {
     void telemetryDataNotNull() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData(new TelemetryData(0, 0,
+        0, 0, 0));
 
         assertNotNull(telemetryDataResult);
     }
@@ -22,7 +23,8 @@ class TelemetryGeneratorTest {
     void telemetryDataValid() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData(
+                new TelemetryData(5, 5, 5, 5, 5));
 
         final double latitudeChecker = telemetryDataResult.getAltitude();
         final double longitudeChecker = telemetryDataResult.getLongitude();
@@ -41,11 +43,13 @@ class TelemetryGeneratorTest {
     void multipleTelemetryData() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryDataResult = telemetryGenTest.generateTelemetryData(
+                new TelemetryData(0, 0, 0, 0, 0));
 
         final double latitudeChecker1 = telemetryDataResult.getAltitude();
 
-        telemetryDataResult = telemetryGenTest.generateTelemetryData();
+        telemetryDataResult = telemetryGenTest.generateTelemetryData(
+                new TelemetryData(2, 0, 2, 0, 0));
 
         final double latitudeChecker2 = telemetryDataResult.getAltitude();
 
@@ -56,8 +60,10 @@ class TelemetryGeneratorTest {
     void twoTelemetryDataNotTheSame() {
         TelemetryGenerator telemetryGenTest = new TelemetryGenerator();
 
-        TelemetryData telemetryData1 = telemetryGenTest.generateTelemetryData();
-        TelemetryData telemetryData2 = telemetryGenTest.generateTelemetryData();
+        TelemetryData telemetryData1 = telemetryGenTest.generateTelemetryData(
+                new TelemetryData(0, 0, 0, 0, 0));
+        TelemetryData telemetryData2 = telemetryGenTest.generateTelemetryData(
+                new TelemetryData(2, 0, 0, 0, 0));
 
         assertNotSame(telemetryData1, telemetryData2);
     }
