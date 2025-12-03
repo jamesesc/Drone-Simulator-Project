@@ -6,30 +6,28 @@ import java.util.Random;
  * A battery object class that has a composite relationship with the drone object.
  * It is used to handle all the functionality and logic for the drone battery.
  *
- * @author James Escudero
  * @version Autumn 2025
  */
 public class Battery {
-
-    /* FIELDS */
+    /*-- Fields --*/
 
     /** Random generator to help generate random battery level */
     private static final Random randomNumGen = new Random();
 
     /** Represent the Battery Level of the Drone */
-    private int myBattery;
+    private int myBatteryLevel;
 
     /** Represent the recharge batter level */
     private static final int RECHARGE_RATE = 15;
 
 
-    /* CONSTANTS */
+    /*-- Constant --*/
 
     /** The multiplier use to calculate the drain based on velocity */
     private static final double DRAIN_COEFFICIENT = 0.005;
 
     /** The exponent used to represent the square velocity */
-    private static final double VELOCITY_COEFFICIENT = 2.0;
+    private static final double VELOCITY_EXPONENT = 2.0;
 
     /** The max amount a battery can drain in a single update*/
     private static final int MAX_DRAIN_AMOUNT = 30;
@@ -54,7 +52,7 @@ public class Battery {
     private static final int[] PROB_BATTERY_LEVEL = {1, 14, 85};
 
 
-    /* CONSTRUCTOR */
+    /*-- Constructor --*/
 
     /**
      * Emptiness constructor for the Battery Object.
@@ -65,15 +63,15 @@ public class Battery {
     }
 
 
-    /* GETTERS */
+    /*-- Getters --*/
 
     /** Getter method to get the battery level */
     public int getLevel() {
-        return myBattery;
+        return myBatteryLevel;
     }
 
 
-    /* SETTER */
+    /*-- Setters --*/
 
     /**
      * Setter method to set the level of the battery level
@@ -81,24 +79,25 @@ public class Battery {
      * @param theNewBatteryLevel is the new battery level that were setting battery level to.
      */
     public void setLevel(final int theNewBatteryLevel) {
-        if (theNewBatteryLevel <= MIN_BATTERY_LEVEL || theNewBatteryLevel > MAX_BATTERY_LEVEL) {
+        if (theNewBatteryLevel < MIN_BATTERY_LEVEL || theNewBatteryLevel > MAX_BATTERY_LEVEL) {
             throw new IllegalArgumentException("Battery level must be between 0 and 100");
         }
 
-        myBattery = theNewBatteryLevel;
+        myBatteryLevel = theNewBatteryLevel;
     }
 
-    /* LOGIC */
+
+    /*-- Logic --*/
 
     /**
      * Recharge the battery by setting it back to 100.
      */
     public void recharge() {
-        myBattery += RECHARGE_RATE;
+        myBatteryLevel += RECHARGE_RATE;
 
         // Ensure we don't exceed 100%
-        if (myBattery > MAX_BATTERY_LEVEL) {
-            myBattery = MAX_BATTERY_LEVEL;
+        if (myBatteryLevel > MAX_BATTERY_LEVEL) {
+            myBatteryLevel = MAX_BATTERY_LEVEL;
         }
     }
 
@@ -154,7 +153,7 @@ public class Battery {
          */
 
         // Battery Decrease Formula
-        int batteryDecrease = (int) (DRAIN_COEFFICIENT * Math.pow(theVelocity, VELOCITY_COEFFICIENT));
+        int batteryDecrease = (int) (DRAIN_COEFFICIENT * Math.pow(theVelocity, VELOCITY_EXPONENT));
 
         // Min Cap, and Max Cap
         if (batteryDecrease == 0) {
@@ -162,10 +161,10 @@ public class Battery {
         } else if (batteryDecrease > MAX_DRAIN_AMOUNT) {
             batteryDecrease = MAX_DRAIN_AMOUNT;
         }
-        myBattery -= batteryDecrease;
+        myBatteryLevel -= batteryDecrease;
 
-        if (myBattery < MIN_BATTERY_LEVEL) {
-            myBattery = MIN_BATTERY_LEVEL;
+        if (myBatteryLevel < MIN_BATTERY_LEVEL) {
+            myBatteryLevel = MIN_BATTERY_LEVEL;
         }
     }
 }
