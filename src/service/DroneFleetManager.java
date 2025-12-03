@@ -8,38 +8,46 @@ import java.util.Objects;
  * A class that handles and manage all the drones in the simulation.
  * It is used by DroneMonitorApp to help and assist in the simulation logic and functionality.
  *
- * @author James Escudero
  * @version Autumn 2025
  */
 public final class DroneFleetManager {
     /*-- Constant --*/
 
-    /** Constant that represent the default numbers of drones in the fleet */
-    private int myDroneCount = 3;
+    /** Constant that represent the default numbers of drones in the fleet. */
+    private static final int DEFAULT_DRONE_COUNT = 3;
 
 
     /*-- Dependency Injection *--/
 
      */
-    /** A TelemetryGenerator Object responsible for generating telemetry data */
+    /** A TelemetryGenerator Object responsible for generating telemetry data. */
     private final TelemetryGenerator myTelemetryGen;
 
 
     /*-- Fields --*/
 
-    /** Represent the current drone being simulated on */
+    /** Represent the current drone being simulated on. */
     private Drone[] myDroneFleet;
 
+    /** Represent the current number of drones in the fleet. */
+    private int myDroneCount;
 
-    /* CONSTRUCTOR */
 
-    /** Public constructor for initializing the drone fleet and telemetry generator */
+    /*-- Constructor --*/
+
+    /**
+     * Public constructor for initializing the drone fleet and telemetry generator.
+     *
+     * @param theTelemetryGen represents the telemetry generator being in used.
+     */
     public DroneFleetManager(final TelemetryGenerator theTelemetryGen) {
-        myDroneFleet = new Drone[myDroneCount];
         myTelemetryGen = Objects.requireNonNull(theTelemetryGen, "theTelemetryGen can't be null");
+        myDroneCount = DEFAULT_DRONE_COUNT;
+        myDroneFleet = new Drone[myDroneCount];
 
         initializeFleet();
     }
+
 
     /*-- Updating --*/
 
@@ -49,7 +57,7 @@ public final class DroneFleetManager {
      * @param theNewCount is the new amount of drones to make in the fleet.
      * @throws IllegalArgumentException if the theNewCount is less than 1.
      */
-    public void updateDroneCount(int theNewCount) {
+    public void updateDroneCount(final int theNewCount) {
         if (theNewCount <= 0) {
             throw new IllegalArgumentException("Drone count must be greater than 0, got: " + theNewCount);
         }
@@ -62,6 +70,15 @@ public final class DroneFleetManager {
 
 
     /* GETTERS */
+
+    /**
+     * Getter method that returns the number of drones in the fleet.
+     *
+     * @return the number of drones in the fleet as an int.
+     */
+    public int getDroneCount() {
+        return myDroneCount;
+    }
 
     /**
      * Getter method that returns the drone fleet of the simulation.
@@ -90,15 +107,6 @@ public final class DroneFleetManager {
     }
 
     /**
-     * Getter method that returns the number of drones in the fleet.
-     *
-     * @return the number of drones in the fleet as an int.
-     */
-    public int getDroneCount() {
-        return myDroneCount;
-    }
-
-    /**
      * Method to find the id of a drone.
      *
      * @param theRequestDroneId represents the id of the drone we want to find.
@@ -110,26 +118,14 @@ public final class DroneFleetManager {
                 return drone;
             }
         }
-        throw new IllegalArgumentException("Drone with ID " + theRequestDroneId + " not found in fleet");
+        return null; // Not found
     }
 
 
-    /* DRONE FLEET LOGIC METHODS */
+    /*-- Drone Fleet Logic Methods --*/
 
     /**
-     * Method to reset the entire fleet.
-     */
-    public void resetFleet() {
-        Drone.resetIdCounter();
-
-        initializeFleet();
-
-        initializeFleetPosition();
-        initializeFleetAltitude();
-    }
-
-    /**
-     * Initialize the drone fleet array with new Drone objects
+     * Initialize the drone fleet array with new Drone objects.
      */
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
@@ -138,7 +134,18 @@ public final class DroneFleetManager {
     }
 
     /**
-     * Initialize every Drone object in the fleet to their starting position
+     * Method to reset the entire fleet.
+     */
+    public void resetFleet() {
+        Drone.resetIdCounter();
+        initializeFleet();
+        initializeFleetPosition();
+        initializeFleetAltitude();
+    }
+
+
+    /**
+     * Initialize every Drone object in the fleet to their starting position.
      */
     public void initializeFleetPosition() {
         for (Drone drone : myDroneFleet) {
@@ -147,11 +154,19 @@ public final class DroneFleetManager {
     }
 
     /**
-     * Initialize all drones in the fleet with their starting attitude
+     * Initialize all drones in the fleet with their starting attitude.
      */
     public void initializeFleetAltitude() {
         for (Drone drone : myDroneFleet) {
             TelemetryData droneCurrData = drone.getDroneTelemetry();
+
+            // Null safety check
+            if (droneCurrData == null) {
+                System.err.println("Warning: Drone " + drone.getDroneID() +
+                        " has null telemetry, skipping altitude initialization");
+                continue;
+            }
+
             TelemetryData altitudeData = myTelemetryGen.generateStartAltitude();
             droneCurrData.setAltitude(altitudeData.getAltitude());
             drone.updateDroneNextMove(droneCurrData);
@@ -180,15 +195,15 @@ public final class DroneFleetManager {
      *
      * @param theNewTelemetry is an array of telemetry data to update each drone in the fleet.
      * @throws NullPointerException if theNewTelemetry is null.
-     * @throws ArrayIndexOutOfBoundsException if theNewTelemetry array length is less than the fleet size.
+     * @throws IllegalArgumentException if theNewTelemetry array length is less than the fleet size.
      */
     public void updateFleetData(final TelemetryData[] theNewTelemetry) {
         if (theNewTelemetry == null) {
             throw new NullPointerException("Telemetry data array cannot be null");
         }
 
-        if (theNewTelemetry.length < myDroneFleet.length) {
-            throw new ArrayIndexOutOfBoundsException(
+        if (theNewTelemetry.length != myDroneFleet.length) {
+            throw new IllegalArgumentException(
                     "Telemetry array length (" + theNewTelemetry.length + ") +" +
                     "is less than fleet size (" + myDroneFleet.length + ")"
             );
