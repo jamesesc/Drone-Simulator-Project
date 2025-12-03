@@ -24,7 +24,6 @@ import controller.*;
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
 import Model.Drone;
-import javafx.util.Duration;
 
 /**
  * A Singleton class which houses our Graphical User Interface for the application.
@@ -337,22 +336,16 @@ public class MonitorDash extends Application {
 
         //Opening the database manager
         MenuItem databaseMenu = new MenuItem("Database Manager");
-        databaseMenu.setOnAction(_ -> {
-            showDatabase();
-        });
+        databaseMenu.setOnAction(_ -> showDatabase());
 
         // ---- File Menu Item 1: Export ----
         Menu exportMenu = new Menu("Export Log");
 
         // ---- Export SubItem: PDF, CSV ----
         MenuItem txtItem = new MenuItem("TXT");
-        txtItem.setOnAction(_ -> {
-            myBottomSide.exportToTXTDialog(thePrimaryStage);
-        });
+        txtItem.setOnAction(_ -> myBottomSide.exportToTXTDialog(thePrimaryStage));
         MenuItem csvItem = new MenuItem("CSV");
-        csvItem.setOnAction(_ -> {
-            myBottomSide.exportToCSVDialog(thePrimaryStage);
-        });
+        csvItem.setOnAction(_ -> myBottomSide.exportToCSVDialog(thePrimaryStage));
 
         // Adding each sub-item to the Export Menu
         exportMenu.getItems().addAll(txtItem, csvItem);
@@ -408,17 +401,11 @@ public class MonitorDash extends Application {
 
         // ---- Theme SubItem: Dark, White, Special ----
         MenuItem darkTheme = new MenuItem("Dark Theme");
-        darkTheme.setOnAction(_ -> {
-            applyStylesheet("dark_theme.css");
-        });
+        darkTheme.setOnAction(_ -> applyStylesheet("dark_theme.css"));
         MenuItem lightTheme = new MenuItem("Light Theme");
-        lightTheme.setOnAction(_ -> {
-            applyStylesheet("light_theme.css");
-        });
+        lightTheme.setOnAction(_ -> applyStylesheet("light_theme.css"));
         MenuItem customTheme = new MenuItem("Fabulous");
-        customTheme.setOnAction(_ -> {
-            applyStylesheet("special_theme.css");
-        });
+        customTheme.setOnAction(_ -> applyStylesheet("special_theme.css"));
 
         // Adding each sub-item to the Theme Menu
         themeMenu.getItems().addAll(darkTheme, lightTheme, customTheme);
@@ -428,13 +415,9 @@ public class MonitorDash extends Application {
 
         // ---- Sound SubItem: Enable, Disable, Sound ----
         MenuItem enableSound = new MenuItem("Enable Sounds");
-        enableSound.setOnAction(_ -> {
-            myIsMuted = false;
-        });
+        enableSound.setOnAction(_ -> myIsMuted = false);
         MenuItem disableSound = new MenuItem("Disable Sounds");
-        disableSound.setOnAction(_ -> {
-            myIsMuted = true;
-        });
+        disableSound.setOnAction(_ -> myIsMuted = true);
         MenuItem volume = new MenuItem("Volume...");
         volume.setOnAction(_ -> showVolumePopup());
         MenuItem testSound = new MenuItem("Test Sound");
@@ -495,22 +478,20 @@ public class MonitorDash extends Application {
         // Adding all the Sub Menu to the Sim Menu
         simMenu.getItems().addAll(startItem, pauseItem, stopItem);
 
-
-        // -- Menu 4: The Help ---
         Menu helpSetting = new Menu("Help");
 
-        // ---- Help Submenu: About, License, Version ----
         MenuItem aboutItem = new MenuItem("About");
         aboutItem.setOnAction(_ -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("About Application");
             alert.setHeaderText("Drone Application - About");
-            alert.setContentText("An application used for simulating a fleet of drones.\n" +
-                    "Created by Oisin Perkins-Gilbert, Mankirat Mann, James Escudero\n" +
-                    "Created with Java, IntelliJ, and JavaFX\n" +
-                    "Made in 2025\n" +
-                    "Sound Effects taken from: https://pixabay.com/sound-effects/new-notification-010-352755/\n" +
-                    "Github: https://github.com/jamesesc/Drone-Simulator-Project");
+            alert.setContentText("""
+                    An application used for simulating a fleet of drones.
+                    Created by Oisin Perkins-Gilbert, Mankirat Mann, James Escudero
+                    Created with Java, IntelliJ, and JavaFX
+                    Made in 2025
+                    Sound Effects taken from: https://pixabay.com/sound-effects/new-notification-010-352755/
+                    Github: https://github.com/jamesesc/Drone-Simulator-Project""");
             alert.showAndWait();
         });
 
@@ -519,10 +500,11 @@ public class MonitorDash extends Application {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Application Version");
             alert.setHeaderText("Drone Application - Version");
-            alert.setContentText("Current version: v5\n" +
-                    "Build date: 11/30/25\n" +
-                    "JavaFX Version: openjfx-25.0.1\n" +
-                    "Java Version: jdk-25");
+            alert.setContentText("""
+                    Current version: v5
+                    Build date: 11/30/25
+                    JavaFX Version: openjfx-25.0.1
+                    Java Version: jdk-25""");
             alert.showAndWait();
         });
 
@@ -572,9 +554,7 @@ public class MonitorDash extends Application {
                 Media media = new Media(url.toExternalForm());
                 notificationPlayer = new MediaPlayer(media);
 
-                notificationPlayer.setOnEndOfMedia(() -> {
-                    notificationPlayer.stop();
-                });
+                notificationPlayer.setOnEndOfMedia(() -> notificationPlayer.stop());
 
             } catch (Throwable theException) {
                 System.err.println("Audio not working: Ask Oisin (that's me!) for his Run Configuration");
@@ -612,9 +592,8 @@ public class MonitorDash extends Application {
 
         Label valueLabel = new Label(Integer.toString(myVolume));
 
-        slider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            valueLabel.setText(String.valueOf(newVal.intValue()));
-        });
+        slider.valueProperty().addListener((_, _, newVal) ->
+                valueLabel.setText(String.valueOf(newVal.intValue())));
 
         // Main box for popup
         HBox box = new HBox(10, new Label("Volume:"), slider, valueLabel);
