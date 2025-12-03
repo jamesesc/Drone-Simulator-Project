@@ -58,6 +58,7 @@ public class DroneMonitorApp {
     public synchronized void setSimulationListener(SimulationListener theListener) {
         myListener = theListener;
         mySimulationController.setSimulationListener(theListener);
+        myTimerManager.setListener(theListener);
     }
 
 
@@ -69,25 +70,21 @@ public class DroneMonitorApp {
     public void startSim() {
         myDroneFleet.resetFleet();
         myTimerManager.startTimer();
-        mySimulationController.setPausedStatus(false);
         mySimulationController.startSimulationTask();
         notifyFleetReloaded();
     }
 
     /**
-     * Method to pause the simulation
+     * Toggles the simulation between paused and running states.
      */
-    public void pauseSim() {
-        mySimulationController.setPausedStatus(true);
-        myTimerManager.pauseTimer();
-    }
+    public void togglePause() {
+        TimerManager.Status currentStatus = myTimerManager.getSimStatus();
 
-    /**
-     * Method to continue the simulation after simulation has been pauseTimer
-     */
-    public void continueSim() {
-        mySimulationController.setPausedStatus(false);
-        myTimerManager.resumeTimer();
+        if (currentStatus == TimerManager.Status.PAUSED) {
+            myTimerManager.resumeTimer();
+        } else if (currentStatus == TimerManager.Status.RUNNING) {
+            myTimerManager.pauseTimer();
+        }
     }
 
     /**

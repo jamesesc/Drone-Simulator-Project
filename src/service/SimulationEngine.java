@@ -50,11 +50,6 @@ public class SimulationEngine {
     private SimulationListener myListener;
 
 
-    /*-- State --*/
-
-    /** Represents the current status of the simulation; true = running, false for stopped. */
-    private volatile boolean myPausedStatus = false;
-
 
     /*-- Constructor --*/
 
@@ -86,15 +81,6 @@ public class SimulationEngine {
      */
     public void setSimulationListener(final SimulationListener theListener) {
         myListener = theListener;
-    }
-
-    /**
-     * Sets the simulation status to pause.
-     *
-     * @param thePausedStatus is true to pause the simulation, otherwise false to resume.
-     */
-    public void setPausedStatus(final boolean thePausedStatus) {
-        myPausedStatus = thePausedStatus;
     }
 
 
@@ -168,7 +154,7 @@ public class SimulationEngine {
      */
     private void updateDronesTask() {
         // If the Simulator is paused, don't update, so skip
-        if (myPausedStatus) {
+        if (myTimerManager.getSimStatus() == TimerManager.Status.PAUSED) {
             return;
         }
 

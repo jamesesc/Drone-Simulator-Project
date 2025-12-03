@@ -1,16 +1,15 @@
-package service;
+package view;
 
 import Model.AnomalyRecord;
 import Model.Drone;
-import view.SimulationListener;
-import view.MonitorDash;
+import service.TimerManager;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
  * A class that handles and manage in updating the UI with the needed data for the simulation.
- * It is used by SimulationController to help and assist in updating the front end with new data.
+ * It is used by SimulationEngine to help and assist in updating the front end with new data.
  *
  * @author James Escudero
  * @version Autumn 2025
@@ -62,5 +61,25 @@ public class UpdateUIManager implements SimulationListener {
         }
 
         myUI.addAnomalyRecord(List.of(theAnomalies));
+    }
+
+    /**
+     * Updates the UI when to reload the drone fleet.
+     *
+     * @param theDroneFleet represent the drone fleet to reload to.
+     */
+    @Override
+    public void onFleetReloaded(Drone[] theDroneFleet) {
+        myUI.reloadFleet(theDroneFleet);
+    }
+
+    /**
+     * Updates the UI the simulation status.
+     *
+     * @param theStatus represnt the new status of the simulation.
+     */
+    @Override
+    public void onStatusChanged(TimerManager.Status theStatus) {
+        myUI.updateSimulationStatus(theStatus);
     }
 }

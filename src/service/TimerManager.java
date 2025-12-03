@@ -1,5 +1,6 @@
 package service;
 
+import view.SimulationListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -21,6 +22,11 @@ public class TimerManager {
     /** Conversion factor from milliseconds to seconds */
     private static final int MILLIS_TO_SECONDS = 1000;
 
+    /*-- Listeners --*/
+
+    /** Represent the listener object. */
+    private SimulationListener myListener;
+
 
     /*-- Fields --*/
 
@@ -36,6 +42,17 @@ public class TimerManager {
      /** Represents the current operational state of the simulation. */
     public enum Status {
         RUNNING, PAUSED, STOPPED
+    }
+
+    /*-- Listener Actions --*/
+
+    /**
+     * Method to assign a listener to the class.
+     *
+     * @param theListener represent the listener object.
+     */
+    public void setListener(final SimulationListener theListener) {
+        myListener = theListener;
     }
 
 
@@ -77,6 +94,7 @@ public class TimerManager {
     public void startTimer() {
         myStartTime = System.currentTimeMillis();
         mySimStatus = Status.RUNNING;
+        notifyStatusChanged();
     }
 
     /**
@@ -86,6 +104,7 @@ public class TimerManager {
         if (mySimStatus == Status.RUNNING) {
             myPausedTime = System.currentTimeMillis();
             mySimStatus = Status.PAUSED;
+            notifyStatusChanged();
         }
     }
 
@@ -98,6 +117,7 @@ public class TimerManager {
             myStartTime += pausedDuration;
             mySimStatus = Status.RUNNING;
             myPausedTime = 0;
+            notifyStatusChanged();
         }
     }
 
@@ -108,6 +128,7 @@ public class TimerManager {
         mySimStatus = Status.STOPPED;
         myStartTime = 0;
         myPausedTime = 0;
+        notifyStatusChanged();
     }
 
     /*-- Time Calculation Methods --*/
@@ -139,5 +160,17 @@ public class TimerManager {
      */
     public String getCurrentTime() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+    }
+
+
+    /*-- Helper methods --*/
+
+    /**
+     * Helper method to notify the change state of the simulation.
+     */
+    private void notifyStatusChanged() {
+        if (myListener != null) {
+            myListener.onStatusChanged(mySimStatus);
+        }
     }
 }
