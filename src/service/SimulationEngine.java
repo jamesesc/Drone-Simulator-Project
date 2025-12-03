@@ -1,12 +1,9 @@
-package controller;
+package service;
 
 import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 import database.AnomalyDB;
-import service.AnomalyDetector;
-import service.DroneFleetManager;
-import service.TimerManager;
 import view.SimulationListener;
 
 import java.util.Objects;
@@ -118,7 +115,6 @@ public class SimulationController {
 
         // Update the drone display for initial drone stats
         notifyDroneUpdate();
-
 
         // Update drone when 3 seconds is up, meaning when it flies up
         myScheduleOperation.schedule(() -> {
