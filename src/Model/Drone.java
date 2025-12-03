@@ -10,18 +10,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * As well, use a battery object that handles the internal battery of
  * the drone object.
  *
- * @author James Escudero
  * @version Fall 2025
  */
 public class Drone {
-
-    /* Fields */
+    /*-- Fields --*/
 
     /** Using a thread-safe counter for all created drone objects. */
     private static final AtomicInteger DRONE_COUNTER = new AtomicInteger(1);
 
     /** A Telemetry Data object class used to store all the drone Telemetry data */
-    private TelemetryData myTelemetryData;
+    private final TelemetryData myTelemetryData;
 
     /** A Battery object class used to handle the drone battery functionality */
     private final Battery myBattery;
@@ -32,12 +30,20 @@ public class Drone {
     /** Represent the drone state */
     private DroneState myDroneState;
 
-    // Constants for the logic
+
+    /*-- Constants for the logic --*/
+
     /** The height to reach before switching back to FLYING */
     private static final int SAFE_ALTITUDE = 25;
 
     /** How fast the drone goes up/down per tick */
     private static final double VERTICAL_SPEED = 30.0;
+
+    /** The battery low threshold to lower down */
+    private static final int BATTERY_LOW_THRESHOLD = 10;
+
+    /** The percentage for a full battery */
+    private static final int BATTERY_FULL = 100;
 
     /** Enum to represent the drone state */
     public enum DroneState {
@@ -49,9 +55,12 @@ public class Drone {
         TAKEOFF     // Fully Recharged, will fly up to a safe height
     }
 
+
     /* CONSTRUCTORS */
 
-    /** A non-arg constructor that initializes the drone id, and set the drone status to on */
+    /**
+     * A non-arg constructor that initializes the drone id, and set the drone status to on.
+     */
     public Drone() {
         // Using Java atomic increments that ensures each drone get unique ID in multi-thread simulation
         myDroneID = DRONE_COUNTER.getAndIncrement();
@@ -60,10 +69,10 @@ public class Drone {
         myTelemetryData = new TelemetryData();
     }
 
-    /* GETTERS */
+    /*-- Getters --*/
 
     /**
-     * A getter to get the drone battery level
+     * A getter to get the drone battery level.
      *
      * @return the Battery level of the drone as an int.
      */
@@ -72,7 +81,7 @@ public class Drone {
     }
 
     /**
-     * A getter to get the drone ID
+     * A getter to get the drone ID.
      *
      * @return the Drone ID as a String.
      */
@@ -81,7 +90,7 @@ public class Drone {
     }
 
     /**
-     * A getter to get the drone Telemetry Data
+     * A getter to get the drone Telemetry Data.
      *
      * @return the Drone Telemetry Data as a TelemetryData Object.
      */
@@ -91,7 +100,7 @@ public class Drone {
     }
 
     /**
-     * A getter to get whether the drone is on or not
+     * A getter to get whether the drone is on or not.
      *
      * @return the drone status as a Enum<DroneState>.
      */
@@ -100,7 +109,7 @@ public class Drone {
     }
 
 
-    /* SETTERS */
+    /*-- Setters --*/
 
     /**
      * A setter to set the Drone On status.
@@ -131,18 +140,22 @@ public class Drone {
     }
 
     /**
-     * A setter to update the drone Telemetry Data
+     * A method to reset the ID Counter.
+     */
+    public static void resetIdCounter() {
+        DRONE_COUNTER.set(1);
+    }
+
+    /**
+     * A setter to update the drone Telemetry Data.
      *
      * @param theNewTelemetryData represent the telemetry data that is going to update the drone telemetry data.
      * @throws NullPointerException if theNewTelemetryData is null.
      */
     public void updateDroneNextMove(final TelemetryData theNewTelemetryData) {
-        // Save the current state BEFORE overwriting it
-        double prevOrientation = myTelemetryData.getOrientation();
-        double prevLat = myTelemetryData.getLatitude();
-        double prevLon = myTelemetryData.getLongitude();
+        Objects.requireNonNull(theNewTelemetryData, "Telemetry Data cannot be null");
 
-        myTelemetryData = Objects.requireNonNull(theNewTelemetryData, "Telemetry Data cannot be null");
+        myBattery.drain(theNewTelemetryData.getVelocity());
 
         // Switch statements to handle all the different state
         switch (myDroneState) {
@@ -157,32 +170,19 @@ public class Drone {
                 flyOperation(myTelemetryData);
                 break;
             case LANDING:
-                setPreviousData(prevOrientation, prevLat, prevLon);
                 landingOperation();
                 break;
             case CHARGING:
-                setPreviousData(prevOrientation, prevLat, prevLon);
                 chargingOperation();
                 break;
             case TAKEOFF:
-                setPreviousData(prevOrientation, prevLat, prevLon);
                 handleTakeoffState();
                 break;
         }
     }
 
-    /**
-     * Help keep the drone stay in motion / staying still.
-     *
-     * @param prevOrientation of the drone previous orientation.
-     * @param prevLat of the drone previous latitude.
-     * @param prevLon of the drone previous longitude.
-     */
-    private void setPreviousData(final double prevOrientation, final double prevLat, final double prevLon) {
-        myTelemetryData.setOrientation(prevOrientation);
-        myTelemetryData.setLatitude(prevLat);
-        myTelemetryData.setLongitude(prevLon);
-    }
+
+    /*-- Helper methods for each action --*/
 
     /**
      * Handles the flying operation of the drone.
@@ -191,10 +191,14 @@ public class Drone {
      */
     private void flyOperation(final TelemetryData theTelemetryData) {
         // Assigning the new generated telemetry data to the drone
-        myTelemetryData = theTelemetryData;
+        myTelemetryData.setLatitude(theTelemetryData.getLatitude());
+        myTelemetryData.setLongitude(theTelemetryData.getLongitude());
+        myTelemetryData.setOrientation(theTelemetryData.getOrientation());
+        myTelemetryData.setAltitude(theTelemetryData.getAltitude());
+        myTelemetryData.setVelocity(theTelemetryData.getVelocity());
 
         // When flying, check if the batter level isn't below 10, if so, switch to charge mode
-        if (myBattery.getLevel() <= 10) {
+        if (myBattery.getLevel() <= BATTERY_LOW_THRESHOLD) {
             myDroneState = DroneState.LANDING;
         }
     }
@@ -203,16 +207,14 @@ public class Drone {
      * Handles the landing operation of the drone.
      */
     private void landingOperation() {
-        double currentAlt = myTelemetryData.getAltitude();
         // Decreasing alt by the current altitude
-        double newAlt = currentAlt - VERTICAL_SPEED;
+        double newAlt = myTelemetryData.getAltitude() - VERTICAL_SPEED;
 
         // Safety pro-cation that drone land on 0, nothing more
         if (newAlt <= 0) {
             newAlt = 0;
             myDroneState = DroneState.CHARGING;
-            // Charging time for the drone
-            long myChargeStartTime = System.currentTimeMillis();
+            myTelemetryData.setVelocity(0);
         }
 
         // Only updating the altitude and making the velocity
@@ -221,18 +223,17 @@ public class Drone {
     }
 
     /**
-     * Handles the charging phase of the drone
+     * Handles the charging phase of the drone.
      */
     private void chargingOperation() {
         // Ensuring that the drone stay on the drone
         myTelemetryData.setAltitude(0);
         myTelemetryData.setVelocity(0);
-        myTelemetryData.setOrientation(myTelemetryData.myOrientation);
 
         myBattery.recharge();
 
         // Checking if the time passed since charging, if so, change into takeoff
-        if (myBattery.getLevel() == 100) {
+        if (myBattery.getLevel() >= BATTERY_FULL) {
             myDroneState = DroneState.TAKEOFF;
         }
     }
@@ -241,8 +242,7 @@ public class Drone {
      * Handles the taking off the drone.
      */
     private void handleTakeoffState() {
-        double currentAlt = myTelemetryData.getAltitude();
-        double newAlt = currentAlt + VERTICAL_SPEED;
+        double newAlt = myTelemetryData.getAltitude() + VERTICAL_SPEED;
 
         // Check if we reached safe height
         if (newAlt >= SAFE_ALTITUDE) {
@@ -254,19 +254,13 @@ public class Drone {
         myTelemetryData.setVelocity(VERTICAL_SPEED);
     }
 
-    /* LOGIC */
+
+    /*-- Logic --*/
 
     /**
-     * A method that handles the battery drain simulation
+     * A method that handles the battery drain simulation.
      */
     public void simulateBatteryDrain() {
         myBattery.drain(myTelemetryData.getVelocity());
-    }
-
-    /**
-     * A method to reset the ID Counter
-     */
-    public static void resetIdCounter() {
-        DRONE_COUNTER.set(1);
     }
 }
