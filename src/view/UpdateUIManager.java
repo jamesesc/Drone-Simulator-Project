@@ -3,7 +3,6 @@ package view;
 import Model.AnomalyRecord;
 import Model.Drone;
 import service.TimerManager;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -15,10 +14,19 @@ import java.util.Objects;
  * @version Autumn 2025
  */
 public class UpdateUIManager implements SimulationListener {
+    /*-- Dependency Injection --*/
+
     /** A MonitorDash Object responsible for displaying the UI */
     private final MonitorDash myUI;
 
-    /** Public constructor to initialize the UI and Drone Fleet Manager */
+    /*-- Constructor --*/
+
+
+    /**
+     * Public constructor to initialize the UI and Drone Fleet Manager
+     *
+     * @param theUI represent the UI the Sound Manager is for.
+     */
     public UpdateUIManager(final MonitorDash theUI) {
         myUI = Objects.requireNonNull(theUI, "theUI can't be null");
     }
