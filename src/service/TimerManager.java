@@ -39,6 +39,9 @@ public class TimerManager {
     /** Represent the state of the simulation. */
     private Status mySimStatus = Status.STOPPED;
 
+    /** Represent the current tick speed multiplier (in seconds). */
+    private int myTickSpeed = 1;
+
      /** Represents the current operational state of the simulation. */
     public enum Status {
         RUNNING, PAUSED, STOPPED
@@ -70,23 +73,44 @@ public class TimerManager {
     /**
      * Getter method that returns the update interval of the simulation.
      *
-     * @return the update interval as an int.
+     * @return the update interval in seconds as a double.
      */
     public int getUpdateInterval() {
-        return UPDATE_INTERVAL_SECONDS;
+        return UPDATE_INTERVAL_SECONDS * myTickSpeed;
     }
 
     /**
-     * Getter method that returns the time interval of the simulation.
+     * Getter method that returns the timer interval of the simulation.
      *
-     * @return the timer interval as an int.
+     * @return the timer interval in seconds as a double.
      */
     public int getTimerInterval() {
         return TIMER_INTERVAL_SECONDS;
     }
 
+    /**
+     * Getter method that returns the current tick speed.
+     *
+     * @return the tick speed in seconds as a double.
+     */
+    public double getTickSpeed() {
+        return myTickSpeed;
+    }
+
 
     /*-- Timer Control Methods --*/
+
+    /**
+     * Method to set the tick speed of the simulation.
+     *
+     * @param theTickSpeed the new tick speed in seconds.
+     */
+    public void setTickSpeed(final int theTickSpeed) {
+        if (theTickSpeed >= 1 && theTickSpeed <= 10) {
+            myTickSpeed = theTickSpeed;
+            System.out.println("TimerManager: Tick speed set to " + theTickSpeed + " seconds");
+        }
+    }
 
     /**
      * Method to start the timer.

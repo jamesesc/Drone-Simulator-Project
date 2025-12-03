@@ -338,6 +338,16 @@ public class MonitorDash  {
     }
 
     /**
+     * Help handle changing the tick speed of the simulation.
+     *
+     * @param theNewTickSpeed is the new tick speed in seconds.
+     */
+    public void changeTickSpeed(final int theNewTickSpeed) {
+        myController.changeTickSpeed(theNewTickSpeed);
+        System.out.println("MonitorDash: Tick speed changed to " + theNewTickSpeed + " seconds");
+    }
+
+    /**
      * Helper method to go through and update the Stats Panel for drone count changes.
      *
      * @param theDroneFleet represent the Drone Fleet.

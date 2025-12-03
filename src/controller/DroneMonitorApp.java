@@ -109,6 +109,15 @@ public class DroneMonitorApp {
         notifyFleetReloaded();
     }
 
+    /**
+     * Helps allow the configuration and changing of the tick speed.
+     *
+     * @param theNewTickSpeed represents the new tick speed in seconds.
+     */
+    public void changeTickSpeed(final int theNewTickSpeed) {
+        myTimerManager.setTickSpeed(theNewTickSpeed);
+    }
+
 
     /*-- Helper Methods --*/
 

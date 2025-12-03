@@ -122,7 +122,8 @@ public class AppMenuBar extends MenuBar {
         // The overall Menu
         Menu settingMenu = new Menu("Settings");
 
-        // Setting SubItem: DroneCount, Theme, Sound
+        // Setting SubItem: TickSpeed, DroneCount, Theme, Sound
+        buildTickMenuItem(settingMenu);
         buildDroneCountMenuItem(settingMenu);
         buildThemeMenuItem(settingMenu);
         buildSoundMenuItem(settingMenu);
@@ -251,6 +252,76 @@ public class AppMenuBar extends MenuBar {
 
         // Adding all the Sub Menu to the Setting Menu
         theSettingMenu.getItems().addAll(soundMenu);
+    }
+
+    /**
+     * Helper method that creates the 'Tick Speed' Menu Item.
+     */
+    private void buildTickMenuItem(final Menu theSettingMenu) {
+        // MenuItem: Tick Speed
+        Menu tickSpeedMenu = new Menu("Tick Speed");
+
+        // Tick Speed SubItem: Slow, Normal, Fast, Custom
+        MenuItem slowTickItem = new MenuItem("Slow (5s)");
+        MenuItem normalTickItem = new MenuItem("Normal (3s)");
+        MenuItem fastTickItem = new MenuItem("Fast (1s)");
+        MenuItem customTickItem = new MenuItem("Custom...");
+
+        // Event Action for each Sub-item
+        slowTickItem.setOnAction(_ -> myMonitor.changeTickSpeed(1));
+        normalTickItem.setOnAction(_ -> myMonitor.changeTickSpeed(2));
+        fastTickItem.setOnAction(_ -> myMonitor.changeTickSpeed(5));
+        customTickItem.setOnAction(_ -> handleCustomTickSpeedPopUp());
+
+        // Adding each sub-item to the Tick Speed Menu
+        tickSpeedMenu.getItems().addAll(slowTickItem, normalTickItem, fastTickItem, customTickItem);
+
+        // Adding all the Sub Menu to the Setting Menu
+        theSettingMenu.getItems().addAll(tickSpeedMenu);
+    }
+
+    /**
+     * Helper method to handle a pop screen for a custom tick speed.
+     */
+    private void handleCustomTickSpeedPopUp() {
+        // Pop up setting
+        TextInputDialog inputChat = new TextInputDialog("1");
+        inputChat.setTitle("Custom Tick Speed");
+        inputChat.setHeaderText("Enter tick speed in seconds:");
+        inputChat.setContentText("Speed (1 - 10):");
+
+        // Method to show the dialog box and waiting for user input
+        while(true) {
+            Optional<String> result = inputChat.showAndWait();
+
+            if (result.isEmpty()) {
+                break;
+            }
+
+            // Showing an error if bad input
+            String input = result.get().trim();
+            if (input.isEmpty()) {
+                showErrorGuide(inputChat, "Please enter a number.");
+                continue;
+            }
+
+            // Will continue until the user leaves or valid input
+            try {
+                int speed = Integer.parseInt(input);
+
+                if (speed >= 1 && speed <= 10) {
+                    myMonitor.changeTickSpeed(speed);
+                    break;
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR,
+                            "Please enter a number between 0.1 and 10.0 seconds");
+                    alert.showAndWait();
+                }
+            } catch (NumberFormatException e) {
+                // Input is bad, retry again
+                showErrorGuide(inputChat, "Invalid number.");
+            }
+        }
     }
 
     /**
