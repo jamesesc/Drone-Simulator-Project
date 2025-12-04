@@ -4,7 +4,11 @@ import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class AnomalyDetector  {
     /**
@@ -53,7 +57,6 @@ public class AnomalyDetector  {
      * @param theTimeStep The time since we last checked.
      * @return An array of all the anomalies in Model.AnomalyRecord form
      */
-    //TODO
     public AnomalyRecord[] analyzeDrones(final TelemetryData[] thePrior,
                                          final Drone[] theCurrent,
                                          final double theTime, final double theTimeStep) {
@@ -262,7 +265,7 @@ public class AnomalyDetector  {
      * Whether any drone shares the same longitude and latitude (drones can't be inside each other).
      *
      * @param theDrones The drones we are checking.
-     * @return Whether a drone is inside another.
+     * @return At least one of the drones which are being shared.
      */
     public List<Drone> detectSharingLocations(final Drone[] theDrones) {
         for (int i = 0; i < theDrones.length; i++) {

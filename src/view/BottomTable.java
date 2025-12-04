@@ -5,20 +5,24 @@ import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * The bottom half of the GUI, which is a VBox containing
  * a header and a table.
+ *
+ * @version Autumn 2025
  */
 class BottomTable extends VBox {
     /**
