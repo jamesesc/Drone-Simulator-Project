@@ -41,10 +41,14 @@ class BottomTable extends VBox {
         TableColumn<MonitorTableEntry, String> col3 = new TableColumn<>("Type");
         TableColumn<MonitorTableEntry, String> col5 = new TableColumn<>("Details");
 
-        col1.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
-        col2.setCellValueFactory(new PropertyValueFactory<>("droneId"));
-        col3.setCellValueFactory(new PropertyValueFactory<>("type"));
-        col5.setCellValueFactory(new PropertyValueFactory<>("details"));
+        col1.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getTimestamp()));
+        col2.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDroneId()));
+        col3.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getType()));
+        col5.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDetails()));
 
         myAnomalyTable.getColumns().addAll(List.of(col1, col2, col3, col5));
         myAnomalyTable.getStyleClass().add("dark-table");

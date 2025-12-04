@@ -7,7 +7,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -15,6 +14,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.beans.property.SimpleStringProperty;
+
 
 import java.util.List;
 import java.util.Objects;
@@ -49,10 +50,14 @@ public class DatabasePopup {
         TableColumn<MonitorTableEntry, String> colType = new TableColumn<>("Type");
         TableColumn<MonitorTableEntry, String> colDetails = new TableColumn<>("Details");
 
-        colTimestamp.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
-        colDroneId.setCellValueFactory(new PropertyValueFactory<>("droneId"));
-        colType.setCellValueFactory(new PropertyValueFactory<>("type"));
-        colDetails.setCellValueFactory(new PropertyValueFactory<>("details"));
+        colTimestamp.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getTimestamp()));
+        colDroneId.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDroneId()));
+        colType.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getType()));
+        colDetails.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDetails()));
 
         myTable.getColumns().addAll(List.of(colTimestamp, colDroneId, colType, colDetails));
         myTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);
