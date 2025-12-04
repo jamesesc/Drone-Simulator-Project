@@ -53,6 +53,7 @@ public class AnomalyDetector  {
      * @param theTimeStep The time since we last checked.
      * @return An array of all the anomalies in Model.AnomalyRecord form
      */
+    //TODO
     public AnomalyRecord[] analyzeDrones(final TelemetryData[] thePrior,
                                          final Drone[] theCurrent,
                                          final double theTime, final double theTimeStep) {
@@ -68,7 +69,11 @@ public class AnomalyDetector  {
         for (int i = 0; i < theCurrent.length; i++) {
             if (detectTeleport(thePrior[i], theCurrent[i].getDroneTelemetry(), theTimeStep)) {
                 returnList.add(new AnomalyRecord("detectTeleport",
-                        theCurrent[i].getDroneID(), theTime));
+                        theCurrent[i].getDroneID(), theTime, "Drone " + theCurrent[i].getDroneID() +
+                        " was detected teleporting from longitude " + thePrior[i].getLongitude() + " latitude " +
+                        thePrior[i].getLatitude() + ", to longitude " +
+                        theCurrent[i].getDroneTelemetry().getLongitude() + " latitude " +
+                        theCurrent[i].getDroneTelemetry().getLatitude()));
             }
         }
 
@@ -126,11 +131,16 @@ public class AnomalyDetector  {
 
             if (detectSuddenDropJump(thePrior[i], data)) {
                 returnList.add(new AnomalyRecord("detectSuddenDropJump",
-                        theCurrent[i].getDroneID(), theTime));
+                        theCurrent[i].getDroneID(), theTime, "Drone " + theCurrent[i].getDroneID() +
+                        " had a sudden drop/jump (>= " + DROP_THRESHOLD + " drop/" +
+                        JUMP_THRESHOLD + " jump) from altitude " + data.getAltitude() +
+                        " to altitude " + theCurrent[i].getDroneTelemetry().getAltitude()));
             }
             if (detectSharpTurns(thePrior[i], data)) {
                 returnList.add(new AnomalyRecord("detectSharpTurns",
-                        theCurrent[i].getDroneID(), theTime));
+                        theCurrent[i].getDroneID(), theTime, "Drone " + theCurrent[i].getDroneID()
+                        + " turned too sharply (>= " + TURN_THRESHOLD + " degree difference) from orientation " +
+                        data.getOrientation() + " to " + theCurrent[i].getDroneTelemetry().getOrientation()));
             }
         }
 
@@ -164,28 +174,45 @@ public class AnomalyDetector  {
 
         for (Drone drone : theDrones) {
             if (isBatteryNegative(drone)) {
-                returnList.add(new AnomalyRecord("isBatteryNegative", drone.getDroneID(), theTime));
+                returnList.add(new AnomalyRecord("isBatteryNegative", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " has a negative battery of " +
+                                drone.getBatteryLevel()));
             } else if (isBatteryEmpty(drone)) {
-                returnList.add(new AnomalyRecord("isBatteryEmpty", drone.getDroneID(), theTime));
+                returnList.add(new AnomalyRecord("isBatteryEmpty", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " has an empty battery"));
             } else if (isBatteryLow(drone)) {
-                returnList.add(new AnomalyRecord("isBatteryLow", drone.getDroneID(), theTime));
+                returnList.add(new AnomalyRecord("isBatteryLow", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " has a low battery (<=" +
+                                BATTERY_THRESHOLD + ") of " + drone.getBatteryLevel()));
             }
 
             TelemetryData data = drone.getDroneTelemetry();
 
             if (detectTooFast(data)) {
-                returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime));
+                returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " is exceeding the speed limit ("+ VELOCITY_THRESHOLD
+                                +") with a speed " + drone.getDroneTelemetry().getVelocity()));
             }
             if (isFlyingBackwards(data)) {
-                returnList.add(new AnomalyRecord("isFlyingBackwards", drone.getDroneID(), theTime));
+                returnList.add(new AnomalyRecord("isFlyingBackwards", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() +
+                                " is flying backwards with velocity " + drone.getDroneTelemetry().getVelocity()));
             }
             if (outOfBounds(data)) {
-                returnList.add(new AnomalyRecord("outOfBounds", drone.getDroneID(), theTime));
+                returnList.add(new AnomalyRecord("outOfBounds", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " is out of the bounds("+
+                                Arrays.toString(OUT_OF_BOUNDS) +") at longitude " +
+                                drone.getDroneTelemetry().getLongitude() + " and latitude " +
+                                drone.getDroneTelemetry().getLatitude()));
             }
         }
 
-        if (detectSharingLocations(theDrones)) {
-            returnList.add(new AnomalyRecord("detectSharingLocations", theTime));
+        List<Drone> drones = detectSharingLocations(theDrones);
+        if (!drones.isEmpty()) {
+            for(Drone drone : drones) {
+                returnList.add(new AnomalyRecord("detectSharingLocations", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " is sharing its location with another drone"));
+            }
         }
 
         return returnList.toArray(new AnomalyRecord[0]);
@@ -237,7 +264,7 @@ public class AnomalyDetector  {
      * @param theDrones The drones we are checking.
      * @return Whether a drone is inside another.
      */
-    public boolean detectSharingLocations(final Drone[] theDrones) {
+    public List<Drone> detectSharingLocations(final Drone[] theDrones) {
         for (int i = 0; i < theDrones.length; i++) {
             if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
                 throw new IllegalArgumentException("Illegal Argument " +
@@ -246,7 +273,7 @@ public class AnomalyDetector  {
             }
         }
 
-        boolean result = false;
+        List<Drone> result = new ArrayList<>();
 
         Set<Location> seen = new HashSet<>();
 
@@ -257,7 +284,7 @@ public class AnomalyDetector  {
             );
 
             if (seen.contains(loc)) {
-                result = true;
+                result.add(drone);
             }
             seen.add(loc);
         }
