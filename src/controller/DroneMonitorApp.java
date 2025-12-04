@@ -1,57 +1,136 @@
 package controller;
 
+import Model.Drone;
+import service.SimulationEngine;
+import service.DroneFleetManager;
+import service.TimerManager;
+import view.SimulationListener;
 import java.util.Objects;
 
 /**
  * A Controller class that handles and manage the core system of the simulation.
  * The class uses many helper classes to help build the functionality and operation
- * of the simulation all together.
+ * of the simulation altogether.
  *
- * @author James Escudero
  * @version Fall 2025
  */
 public class DroneMonitorApp {
-    /* A class object that help manage the time system of the simulation */
+    /*-- Dependency Injection --*/
+
+    /* A class object that help manage the time system of the simulation. */
     private final TimerManager myTimerManager;
 
-    /* A class object that help manage run the tasks needed for the simulation */
-    private final SimulationScheduler mySchedulerOperator;
+    /* A class object that help manage run the tasks needed for the simulation. */
+    private final SimulationEngine mySimulationController;
+
+    /** A class object that helps manage the fleet of drones for the simulation. */
+    private final DroneFleetManager myDroneFleet;
+
+    /** A class that is used to push data to the front end. */
+    private SimulationListener myListener;
+
+
+    /*-- Constructor --*/
 
     /**
      *  Public constructor to create the DroneMonitorApp instance.
      *
      * @param theTimerManager represents the TimeManager object to manage timer functionality.
-     * @param theSchedulerOperator represents the SimulationScheduler object to handle the simulation tasks.
+     * @param theSimulationController represents the SimulationEngine object to handle the simulation tasks.
+     * @param theDroneFleet represents the drones that's being used in the simulation.
+     * @throws NullPointerException if any of the parameters are null.
      */
-    public DroneMonitorApp(final TimerManager theTimerManager, final SimulationScheduler theSchedulerOperator) {
-        myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManger can't be null");
-        mySchedulerOperator = Objects.requireNonNull(theSchedulerOperator, "FleetManager can't be null");
+    public DroneMonitorApp(final TimerManager theTimerManager, final SimulationEngine theSimulationController,
+                           final DroneFleetManager theDroneFleet) {
+        myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManager can't be null");
+        mySimulationController = Objects.requireNonNull(theSimulationController, "SimulationEngine can't be null");
+        myDroneFleet = Objects.requireNonNull(theDroneFleet, "DroneFleet can't be null");
     }
 
-    /* Methods: Different Simulation "Stages/Phases" */
 
-    /** Method to start the simulation */
+    /*-- Setter --*/
+
+    /**
+     * Method that sets the simulation listener for any simulation events.
+     *
+     * @param theListener represents the listener to notified when a simulation event occurred.
+     */
+    public synchronized void setSimulationListener(SimulationListener theListener) {
+        myListener = theListener;
+        mySimulationController.setSimulationListener(theListener);
+        myTimerManager.setListener(theListener);
+    }
+
+
+    /*-- Different Simulation "Stages/Phases" Methods --*/
+
+    /**
+     * Method to start the simulation
+     */
     public void startSim() {
+        myDroneFleet.resetFleet();
         myTimerManager.startTimer();
-        mySchedulerOperator.setPausedStatus(false);
-        mySchedulerOperator.startSimulationTask();
+        mySimulationController.startSimulationTask();
+        notifyFleetReloaded();
     }
 
-    /** Method to pause the simulation */
-    public void pauseSim() {
-        mySchedulerOperator.setPausedStatus(true);
-        myTimerManager.pauseTimer();
+    /**
+     * Toggles the simulation between paused and running states.
+     */
+    public void togglePause() {
+        TimerManager.Status currentStatus = myTimerManager.getSimStatus();
+
+        if (currentStatus == TimerManager.Status.PAUSED) {
+            myTimerManager.resumeTimer();
+        } else if (currentStatus == TimerManager.Status.RUNNING) {
+            myTimerManager.pauseTimer();
+        }
     }
 
-    /** Method to continue the simulation after simulation has been pauseTimer */
-    public void continueSim() {
-        mySchedulerOperator.setPausedStatus(false);
-        myTimerManager.resumeTimer();
-    }
-
-    /** Method to stop the simulation all together */
+    /**
+     * Method to stop the simulation altogether.
+     */
     public void stopSim() {
         myTimerManager.stopTimer();
-        mySchedulerOperator.stopSimulationSchedule();
+        mySimulationController.stopSimulationSchedule();
+    }
+
+
+    /*-- Configuration --*/
+
+    /**
+     * Helps allow the configuration and changing of the number of drones in the fleet.
+     *
+     * @param theNewCount represents the new number of drones in the fleet to be.
+     */
+    public void changeDroneCount(final int theNewCount) {
+        stopSim();
+        myDroneFleet.updateDroneCount(theNewCount);
+        notifyFleetReloaded();
+    }
+
+    /**
+     * Helps allow the configuration and changing of the tick speed.
+     *
+     * @param theNewTickSpeed represents the new tick speed in seconds.
+     */
+    public void changeTickSpeed(final int theNewTickSpeed) {
+        myTimerManager.setTickSpeed(theNewTickSpeed);
+    }
+
+
+    /*-- Helper Methods --*/
+
+    /**
+     * Helper method to push Drone Fleet data.
+     */
+    private void notifyFleetReloaded() {
+        // Checks if listener and fleet isn't null, if not, then notify the update
+        if (myListener != null) {
+            Drone[] fleet = myDroneFleet.getDroneFleet();
+            if (fleet != null) {
+                myListener.onFleetReloaded(fleet);
+            }
+        }
     }
 }

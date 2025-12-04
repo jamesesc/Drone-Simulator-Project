@@ -1,0 +1,427 @@
+package service;
+
+import Model.AnomalyRecord;
+import Model.Drone;
+import Model.TelemetryData;
+
+import java.util.*;
+
+public class AnomalyDetector  {
+    /**
+     * What constitutes a battery being too low
+     */
+    final int BATTERY_THRESHOLD = 15;
+    /**
+     * The threshold for what constitutes a "sudden jump"
+     */
+    final double JUMP_THRESHOLD = 70.0;
+    /**
+     * The threshold for what constitutes a "sudden drop"
+     */
+    final double DROP_THRESHOLD = 50.0;
+    /**
+     * The threshold for what constitutes a "too sharp turn"
+     */
+    final double TURN_THRESHOLD = 50.0;
+    /**
+     * Determines what constitutes going "way too fast"
+     */
+    final double VELOCITY_THRESHOLD = 50.0;
+    /**
+     * The upper and lower bounds for latitude and longitude.
+     * Lower bound latitude, lower bound longitude, upper bound latitude, upper bound longitude.
+     */
+    final double[] OUT_OF_BOUNDS = {-1000.0, -1000.0, 1000.0, 1000.0};
+    /**
+     * MARGIN OF ERROR, percentage of current expected needs to pass
+     */
+    final double TELEPORT_MARGIN_OF_ERROR = 1.5;
+    /**
+     * Record for holding a latitude and longitude, used to
+     * simplify certain methods (such as detectSharingLocations())
+     * @param lat theLatitude
+     * @param lon theLongitude
+     */
+    record Location(double lat, double lon) {}
+
+    /**
+     * Full analysis of drones and their possible anomalies.
+     *
+     * @param thePrior The prior states of the drones.
+     * @param theCurrent The current drones.
+     * @param theTime The current time.
+     * @param theTimeStep The time since we last checked.
+     * @return An array of all the anomalies in Model.AnomalyRecord form
+     */
+    //TODO
+    public AnomalyRecord[] analyzeDrones(final TelemetryData[] thePrior,
+                                         final Drone[] theCurrent,
+                                         final double theTime, final double theTimeStep) {
+        // Null Checks
+        illegalDroneOrTelemetryData(thePrior, theCurrent);
+        //Number checks
+        if (theTime < 0 || theTimeStep <= 0) {
+            throw new IllegalArgumentException("Illegal Argument, " +
+                    "theTime < 0 or theTimeStep <= 0");
+        }
+        List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(thePrior, theCurrent, theTime)));
+
+        for (int i = 0; i < theCurrent.length; i++) {
+            if (detectTeleport(thePrior[i], theCurrent[i].getDroneTelemetry(), theTimeStep)) {
+                returnList.add(new AnomalyRecord("detectTeleport",
+                        theCurrent[i].getDroneID(), theTime, "Drone " + theCurrent[i].getDroneID() +
+                        " was detected teleporting from longitude " + thePrior[i].getLongitude() + " latitude " +
+                        thePrior[i].getLatitude() + ", to longitude " +
+                        theCurrent[i].getDroneTelemetry().getLongitude() + " latitude " +
+                        theCurrent[i].getDroneTelemetry().getLatitude()));
+            }
+        }
+
+        return returnList.toArray(new AnomalyRecord[0]);
+    }
+
+    /**
+     * Helper method to reduce duplicate code, checks for illegal arguments
+     * for two arrays of TelemetryData and Drones.
+     * @param theData The data we are checking.
+     * @param theDrones The drones we are checking.
+     */
+    private void illegalDroneOrTelemetryData(final TelemetryData[] theData,
+                                             final Drone[] theDrones) {
+        for (int i = 0; i < theData.length; i++) {
+            if (theData[i] == null) {
+                throw new IllegalArgumentException("Illegal Argument " +
+                        "for TelemetryData[] in analyzeDrones(TelemetryData[], " +
+                        "Drone[], double, double): Element " + i + " is null");
+            }
+        }
+        for (int i = 0; i < theDrones.length; i++) {
+            if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
+                throw new IllegalArgumentException("Illegal Argument " +
+                        "for Drone[] in analyzeDrones(TelemetryData[], " +
+                        "Drone[], double, double): Element " + i + " or " +
+                        "its telemetryData is null");
+            }
+        }
+    }
+
+    /**
+     * Analyzing a series of drones with all tests, without given the time step.
+     * Likely for debugging before implementing teleport tests.
+     * @param thePrior The prior states of the drones.
+     * @param theCurrent The current drones.
+     * @param theTime The time at which the anomaly would've happened.
+     * @return Any anomalies found in the form of anomaly records.
+     */
+    public AnomalyRecord[] analyzeDrones(final TelemetryData[] thePrior,
+                                         final Drone[] theCurrent,
+                                         final double theTime) {
+        // Null Checks
+        illegalDroneOrTelemetryData(thePrior, theCurrent);
+        //Number checks
+        if (theTime < 0) {
+            throw new IllegalArgumentException("Illegal Argument, " +
+                    "theTime < 0");
+        }
+
+        List<AnomalyRecord> returnList = new ArrayList<>(Arrays.asList(analyzeDrones(theCurrent, theTime)));
+
+        for (int i = 0; i < theCurrent.length; i++) {
+            TelemetryData data = theCurrent[i].getDroneTelemetry();
+
+            if (detectSuddenDropJump(thePrior[i], data)) {
+                returnList.add(new AnomalyRecord("detectSuddenDropJump",
+                        theCurrent[i].getDroneID(), theTime, "Drone " + theCurrent[i].getDroneID() +
+                        " had a sudden drop/jump (>= " + DROP_THRESHOLD + " drop/" +
+                        JUMP_THRESHOLD + " jump) from altitude " + data.getAltitude() +
+                        " to altitude " + theCurrent[i].getDroneTelemetry().getAltitude()));
+            }
+            if (detectSharpTurns(thePrior[i], data)) {
+                returnList.add(new AnomalyRecord("detectSharpTurns",
+                        theCurrent[i].getDroneID(), theTime, "Drone " + theCurrent[i].getDroneID()
+                        + " turned too sharply (>= " + TURN_THRESHOLD + " degree difference) from orientation " +
+                        data.getOrientation() + " to " + theCurrent[i].getDroneTelemetry().getOrientation()));
+            }
+        }
+
+        return returnList.toArray(new AnomalyRecord[0]);
+    }
+
+    /**
+     * Analyzing a series of drones with all tests, given there's no prior data.
+     * Will likely be used for an initial anomaly check.
+     * @param theDrones The drones we're checking.
+     * @param theTime The time at which the error would happen.
+     * @return Any anomalies found in the form of anomaly records.
+     */
+    public AnomalyRecord[] analyzeDrones(final Drone[] theDrones,
+                                         final double theTime) {
+        // Null Checks
+        for (int i = 0; i < theDrones.length; i++) {
+            if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
+                throw new IllegalArgumentException("Illegal Argument " +
+                        "for Drone[] in analyzeDrones(Drone[], double): " +
+                        "Element" + i + " or its telemetryData is null");
+            }
+        }
+        //Number checks
+        if (theTime < 0) {
+            throw new IllegalArgumentException("Illegal Argument, " +
+                    "theTime < 0");
+        }
+
+        List<AnomalyRecord> returnList = new ArrayList<>();
+
+        for (Drone drone : theDrones) {
+            if (isBatteryNegative(drone)) {
+                returnList.add(new AnomalyRecord("isBatteryNegative", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " has a negative battery of " +
+                                drone.getBatteryLevel()));
+            } else if (isBatteryEmpty(drone)) {
+                returnList.add(new AnomalyRecord("isBatteryEmpty", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " has an empty battery"));
+            } else if (isBatteryLow(drone)) {
+                returnList.add(new AnomalyRecord("isBatteryLow", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " has a low battery (<=" +
+                                BATTERY_THRESHOLD + ") of " + drone.getBatteryLevel()));
+            }
+
+            TelemetryData data = drone.getDroneTelemetry();
+
+            if (detectTooFast(data)) {
+                returnList.add(new AnomalyRecord("detectTooFast", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " is exceeding the speed limit ("+ VELOCITY_THRESHOLD
+                                +") with a speed " + drone.getDroneTelemetry().getVelocity()));
+            }
+            if (isFlyingBackwards(data)) {
+                returnList.add(new AnomalyRecord("isFlyingBackwards", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() +
+                                " is flying backwards with velocity " + drone.getDroneTelemetry().getVelocity()));
+            }
+            if (outOfBounds(data)) {
+                returnList.add(new AnomalyRecord("outOfBounds", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " is out of the bounds("+
+                                Arrays.toString(OUT_OF_BOUNDS) +") at longitude " +
+                                drone.getDroneTelemetry().getLongitude() + " and latitude " +
+                                drone.getDroneTelemetry().getLatitude()));
+            }
+        }
+
+        List<Drone> drones = detectSharingLocations(theDrones);
+        if (!drones.isEmpty()) {
+            for(Drone drone : drones) {
+                returnList.add(new AnomalyRecord("detectSharingLocations", drone.getDroneID(), theTime,
+                        "Drone " + drone.getDroneID() + " is sharing its location with another drone"));
+            }
+        }
+
+        return returnList.toArray(new AnomalyRecord[0]);
+    }
+
+    /**
+     * Detects any teleportation of a Drone. This method treats the drone as if
+     * it's on a 2D grid, with longitude being x and latitude being y.
+     *
+     * @param thePrior The prior state of the drone.
+     * @param theCurrent The current state of the drone.
+     * @param theTimeStep Time difference between thePrior's data and theCurrent's data.
+     * @return Whether there was teleportation.
+     */
+    public boolean detectTeleport(final TelemetryData thePrior,
+                                  final TelemetryData theCurrent,
+                                  final double theTimeStep) {
+        //Illegal arguments
+        if (thePrior == null || theCurrent == null || theTimeStep <= 0) {
+            throw new IllegalArgumentException("Illegal Argument in " +
+                    "detectTeleport: thePrior/theCurrent is null or " +
+                    "theTimeStep <= 0");
+        }
+
+        //Angles to radians
+        double prior_angle_radians = Math.toRadians(thePrior.getOrientation());
+        //delta x = v * cos(theta) * t, delta y = v * sin(theta) * t
+        double dX = thePrior.getVelocity() * Math.cos(prior_angle_radians) * theTimeStep;
+        double dY = thePrior.getVelocity() * Math.sin(prior_angle_radians) * theTimeStep;
+        //Actual displacement
+        double aDX = theCurrent.getLongitude() - thePrior.getLongitude();
+        double aDY = theCurrent.getLatitude() - thePrior.getLatitude();
+        //Pythagoras type deal
+        double expected_distance = Math.sqrt(Math.pow(dX, 2)
+                + Math.pow(dY, 2));
+        double actual_distance = Math.sqrt(Math.pow(aDX, 2)
+                + Math.pow(aDY, 2));
+        //Avoiding false positives from zero movement
+        double minThreshold = 0.01;
+
+        double allowedDistance = Math.max(expected_distance * TELEPORT_MARGIN_OF_ERROR, minThreshold);
+
+        return actual_distance > allowedDistance;
+    }
+
+    /**
+     * Whether any drone shares the same longitude and latitude (drones can't be inside each other).
+     *
+     * @param theDrones The drones we are checking.
+     * @return Whether a drone is inside another.
+     */
+    public List<Drone> detectSharingLocations(final Drone[] theDrones) {
+        for (int i = 0; i < theDrones.length; i++) {
+            if (theDrones[i] == null || theDrones[i].getDroneTelemetry() == null) {
+                throw new IllegalArgumentException("Illegal Argument " +
+                        "for Drone[] in detectSharingLocations(Drone[]): " +
+                        "Element" + i + " or its telemetryData is null");
+            }
+        }
+
+        List<Drone> result = new ArrayList<>();
+
+        Set<Location> seen = new HashSet<>();
+
+        for (Drone drone : theDrones) {
+            Location loc = new Location(
+                    drone.getDroneTelemetry().getLatitude(),
+                    drone.getDroneTelemetry().getLongitude()
+            );
+
+            if (seen.contains(loc)) {
+                result.add(drone);
+            }
+            seen.add(loc);
+        }
+        return result;
+    }
+
+
+    /**
+     * Whether a drone is outside the given bounds.
+     *
+     * @param theState The state of the drone we're checking.
+     * @return Whether the drone is out of bounds.
+     */
+    public boolean outOfBounds(final TelemetryData theState) {
+        if (theState == null) {
+            throw new IllegalArgumentException("Illegal Argument in " +
+                    "outOfBounds, inputted state is null");
+        }
+
+        boolean result = false;
+
+        Location loc = new Location(
+                theState.getLatitude(),
+                theState.getLongitude()
+        );
+
+        if (loc.lon < OUT_OF_BOUNDS[1] || loc.lon > OUT_OF_BOUNDS[3]) {
+            result = true;
+        }
+        if (loc.lat < OUT_OF_BOUNDS[0] || loc.lat > OUT_OF_BOUNDS[2]) {
+            result = true;
+        }
+
+        return result;
+    }
+    /**
+     * Using a drone's current data, determines whether a drone is flying backwards.
+     *
+     * @param theState The state of the drone
+     * @return Whether the drone is upside down
+     */
+    public boolean isFlyingBackwards(final TelemetryData theState) {
+        if (theState == null) {
+            throw new IllegalArgumentException("Illegal Argument Exception: " +
+                    "isFlyingBackwards() got a null TelemetryData");
+        }
+        return theState.getVelocity() < 0;
+    }
+
+    public boolean detectTooFast(final TelemetryData theState) {
+        if (theState == null) {
+            throw new IllegalArgumentException("Illegal Argument Exception: " +
+                    "detectTooFast() got a null TelemetryData");
+        }
+        return Math.abs(theState.getVelocity()) >= VELOCITY_THRESHOLD;
+    }
+
+    /**
+     * Using a drone's prior telemetry data, and it's current telemetry data, determines
+     * whether a drone has made a turn that's way too sharp.
+     *
+     * @param thePriorState Former state of the drone.
+     * @param theCurrentState Current state of the drone.
+     * @return Whether the drone made a turn that's too sharp.
+     */
+    public boolean detectSharpTurns(final TelemetryData thePriorState,
+                                    final TelemetryData theCurrentState) {
+        if (thePriorState == null || theCurrentState == null) {
+            throw new IllegalArgumentException("Illegal Argument Exception: " +
+                    "detectSharpTurns() got a null TelemetryData");
+        }
+        return Math.abs(theCurrentState.getOrientation() - thePriorState.getOrientation()) >= TURN_THRESHOLD;
+    }
+
+    /**
+     * Using a drone's prior telemetry data, and it's current telemetry data, determines whether
+     * a drone has made a drop/jump that's way too sudden.
+     *
+     * @param thePriorState Former state of the drone.
+     * @param theCurrentState Current state of the drone.
+     * @return Whether the drone is too suddenly dropping.
+     */
+    public boolean detectSuddenDropJump(final TelemetryData thePriorState,
+                                        final TelemetryData theCurrentState) {
+        if (thePriorState == null || theCurrentState == null) {
+            throw new IllegalArgumentException("Illegal Argument Exception: " +
+                    "detectSuddenDropJump() got a null TelemetryData");
+        }
+        double change = theCurrentState.getAltitude() - thePriorState.getAltitude();
+        return change <= -DROP_THRESHOLD || change >= JUMP_THRESHOLD;
+    }
+
+
+    /**
+     * Detects whether the battery level is low (< BATTERY_THRESHOLD).
+     * Returns true if it is low, false otherwise.
+     *
+     * @param theDrone The Drone whose battery we're checking.
+     * @return Whether that drone's battery is low.
+     */
+    public boolean isBatteryLow(final Drone theDrone) {
+        if (theDrone == null) {
+            throw new IllegalArgumentException("Illegal Argument: " +
+                    "Gave a null drone to isBatteryLow()");
+        }
+        return theDrone.getBatteryLevel() <= BATTERY_THRESHOLD;
+    }
+
+    /**
+     * Detects whether a drone's battery is empty (== 0).
+     * Returns true if it is low, false otherwise.
+     * WARNING: Method may be superfluous, can delete if needed.
+     *
+     * @param theDrone The Drone whose battery we're checking.
+     * @return Whether that drone's battery is empty.
+     */
+    public boolean isBatteryEmpty(final Drone theDrone) {
+        if (theDrone == null) {
+            throw new IllegalArgumentException("Illegal Argument: " +
+                    "Gave a null drone to isBatteryLow()");
+        }
+        return theDrone.getBatteryLevel() == 0;
+    }
+
+    /**
+     * Detects whether a drone's battery is negative (< 0).
+     * Returns true if it is low, false otherwise.
+     * WARNING: Method may be superfluous, can delete if needed.
+     *
+     * @param theDrone The Drone whose battery we're checking.
+     * @return Whether that drone's battery is empty.
+     */
+    public boolean isBatteryNegative(final Drone theDrone) {
+        if (theDrone == null) {
+            throw new IllegalArgumentException("Illegal Argument: " +
+                    "Gave a null drone to isBatteryLow()");
+        }
+        return theDrone.getBatteryLevel() < 0;
+    }
+}

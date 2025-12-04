@@ -7,7 +7,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -15,6 +14,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.beans.property.SimpleStringProperty;
+
 
 import java.util.List;
 import java.util.Objects;
@@ -26,13 +27,24 @@ public class DatabasePopup {
     private final ObservableList<MonitorTableEntry> myObservableList;
     private final FilteredList<MonitorTableEntry> myFilteredList;
 
-    DatabasePopup(Stage thePrimaryStage) {
+    private MonitorDash myMonitor;
+
+    DatabasePopup(final MonitorDash theMonitor,Stage thePrimaryStage) {
+        myMonitor = Objects.requireNonNull(theMonitor, "Monitor is null");
+
         //Setting up our stage
         myStage = new Stage();
         myStage.initOwner(thePrimaryStage);
         myStage.initModality(Modality.NONE);
         myStage.initStyle(StageStyle.DECORATED);
         myStage.setTitle("SQLite Database");
+
+        // When user x, it closes the stage, but resume the program
+        myStage.setOnCloseRequest(event -> {
+            myMonitor.togglePauseGame();
+            myStage.close();
+        });
+
 
         //Building out our sections
         MenuBar menuBar = buildMenuBar(myStage);
@@ -49,10 +61,14 @@ public class DatabasePopup {
         TableColumn<MonitorTableEntry, String> colType = new TableColumn<>("Type");
         TableColumn<MonitorTableEntry, String> colDetails = new TableColumn<>("Details");
 
-        colTimestamp.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
-        colDroneId.setCellValueFactory(new PropertyValueFactory<>("droneId"));
-        colType.setCellValueFactory(new PropertyValueFactory<>("type"));
-        colDetails.setCellValueFactory(new PropertyValueFactory<>("details"));
+        colTimestamp.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getTimestamp()));
+        colDroneId.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDroneId()));
+        colType.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getType()));
+        colDetails.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDetails()));
 
         myTable.getColumns().addAll(List.of(colTimestamp, colDroneId, colType, colDetails));
         myTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_LAST_COLUMN);
@@ -76,6 +92,29 @@ public class DatabasePopup {
 
     void show() {
         myStage.show();
+    }
+
+    public void addAnomalyRecord(AnomalyRecord record) {
+        if (record == null) return;
+
+        //Whether or not the ID is null, otherwise turn it into a String
+        String idString = (record.getID() == null) ? "—" : String.valueOf(record.getID());
+
+        //Turn the time into a string
+        String timeString = Double.toString(record.getTime());
+
+        //Make a new AnomalyEntry record for our table
+        MonitorTableEntry entry = new MonitorTableEntry(
+                timeString,
+                idString,
+                record.getType(),
+                record.getDetails()
+        );
+
+        Platform.runLater(() -> {
+            myObservableList.add(entry);
+            myTable.scrollTo(entry);
+        });
     }
 
     public void refreshAnomalyRecords(List<AnomalyRecord> records) {
@@ -124,7 +163,10 @@ public class DatabasePopup {
         Menu fileMenu = new Menu("File");
 
         MenuItem closeItem = new MenuItem("Close");
-        closeItem.setOnAction(_ -> thePopupStage.close());
+        closeItem.setOnAction(_ -> {
+            thePopupStage.close();
+            myMonitor.togglePauseGame();
+        });
 
         fileMenu.getItems().addAll(closeItem);
         menuBar.getMenus().addAll(fileMenu);
@@ -150,8 +192,8 @@ public class DatabasePopup {
         searchField.textProperty().addListener((_, _, newVal) -> applySearch(searchBox.getValue(), newVal));
         //Search by pressing enter
         searchField.setOnAction(_ -> {
-                searchField.clear();
-                applySearch(searchBox.getValue(), searchField.getText()); });
+            searchField.clear();
+            applySearch(searchBox.getValue(), searchField.getText()); });
         searchField.getStyleClass().add("dark-text-area");
 
         searchBox.setOnAction(_ -> applySearch(searchBox.getValue(), searchField.getText()));

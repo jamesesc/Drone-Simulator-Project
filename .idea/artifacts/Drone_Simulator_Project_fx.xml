@@ -1,0 +1,30 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="Drone Simulator Project:fx">
+    <output-path>$PROJECT_DIR$/out/artifacts/Drone_Simulator_Project_fx</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="App.Simulation" />
+        <option name="description" value="" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="title" value="Drone" />
+        <option name="vendor" value="a" />
+        <option name="version" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="Drone_Simulator_Project.jar">
+        <element id="module-output" name="Drone Simulator Project" />
+        <element id="library" level="project" name="junit.jupiter.api" />
+        <element id="library" level="project" name="openjfx.javafx.controls" />
+        <element id="library" level="project" name="openjfx.javafx.fxml" />
+        <element id="library" level="project" name="openjfx.javafx.graphics" />
+        <element id="library" level="project" name="openjfx.javafx.media" />
+        <element id="library" level="project" name="openjfx.javafx.swing" />
+        <element id="library" level="project" name="openjfx.javafx.web" />
+        <element id="library" level="project" name="openjfx.jfx.incubator.input" />
+        <element id="library" level="project" name="openjfx.jfx.incubator.richtext" />
+        <element id="library" level="project" name="xerial.sqlite.jdbc" />
+      </element>
+    </root>
+  </artifact>
+</component>

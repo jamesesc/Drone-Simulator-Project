@@ -1,10 +1,8 @@
 import Model.Drone;
 import Model.TelemetryData;
-import controller.AnomalyDetector;
+import service.AnomalyDetector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 public class AnomalyDetectorTest {
     AnomalyDetector myAnomalyDetector = new AnomalyDetector();
@@ -87,13 +85,13 @@ public class AnomalyDetectorTest {
         data2.setLatitude(1.0);
         data2.setLongitude(1.0);
 
-        drone1.updateDroneNextMove(data1);
-        drone2.updateDroneNextMove(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
-        List<Drone> result = myAnomalyDetector.detectSharingLocations(drones);
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
 
-        Assertions.assertFalse(result.isEmpty());
+        Assertions.assertTrue(result);
     }
 
     @Test
@@ -109,13 +107,13 @@ public class AnomalyDetectorTest {
         data2.setLatitude(1.0);
         data2.setLongitude(2.0);
 
-        drone1.updateDroneNextMove(data1);
-        drone2.updateDroneNextMove(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
-        List<Drone> result = myAnomalyDetector.detectSharingLocations(drones);
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
 
-        Assertions.assertTrue(result.isEmpty());
+        Assertions.assertFalse(result);
     }
 
     @Test
@@ -131,13 +129,13 @@ public class AnomalyDetectorTest {
         data2.setLatitude(2.0);
         data2.setLongitude(1.0);
 
-        drone1.updateDroneNextMove(data1);
-        drone2.updateDroneNextMove(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
-        List<Drone> result = myAnomalyDetector.detectSharingLocations(drones);
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
 
-        Assertions.assertTrue(result.isEmpty());
+        Assertions.assertFalse(result);
     }
 
     @Test
@@ -153,13 +151,13 @@ public class AnomalyDetectorTest {
         data2.setLatitude(2.0);
         data2.setLongitude(2.0);
 
-        drone1.updateDroneNextMove(data1);
-        drone2.updateDroneNextMove(data2);
+//        drone1.updateTelemetryData(data1);
+//        drone2.updateTelemetryData(data2);
 
         Drone[] drones = {drone1, drone2};
-        List<Drone> result = myAnomalyDetector.detectSharingLocations(drones);
+        boolean result = myAnomalyDetector.detectSharingLocations(drones);
 
-        Assertions.assertTrue(result.isEmpty());
+        Assertions.assertFalse(result);
     }
 
     //Tests for boolean outOfBounds(TelemetryData theState)
@@ -264,7 +262,7 @@ public class AnomalyDetectorTest {
     @Test
     void lowTestNegative() {
         Drone testDrone = new Drone();
-        testDrone.setBatteryLevel(BATTERY_THRESHOLD - 1);
+        testDrone.setBatteryLevel(-BATTERY_THRESHOLD);
 
         boolean result = myAnomalyDetector.isBatteryLow(testDrone);
 
