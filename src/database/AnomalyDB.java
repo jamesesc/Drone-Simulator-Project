@@ -140,7 +140,7 @@ public class AnomalyDB {
         return details;
     }
 
-    public void clearDatabase() {
+    public static void clearDatabase() {
         String sql = "DELETE FROM drone_anomalies";
 
         try (Statement stmt = conn.createStatement()) {
