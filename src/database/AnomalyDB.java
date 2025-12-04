@@ -4,6 +4,8 @@ import Model.AnomalyRecord;
 import Model.TelemetryData;
 import Model.Drone;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AnomalyDB {
     //database file location
@@ -68,7 +70,7 @@ public class AnomalyDB {
     }
 
     public boolean saveAnomaly(AnomalyRecord record, Drone drone) {
-        String sql = "INSERT INTO drone_anomalies (drone_id, anomaly_method, anomaly_time, altitude, longitude, latitude, orientation, velocity, anomaly_type, severity, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO drone_anomalies (drone_id, anomaly_method, anomaly_time, altitude, longitude, latitude, orientation, velocity, anomaly_type, details) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -83,7 +85,7 @@ public class AnomalyDB {
             pstmt.setDouble(7, data.getOrientation());
             pstmt.setDouble(8, data.getVelocity());
             pstmt.setString(9, record.getType());
-            pstmt.setString(11, record.getDetails());
+            pstmt.setString(10, record.getDetails());
 
             pstmt.executeUpdate();
             return true;
@@ -108,28 +110,51 @@ public class AnomalyDB {
         }
     }
 
+    public List<String[]> getAnomalyDetails() {
+        List<String[]> details = new ArrayList<>();
+        // SQL query to get all anomaly records sorted by timestamp (newest first)
+        String sql = "SELECT timestamp, drone_id, anomaly_type, details FROM drone_anomalies ORDER BY timestamp DESC";
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            // Loop through each row in the result set
+            while (rs.next()) {
+                // Store each row's data in a String array
+                String[] record = {
+                        rs.getString("timestamp"),           // get timestamp
+                        String.valueOf(rs.getInt("drone_id")), // get drone ID
+                        rs.getString("anomaly_type"),       // get anomaly type
+                        rs.getString("details")             // get additional details
+                };
+                // Add this record to the list
+                details.add(record);
+            }
+
+        } catch (SQLException e) {
+            // Print error if something goes wrong
+            System.err.println("Error retrieving anomaly details: " + e.getMessage());
+        }
+
+        // Return the list of anomalies
+        return details;
+    }
+
+    public void clearDatabase() {
+        String sql = "DELETE FROM drone_anomalies";
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+            System.out.println("Database cleared successfully");
+        } catch (SQLException e) {
+            System.err.println("Error clearing database: " + e.getMessage());
+        }
+    }
+
+
     public static void main(String[] args) {
         AnomalyDB db = new AnomalyDB();
-
-        // Create a drone with telemetry data
-        Drone drone = new Drone();
-        TelemetryData t = drone.getDroneTelemetry();
-
-        t.setAltitude(150.75);
-        t.setLatitude(47.251);
-        t.setLongitude(-122.440);
-        t.setOrientation(135.0);
-        t.setVelocity(22.8);
-
-        // Create an anomaly record
-        AnomalyRecord record = new AnomalyRecord("EngineFailure", 1, 325.8);
-        record.setDetails("Engine temperature exceeded safe limit.");
-
-        // Save the anomaly
-        boolean saved = db.saveAnomaly(record, drone);
-
-        System.out.println("Test anomaly saved? " + saved);
-
-        db.close();
+        db.clearDatabase();
+        AnomalyDB.close();
     }
 }
