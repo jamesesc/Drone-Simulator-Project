@@ -27,13 +27,24 @@ public class DatabasePopup {
     private final ObservableList<MonitorTableEntry> myObservableList;
     private final FilteredList<MonitorTableEntry> myFilteredList;
 
-    DatabasePopup(Stage thePrimaryStage) {
+    private MonitorDash myMonitor;
+
+    DatabasePopup(final MonitorDash theMonitor,Stage thePrimaryStage) {
+        myMonitor = Objects.requireNonNull(theMonitor, "Monitor is null");
+
         //Setting up our stage
         myStage = new Stage();
         myStage.initOwner(thePrimaryStage);
         myStage.initModality(Modality.NONE);
         myStage.initStyle(StageStyle.DECORATED);
         myStage.setTitle("SQLite Database");
+
+        // When user x, it closes the stage, but resume the program
+        myStage.setOnCloseRequest(event -> {
+            myMonitor.togglePauseGame();
+            myStage.close();
+        });
+
 
         //Building out our sections
         MenuBar menuBar = buildMenuBar(myStage);
@@ -152,7 +163,10 @@ public class DatabasePopup {
         Menu fileMenu = new Menu("File");
 
         MenuItem closeItem = new MenuItem("Close");
-        closeItem.setOnAction(_ -> thePopupStage.close());
+        closeItem.setOnAction(_ -> {
+            thePopupStage.close();
+            myMonitor.togglePauseGame();
+        });
 
         fileMenu.getItems().addAll(closeItem);
         menuBar.getMenus().addAll(fileMenu);

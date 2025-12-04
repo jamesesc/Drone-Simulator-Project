@@ -116,7 +116,7 @@ public class MonitorDash  {
         applyStylesheet("dark_theme.css");
 
         // Creating the Popup window for Database Manager
-        myDatabase = new DatabasePopup(thePrimaryStage);
+        myDatabase = new DatabasePopup(this, thePrimaryStage);
 
         // Stage Configuration
         thePrimaryStage.setTitle("Drone Simulation");
