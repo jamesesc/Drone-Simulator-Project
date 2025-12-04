@@ -407,9 +407,10 @@ public class TopRightStats extends StackPane {
                 HBox topRow = (HBox) box.getChildren().getFirst();
                 Label statusLabel = (Label) topRow.getChildren().get(POSITION_STATUS); // Index 2 is the Status Label
 
-                // Only updating if changed to save performance
+                // Only updating if changed
                 if (!statusLabel.getText().equals(droneStatusStr)) {
                     statusLabel.setText(droneStatusStr);
+                    statusLabel.setStyle("-fx-background-color: " + getDroneStatusColor(droneStatusStr)); // ADD THIS LINE
                 }
 
 

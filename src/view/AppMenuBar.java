@@ -89,7 +89,10 @@ public class AppMenuBar extends MenuBar {
 
         // MenuItem: Database Manager
         MenuItem databaseMenuItem = new MenuItem("Database Manager");
-        databaseMenuItem.setOnAction(_ -> myMonitor.showDatabase());
+        databaseMenuItem.setOnAction(_ -> {
+            myMonitor.showDatabase();
+             myMonitor.togglePauseGame();
+        });
 
         // MenuItem: Export Log
         Menu exportMenu = new Menu("Export Log");
@@ -312,14 +315,13 @@ public class AppMenuBar extends MenuBar {
         Menu soundMenu = new Menu("Sound");
         // Sound SubItem: Enable, Disable, Sound
         MenuItem enableSoundItem = new MenuItem("Enable Sounds");
-        enableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().setMuted(false));
-
+        enableSoundItem.setOnAction(_ -> myMonitor.setMute(false));
         MenuItem disableSoundItem = new MenuItem("Disable Sounds");
-        disableSoundItem.setOnAction(_ -> myMonitor.getSoundManager().setMuted(true));
+        disableSoundItem.setOnAction(_ -> myMonitor.setMute(true));
         MenuItem volume = new MenuItem("Volume...");
         volume.setOnAction(_ -> showVolumePopup());
         MenuItem testSoundItem = new MenuItem("Test Sound");
-        testSoundItem.setOnAction(_ -> myMonitor.getSoundManager().playNotificationSound());
+        testSoundItem.setOnAction(_ -> myMonitor.playNotification());
         // Adding each sub-item to the Sound Menu
         soundMenu.getItems().addAll(enableSoundItem, disableSoundItem, volume, testSoundItem);
 
@@ -338,7 +340,7 @@ public class AppMenuBar extends MenuBar {
         // OK & Cancel buttons
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-        int currentVolume = myMonitor.getSoundManager().getVolume();
+        int currentVolume = myMonitor.getVolume();
 
         // Slider
         Slider slider = new Slider(0, 100, currentVolume);
@@ -369,7 +371,7 @@ public class AppMenuBar extends MenuBar {
         Optional<Integer> result = dialog.showAndWait();
 
         result.ifPresent(newVol -> {
-            myMonitor.getSoundManager().setVolume(newVol);
+            myMonitor.setVolume(newVol);
             System.out.println("Volume set to: " + newVol);
         });
     }

@@ -155,7 +155,7 @@ Dark text areas
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-padding: 0;
-    -fx-highlight-fill: derive(-fx-base-dark, 20%);
+    -fx-highlight-fill: derive(-fx-base-dark-solid, 20%);
     -fx-highlight-text-fill: -fx-base-text;
 }
 
@@ -219,8 +219,7 @@ Dark Themed TableView
 }
 
 .dark-table .table-row-cell:odd {
-    -fx-background-color: -fx-base-medium;
-    -fx-background-insets: 0, 0, 0, 0;
+    -fx-background-color: derive(-fx-base-dark-solid, 8%);
 }
 
 .dark-table .table-row-cell:selected {

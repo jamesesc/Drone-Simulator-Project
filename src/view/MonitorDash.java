@@ -116,7 +116,7 @@ public class MonitorDash  {
         applyStylesheet("dark_theme.css");
 
         // Creating the Popup window for Database Manager
-        myDatabase = new DatabasePopup(thePrimaryStage);
+        myDatabase = new DatabasePopup(this, thePrimaryStage);
 
         // Stage Configuration
         thePrimaryStage.setTitle("Drone Simulation");
@@ -241,6 +241,7 @@ public class MonitorDash  {
         if (theRecords == null || theRecords.isEmpty()) { return; }
 
         for (AnomalyRecord record : theRecords) {
+            mySoundManager.playNotificationSound();
             myBottomSide.addAnomalyRecord(record);
             myDatabase.addAnomalyRecord(record);
         }
@@ -442,15 +443,35 @@ public class MonitorDash  {
         myBottomSide.exportToCSVDialog(theStage);
     }
 
-
-    /* =====================
-       GETTERS / SETTERS
-    ========================*/
+    /**
+     * Method to mute the stats of the sound manager.
+     *
+     * @param theMuteStatus represent the new mute status.
+     */
+    public void setMute(final boolean theMuteStatus) {
+        mySoundManager.setMuted(theMuteStatus);
+    }
 
     /**
-     * Method to give the Sound Manager.
+     * Method to play a notification.
      */
-    public SoundManager getSoundManager() {
-        return mySoundManager;
+    public void playNotification() {
+        mySoundManager.playNotificationSound();
+    }
+
+    /**
+     * Method to set the volume.
+     */
+    public void setVolume(final int theVolume) {
+        mySoundManager.setVolume(theVolume);
+    }
+
+    /**
+     * Method that return the volume of the sound player.
+     *
+     * @return the volume of the sound player as an int.
+     */
+    public int getVolume() {
+        return mySoundManager.getVolume();
     }
 }
