@@ -89,7 +89,10 @@ public class AppMenuBar extends MenuBar {
 
         // MenuItem: Database Manager
         MenuItem databaseMenuItem = new MenuItem("Database Manager");
-        databaseMenuItem.setOnAction(_ -> myMonitor.showDatabase());
+        databaseMenuItem.setOnAction(_ -> {
+            myMonitor.showDatabase();
+             myMonitor.togglePauseGame();
+        });
 
         // MenuItem: Export Log
         Menu exportMenu = new Menu("Export Log");
