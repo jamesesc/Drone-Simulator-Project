@@ -134,10 +134,7 @@ public class DroneMonitorApp {
     private void notifyFleetReloaded() {
         // Checks if listener and fleet isn't null, if not, then notify the update
         if (myListener != null) {
-            Drone[] fleet = myDroneFleet.getDroneFleet();
-            if (fleet != null) {
-                myListener.onFleetReloaded(fleet);
-            }
+            myListener.onFleetReloaded(myDroneFleet.getDroneFleet());
         }
     }
 }
