@@ -1,5 +1,6 @@
 package view;
 
+import database.AnomalyDB;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -31,6 +32,9 @@ public class MonitorDash  {
 
     /** Represents the Sound Manager for the UI */
     private final SoundManager mySoundManager;
+
+    /** Represents the Database used by this AnomalyDB **/
+    private final AnomalyDB myAnomalyDB;
 
 
     /* =============
@@ -73,8 +77,9 @@ public class MonitorDash  {
      *
      * @param theController represents the back end controller.
      */
-    public MonitorDash(final DroneMonitorApp theController) {
+    public MonitorDash(final DroneMonitorApp theController, final AnomalyDB theDB) {
         myController = Objects.requireNonNull(theController, "Controller can't be null");
+        myAnomalyDB = theDB;
 
         mySoundManager = new SoundManager();
 
@@ -243,7 +248,6 @@ public class MonitorDash  {
         for (AnomalyRecord record : theRecords) {
             mySoundManager.playNotificationSound();
             myBottomSide.addAnomalyRecord(record);
-            myDatabase.addAnomalyRecord(record);
         }
     }
 
@@ -414,6 +418,7 @@ public class MonitorDash  {
      */
     public void showDatabase() {
         myDatabase.show();
+        myDatabase.refreshAnomalyRecords(myAnomalyDB.getAnomalyDetails());
     }
 
     /**

@@ -160,7 +160,7 @@ class DatabasePopup {
      *
      * @param theRecords The records the table will be filled with
      */
-    public void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
+    public void refreshAnomalyRecords(List<String[]> theRecords) {
         if (theRecords == null) return;
 
         List<MonitorTableEntry> entries = theRecords.stream()
@@ -181,13 +181,12 @@ class DatabasePopup {
      * @param theAnomalyRecord The anomaly record we are converting
      * @return The converted anomaly record as a monitor table entry.
      */
-    private MonitorTableEntry convert(AnomalyRecord theAnomalyRecord) {
-        String id = (theAnomalyRecord.getID() == null) ? "—" : theAnomalyRecord.getID().toString();
+    private MonitorTableEntry convert(String[] theAnomalyRecord) {
         return new MonitorTableEntry(
-                Double.toString(theAnomalyRecord.getTime()),
-                id,
-                theAnomalyRecord.getType(),
-                theAnomalyRecord.getDetails()
+                theAnomalyRecord[0],
+                theAnomalyRecord[1],
+                theAnomalyRecord[2],
+                theAnomalyRecord[3]
         );
     }
 
