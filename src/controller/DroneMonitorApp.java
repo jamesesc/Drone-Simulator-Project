@@ -75,6 +75,13 @@ public class DroneMonitorApp {
     }
 
     /**
+     * Set pause to the simulation.
+     */
+    public void setPaused(){
+        myTimerManager.pauseTimer();
+    }
+
+    /**
      * Toggles the simulation between paused and running states.
      */
     public void togglePause() {

@@ -91,7 +91,7 @@ public class AppMenuBar extends MenuBar {
         MenuItem databaseMenuItem = new MenuItem("Database Manager");
         databaseMenuItem.setOnAction(_ -> {
             myMonitor.showDatabase();
-             myMonitor.togglePauseGame();
+             myMonitor.setPauseGame();
         });
 
         // MenuItem: Export Log

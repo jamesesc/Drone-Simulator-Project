@@ -298,6 +298,13 @@ public class MonitorDash  {
     }
 
     /**
+     * Tell the controller DroneMonitorApp to pause simulation.
+     */
+    public void setPauseGame() {
+        myController.setPaused();
+    }
+
+    /**
      * Updates the UI to reflect the current simulation status.
      * This is called automatically when the simulation status changes.
      *
