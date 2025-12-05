@@ -60,7 +60,9 @@ public class UpdateUIManager implements SimulationListener {
 
     @Override
     public void onFleetReloaded(Drone[] theDroneFleet) {
-        myUI.reloadFleet(theDroneFleet);
+        if (theDroneFleet != null) {
+            myUI.reloadFleet(theDroneFleet);
+        }
     }
 
     @Override
