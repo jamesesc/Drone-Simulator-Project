@@ -91,7 +91,7 @@ public class AppMenuBar extends MenuBar {
         MenuItem databaseMenuItem = new MenuItem("Database Manager");
         databaseMenuItem.setOnAction(_ -> {
             myMonitor.showDatabase();
-             myMonitor.togglePauseGame();
+             myMonitor.setPauseGame();
         });
 
         // MenuItem: Export Log
@@ -109,7 +109,8 @@ public class AppMenuBar extends MenuBar {
         // Exit simulation when click exit action
         exitMenuItem.setOnAction(_ -> {
             myMonitor.endGame(); // Ensure everything is shut down
-            AnomalyDB.close();
+            AnomalyDB.clearDatabase(); // Clear database
+            AnomalyDB.close(); // Close database
             myPrimaryStage.close();
         });
 
