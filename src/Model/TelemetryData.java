@@ -135,4 +135,18 @@ public class TelemetryData {
     public void setVelocity(final double theNewVelocity) {
         myVelocity = theNewVelocity;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        TelemetryData other = (TelemetryData) obj;
+
+        double MARGIN_OF_ERROR = 1e-6;
+        return Math.abs(myLatitude - other.getLatitude()) < MARGIN_OF_ERROR &&
+                Math.abs(myLongitude - other.getLongitude()) < MARGIN_OF_ERROR &&
+                Math.abs(myAltitude - other.getAltitude()) < MARGIN_OF_ERROR &&
+                Math.abs(myOrientation - other.getOrientation()) < MARGIN_OF_ERROR &&
+                Math.abs(myVelocity - other.getVelocity()) < MARGIN_OF_ERROR;
+    }
 }

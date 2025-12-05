@@ -1,12 +1,20 @@
 package view;
 
 import Model.AnomalyRecord;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -14,22 +22,44 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.beans.property.SimpleStringProperty;
-
 
 import java.util.List;
 import java.util.Objects;
 
-public class DatabasePopup {
+/**
+ * A popup for the database manager of our GUI.
+ *
+ * @version Autumn 2025
+ */
+class DatabasePopup {
+    /**
+     * The stage of the database popup.
+     */
     private final Stage myStage;
+    /**
+     * The table of the database popup, showing the various
+     */
     private final TableView<MonitorTableEntry> myTable;
-
+    /**
+     * Observable List that lets myFilteredList know of any changes
+     */
     private final ObservableList<MonitorTableEntry> myObservableList;
+    /**
+     * List used for searching through Anomalies of the Database
+     */
     private final FilteredList<MonitorTableEntry> myFilteredList;
+    /**
+     * The MonitorDash GUI that owns this instance.
+     */
+    private final MonitorDash myMonitor;
 
-    private MonitorDash myMonitor;
-
-    DatabasePopup(final MonitorDash theMonitor,Stage thePrimaryStage) {
+    /**
+     * Constructor for the Database popup.
+     *
+     * @param theMonitor The MonitorDash GUI that owns this instance.
+     * @param thePrimaryStage The stage of the MonitorDash GUI that owns this instance.
+     */
+    DatabasePopup(final MonitorDash theMonitor, Stage thePrimaryStage) {
         myMonitor = Objects.requireNonNull(theMonitor, "Monitor is null");
 
         //Setting up our stage
@@ -40,7 +70,7 @@ public class DatabasePopup {
         myStage.setTitle("SQLite Database");
 
         // When user x, it closes the stage, but resume the program
-        myStage.setOnCloseRequest(event -> {
+        myStage.setOnCloseRequest(_ -> {
             myMonitor.togglePauseGame();
             myStage.close();
         });
@@ -90,25 +120,33 @@ public class DatabasePopup {
         myStage.setScene(scene);
     }
 
+    /**
+     * Let the user see the Database Popup.
+     */
     void show() {
         myStage.show();
     }
 
-    public void addAnomalyRecord(AnomalyRecord record) {
-        if (record == null) return;
+    /**
+     * Adding an anomaly record to the table of the Database Popup.
+     *
+     * @param theRecord The anomaly record we are adding to the table of our popup
+     */
+    public void addAnomalyRecord(AnomalyRecord theRecord) {
+        if (theRecord == null) return;
 
         //Whether or not the ID is null, otherwise turn it into a String
-        String idString = (record.getID() == null) ? "—" : String.valueOf(record.getID());
+        String idString = (theRecord.getID() == null) ? "—" : String.valueOf(theRecord.getID());
 
         //Turn the time into a string
-        String timeString = Double.toString(record.getTime());
+        String timeString = Double.toString(theRecord.getTime());
 
         //Make a new AnomalyEntry record for our table
         MonitorTableEntry entry = new MonitorTableEntry(
                 timeString,
                 idString,
-                record.getType(),
-                record.getDetails()
+                theRecord.getType(),
+                theRecord.getDetails()
         );
 
         Platform.runLater(() -> {
@@ -117,10 +155,15 @@ public class DatabasePopup {
         });
     }
 
-    public void refreshAnomalyRecords(List<AnomalyRecord> records) {
-        if (records == null) return;
+    /**
+     * Clear the table, then fill it with a list of Anomaly Records.
+     *
+     * @param theRecords The records the table will be filled with
+     */
+    public void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
+        if (theRecords == null) return;
 
-        List<MonitorTableEntry> entries = records.stream()
+        List<MonitorTableEntry> entries = theRecords.stream()
                 .map(this::convert)
                 .toList();
 
@@ -132,32 +175,51 @@ public class DatabasePopup {
         });
     }
 
-    private MonitorTableEntry convert(AnomalyRecord r) {
-        String id = (r.getID() == null) ? "—" : r.getID().toString();
+    /**
+     * Helper method, converts AnomalyRecords to MonitorTableEntries
+     *
+     * @param theAnomalyRecord The anomaly record we are converting
+     * @return The converted anomaly record as a monitor table entry.
+     */
+    private MonitorTableEntry convert(AnomalyRecord theAnomalyRecord) {
+        String id = (theAnomalyRecord.getID() == null) ? "—" : theAnomalyRecord.getID().toString();
         return new MonitorTableEntry(
-                Double.toString(r.getTime()),
+                Double.toString(theAnomalyRecord.getTime()),
                 id,
-                r.getType(),
-                r.getDetails()
+                theAnomalyRecord.getType(),
+                theAnomalyRecord.getDetails()
         );
     }
 
-    private void applySearch(String category, String text) {
+    /**
+     * Search through the filtered list.
+     *
+     * @param theCategory The category in which we are looking
+     * @param theText What we are looking for
+     */
+    private void applySearch(String theCategory, String theText) {
         myFilteredList.setPredicate(entry -> {
-            if (text == null || text.isEmpty() || category == null) return true;
+            if (theText == null || theText.isEmpty() || theCategory == null) return true;
 
-            String needle = text.toLowerCase();
+            String checking = theText.toLowerCase();
 
-            return switch (category) {
-                case "Timestamp" -> entry.getTimestamp().toLowerCase().contains(needle);
-                case "Drone ID" -> entry.getDroneId().toLowerCase().contains(needle);
-                case "Type" -> entry.getType().toLowerCase().contains(needle);
-                case "Details" -> entry.getDetails().toLowerCase().contains(needle);
+            return switch (theCategory) {
+                case "Timestamp" -> entry.getTimestamp().toLowerCase().contains(checking);
+                case "Drone ID" -> entry.getDroneId().toLowerCase().contains(checking);
+                case "Type" -> entry.getType().toLowerCase().contains(checking);
+                case "Details" -> entry.getDetails().toLowerCase().contains(checking);
                 default -> true;
             };
         });
     }
 
+    /**
+     * Helper method for our database popup's menubar.
+     * Decided against making its own class, since it's a lot simpler.
+     *
+     * @param thePopupStage The main stage belonging to this instance
+     * @return The built MenuBar
+     */
     private MenuBar buildMenuBar(Stage thePopupStage) {
         MenuBar menuBar = new MenuBar();
         Menu fileMenu = new Menu("File");
@@ -176,6 +238,12 @@ public class DatabasePopup {
         return menuBar;
     }
 
+    /**
+     * Helper Method that builds the control strip for the
+     * database popup (the search bar pretty much).
+     *
+     * @return A HBox containing all elements of our control strip
+     */
     private HBox buildControls() {
         //Search section
         Label searchLabel = new Label("Search:  ");
@@ -198,6 +266,7 @@ public class DatabasePopup {
 
         searchBox.setOnAction(_ -> applySearch(searchBox.getValue(), searchField.getText()));
 
+        // Container holding our stuff
         HBox searchContainer = new HBox();
         searchContainer.getChildren().addAll(searchLabel, searchBox, searchField);
         HBox.setHgrow(searchField, Priority.ALWAYS);

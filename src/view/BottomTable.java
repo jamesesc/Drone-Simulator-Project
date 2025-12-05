@@ -5,23 +5,34 @@ import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The bottom half of the GUI, which is a VBox containing
+ * a header and a table.
+ *
+ * @version Autumn 2025
+ */
 class BottomTable extends VBox {
     /**
      * The text area showing Drone anomalies.
      */
     private final TableView<MonitorTableEntry> myAnomalyTable;
 
+    /**
+     * Constructor for the Bottom half of the GUI.
+     */
     BottomTable() {
         //Self setup
         setPrefHeight(250);
@@ -117,11 +128,22 @@ class BottomTable extends VBox {
         }
     }
 
+    /**
+     * Getter for the table within the bottom part of the GUI, which stores anomalies.
+     *
+     * @return TableView of MonitorTableEntries used for the bottom part of the GUI.
+     */
     TableView<MonitorTableEntry> getAnomalyTable() {
         return myAnomalyTable;
     }
 
-    public void exportToCSVDialog(Stage stage) {
+    /**
+     * Popup for the user, so they can export the anomaly log table's contents
+     * as a CSV to their computer without needing to call a method.
+     *
+     * @param theStage The stage who owns the Dialogue Popup
+     */
+    void exportToCSVDialog(Stage theStage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save CSV");
 
@@ -136,13 +158,19 @@ class BottomTable extends VBox {
                 new FileChooser.ExtensionFilter("CSV Files", "*.csv")
         );
 
-        File file = fileChooser.showSaveDialog(stage);
+        File file = fileChooser.showSaveDialog(theStage);
         if (file != null) {
             exportToCSV(file.getAbsolutePath());
         }
     }
 
-    public void exportToTXTDialog(Stage stage) {
+    /**
+     * Popup for the user, so they can export the anomaly log table's contents
+     * as a TXT to their computer without needing to call a method.
+     *
+     * @param theStage The stage who owns the Dialogue Popup
+     */
+    void exportToTXTDialog(Stage theStage) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save TXT");
 
@@ -154,14 +182,20 @@ class BottomTable extends VBox {
                 new FileChooser.ExtensionFilter("Text Files", "*.txt")
         );
 
-        File file = fileChooser.showSaveDialog(stage);
+        File file = fileChooser.showSaveDialog(theStage);
         if (file != null) {
             exportToTXT(file.getAbsolutePath());
         }
     }
 
-    private void exportToTXT(String filePath) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+    /**
+     * The method that's actually creating the TXT, which we then save to the
+     * user's computer
+     *
+     * @param theFilePath The location we are saving our TXT to.
+     */
+    private void exportToTXT(String theFilePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(theFilePath))) {
 
             // Header line
             writer.write("Timestamp | Drone ID | Type | Details");
@@ -184,10 +218,16 @@ class BottomTable extends VBox {
         }
     }
 
-    private void exportToCSV(String filePath) {
+    /**
+     * The method that's actually creating the CSV, which we then save to the
+     * user's computer
+     *
+     * @param theFilePath The location we are saving our TXT to.
+     */
+    private void exportToCSV(String theFilePath) {
         List<MonitorTableEntry> entries = myAnomalyTable.getItems();
 
-        try (FileWriter writer = new FileWriter(filePath)) {
+        try (FileWriter writer = new FileWriter(theFilePath)) {
             // Write CSV header
             writer.append("Timestamp,Drone ID,Type,Details\n");
 
@@ -200,19 +240,27 @@ class BottomTable extends VBox {
             }
 
             writer.flush();
-            System.err.println("CSV Exported to: " + filePath);
+            System.err.println("CSV Exported to: " + theFilePath);
         } catch (IOException e) {
             System.err.println("Error in exportToCSV: " + e);
         }
     }
 
-    void applyStylesheet(String cssName) {
+    /**
+     * Applies the appropriate style sheet to the bottom section of the GUI.
+     *
+     * @param theCssName A filepath to the appropriate css file
+     */
+    void applyStylesheet(String theCssName) {
         this.getStylesheets().clear();
         this.getStylesheets().add(
-                Objects.requireNonNull(getClass().getResource(cssName)).toExternalForm()
+                Objects.requireNonNull(getClass().getResource(theCssName)).toExternalForm()
         );
     }
 
+    /**
+     * Clear out the anomaly log.
+     */
     void clearTable() {
         myAnomalyTable.getItems().clear();
     }
