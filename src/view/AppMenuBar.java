@@ -484,7 +484,7 @@ public class AppMenuBar extends MenuBar {
             alert.setContentText("""
                     An application used for simulating a fleet of drones.
                     Created by Oisin Perkins-Gilbert, Mankirat Mann, James Escudero
-                    Created with Java, IntelliJ, and JavaFX
+                    Created with Java, IntelliJ, SQLite, JDBC and JavaFX
                     Made in 2025
                     Sound Effects taken from: https://pixabay.com/sound-effects/new-notification-010-352755/
                     Github: https://github.com/jamesesc/Drone-Simulator-Project""");
@@ -508,9 +508,9 @@ public class AppMenuBar extends MenuBar {
             alert.setTitle("Application Version");
             alert.setHeaderText("Drone Application - Version");
             alert.setContentText("""
-                    Current version: v5
-                    Build date: 11/30/25
-                    JavaFX Version: openjfx-25.0.1
+                    Current version: v7
+                    Build date: 12/6/2025
+                    JavaFX Version: openjfx-26
                     Java Version: jdk-25""");
             alert.showAndWait();
         });
