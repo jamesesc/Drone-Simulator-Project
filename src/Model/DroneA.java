@@ -3,7 +3,7 @@ package Model;
 import java.util.Objects;
 
 /**
- * A class that represents the drone that we're simulating on.
+ * Version A of a class that represents the drone that we're simulating on.
  * Uses another object called Telemetry Data which acts as the storage
  * for the drone Telemetry data.
  * As well, use a battery object that handles the internal battery of

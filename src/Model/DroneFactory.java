@@ -14,6 +14,10 @@ public class DroneFactory {
         };
     }
 
+    public Drone createDroneNonStatic(String type) {
+        return createDrone(type);
+    }
+
     public void resetIdCounter() {
         DRONE_COUNTER.set(1);
     }

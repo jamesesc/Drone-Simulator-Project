@@ -2,10 +2,8 @@ package Model;
 
 /**
  * An interface that defines the external behavior of a Drone object.
- * Implementations must handle telemetry updates, battery interactions,
- * state transitions, and ID tracking.
- *
- * @version Fall 2025
+ * Implementations must handle telemetry updates, battery interactions, and
+ * state transitions.
  */
 public interface Drone {
     enum DroneState {
@@ -56,7 +54,7 @@ public interface Drone {
      * @param theDroneState represent whether the drone is on or not.
      * @throws NullPointerException if theDroneState is null.
      */
-    void setDroneState(Enum<DroneA.DroneState> theDroneState);
+    void setDroneState(Enum<DroneState> theDroneState);
 
     /**
      * A setter to set the Drone Battery Level.
