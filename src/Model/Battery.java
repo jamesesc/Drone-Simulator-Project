@@ -6,7 +6,7 @@ import java.util.Random;
  * A battery object class that has a composite relationship with the drone object.
  * It is used to handle all the functionality and logic for the drone battery.
  *
- * @version Autumn 2025
+ * @version Fall 2025
  */
 public class Battery {
     /*-- Fields --*/
@@ -41,16 +41,72 @@ public class Battery {
     /** The absolute min battery level */
     private static final int MIN_BATTERY_LEVEL = 0;
 
-    /* The range that battery can randomly generate */
-    private static final int[][] BATTERY_LEVEL_RANGE = {
-            {0, 19}, // Low
-            {20, 49}, // Medium
-            {50, 100} // Full
-    };
+    /**
+     * AN enum that represent the various battery level.
+     */
+    public enum BatteryLevel {
+        /*-- Enum Types of Battery Level and its respective probability --*/
 
-    /** The probability for each range to occur (related to BATTERY_LEVEL_RANGE) */
-    private static final int[] PROB_BATTERY_LEVEL = {1, 14, 85};
+        /** Low battery level: 0-19%, with a 1% probability. */
+        LOW(0, 19, 1),
 
+        /** Medium battery level: 20-49%, with a 14% probability. */
+        MEDIUM(20, 49, 14),
+
+        /** Full battery level: 50-100%, with an 85% probability. */
+        FULL(50, 100, 85);
+
+        /*-- Fields --*/
+
+        /** Represent the min battery level */
+        private final int myMin;
+
+        /** Represent the max battery level */
+        private final int myMax;
+
+        /** Represent the probability of that range */
+        private final int myProbability;
+
+        /**
+         * Constructor to initialize the Battery Level Enum.
+         *
+         * @param theMin represent the min battery level.
+         * @param theMax represent the max battery level.
+         * @param theProbability represent the probability for that battery level range.
+         */
+        BatteryLevel(final int theMin, final int theMax, final int theProbability) {
+            myMin = theMin;
+            myMax = theMax;
+            myProbability = theProbability;
+        }
+
+        /**
+         * Getter method to get the min battery level.
+         *
+         * @return an int of the min battery level.
+         */
+        public int getMin() {
+            return myMin;
+        }
+
+        /**
+         * Getter method to get the max battery level.
+         *
+         * @return ant int of the max battery level.
+         */
+        public int getMax() {
+            return myMax;
+        }
+
+        /**
+         * Getter method to get the probability percentage of the battery level ranges.
+         *
+         * @return an int of the probability percent of the level range.
+         */
+        public int getProbability() {
+            return myProbability;
+        }
+    }
 
     /*-- Constructor --*/
 
@@ -101,14 +157,16 @@ public class Battery {
         }
     }
 
-    /** Method that randomly weight the drone battery level when first initialize */
+    /**
+     * Method that randomly weight the drone battery level when first initialize
+     */
     private void initializeBatteryLevel() {
         // Represent the total probability (should be 100)
         int totalProb = 0;
 
         // Loop through the probability array and add up the probability
-        for (int probabilityWeight : PROB_BATTERY_LEVEL) {
-            totalProb += probabilityWeight;
+        for (BatteryLevel level : BatteryLevel.values()) {
+            totalProb += level.getProbability();
         }
 
         // Choosing a random number between the total probability
@@ -118,8 +176,9 @@ public class Battery {
 
         /* Going through a probability array, subtracting the prob level until its below 0
          and assign rangeIndex to the range we found*/
-        for (int i = 0; i < PROB_BATTERY_LEVEL.length; i++) {
-            randomLevel -= PROB_BATTERY_LEVEL[i];
+        for (int i = 0; i < BatteryLevel.values().length; i++) {
+            BatteryLevel level = BatteryLevel.values()[i];
+            randomLevel -= level.getProbability();
 
             if (randomLevel < 0) {
                 selectedRangeIndex = i;
@@ -128,15 +187,16 @@ public class Battery {
         }
 
         // Storing the range min and max
-        int min = BATTERY_LEVEL_RANGE[selectedRangeIndex][0];
-        int max = BATTERY_LEVEL_RANGE[selectedRangeIndex][1];
+        BatteryLevel selectedLevel = BatteryLevel.values()[selectedRangeIndex];
+        int min = selectedLevel.getMin();
+        int max = selectedLevel.getMax();
 
-        // Base on the right category, just choose a random num between those bounds
+        // Base on the right category, we just choose a random num between those bounds
         // +1 because random(19) only includes 0-18... so we need to be one higher
-        int batterLevel = min + randomNumGen.nextInt(max - min + 1); // Inclusive
+        int batteryLevel = min + randomNumGen.nextInt(max - min + 1); // Inclusive
 
         // Setting the battery level to the new generated batter level
-        setLevel(batterLevel);
+        setLevel(batteryLevel);
     }
 
     /**
