@@ -14,6 +14,9 @@ public class DroneFactory {
     /** A AtomicInteger to ensure full thread and unique Drone ID for each drone */
     private static final AtomicInteger DRONE_COUNTER = new AtomicInteger(1);
 
+
+    /*-- Methods --*/
+
     /**
      * Method that creates drones base on the given string.
      *

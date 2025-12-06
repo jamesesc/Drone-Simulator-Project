@@ -18,14 +18,17 @@ public class DroneA extends AbstractDrone {
     /** How fast the drone goes up/down per tick */
     private static final double VERTICAL_SPEED = 30.0;
 
+    /*-- Constructor --*/
+
     /**
      * Constructor for DroneA to initialize the object.
      *
-     * @param theID represent the unique id of the drone.
+     * @param theID represents the unique id of the drone.
      */
     public DroneA(int theID) {
         super(theID);
     }
+
 
     /*-- Override different drone state behavior --*/
 

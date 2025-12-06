@@ -2,7 +2,6 @@ package Model;
 
 import java.util.Random;
 
-
 /**
  * A class that represents the drone that we're simulating on.
  * Uses another object called Telemetry Data which acts as the storage
@@ -20,6 +19,7 @@ public class DroneB extends AbstractDrone {
 
     /** How fast the drone goes up/down per tick */
     private static final double VERTICAL_SPEED = 15.0;
+
 
     /*-- Fields --*/
 
