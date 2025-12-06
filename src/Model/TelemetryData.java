@@ -3,7 +3,7 @@ package Model;
 /**
  * An object class that contains all the telemetry data for the drone.
  *
- * @version Autumn 2025
+ * @version Fall 2025
  */
 public class TelemetryData {
     /* FIELDS */
@@ -38,6 +38,15 @@ public class TelemetryData {
         myVelocity = 0;
     }
 
+    /**
+     * A constructor that initialize all custom and specific telemetry data.
+     *
+     * @param theLatitude represent the latitude.
+     * @param theLongitude represent the longitude.
+     * @param theAltitude represent the altitude.
+     * @param theOrientation represent the orientation.
+     * @param theVelocity represent the velocity.
+     */
     public TelemetryData(double theLatitude, double theLongitude,
                          double theAltitude, double theOrientation, double theVelocity) {
         myLatitude = theLatitude;
@@ -47,6 +56,11 @@ public class TelemetryData {
         myVelocity = theVelocity;
     }
 
+    /**
+     * Constructor that will create and copy an exact given telmetery data.
+     *
+     * @param theTelemetryData represent the telemetry data to be copied for.
+     */
     public TelemetryData(final TelemetryData theTelemetryData) {
         if (theTelemetryData == null) {
             throw new IllegalArgumentException("Can't copy a null telemetry data");
