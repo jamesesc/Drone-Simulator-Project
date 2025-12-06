@@ -80,38 +80,12 @@ public final class DroneFleetManager {
     /* GETTERS */
 
     /**
-     * Getter method that returns the number of drones in the fleet.
-     *
-     * @return the number of drones in the fleet as an int.
-     */
-    public int getDroneCount() {
-        return myDroneCount;
-    }
-
-    /**
      * Getter method that returns the drone fleet of the simulation.
      *
      * @return an array of Drone objects representing the fleet.
      */
     public Drone[] getDroneFleet() {
         return myDroneFleet.clone();
-    }
-
-    /**
-     * Getter method that returns a specific drone from the fleet based on the provided index.
-     *
-     * @param theIndex represents the index of the drone in the Fleet array.
-     * @return the Drone Object based on the index that was given.
-     * @throws IndexOutOfBoundsException if theIndex is negative or greater than or equal to the fleet size.
-     */
-    public Drone getSpecificDrone(final int theIndex) {
-         if (theIndex < 0 || theIndex >= myDroneFleet.length) {
-            throw new IndexOutOfBoundsException(
-                "Invalid Drone Index chosen: : " + theIndex +
-                ". Index must be between 0 and " + (myDroneFleet.length - 1) + "."
-            );
-        }
-        return myDroneFleet[theIndex];
     }
 
     /**

@@ -1,8 +1,6 @@
 package service;
 
 import view.SimulationListener;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * A class that handles and manage the internal time system of the simulation.
@@ -88,15 +86,6 @@ public class TimerManager {
         return TIMER_INTERVAL_SECONDS;
     }
 
-    /**
-     * Getter method that returns the current tick speed.
-     *
-     * @return the tick speed in seconds as a double.
-     */
-    public double getTickSpeed() {
-        return myTickSpeed;
-    }
-
 
     /*-- Timer Control Methods --*/
 
@@ -175,15 +164,6 @@ public class TimerManager {
         }
 
         return elapsedTime;
-    }
-
-    /**
-     * A method that calculates and returns the current time when the method is called.
-     *
-     * @return the current time in military time as a String.
-     */
-    public String getCurrentTime() {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
     }
 
 
