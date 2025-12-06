@@ -451,7 +451,7 @@ public class TelemetryGenerator {
         SpeedCategory nextCategory = SpeedCategory.values()[nextCategoryIndex];
 
         // Choosing the next velocity within the selected category
-        double newVelocity = generateTriangularDistribution(,
+        double newVelocity = generateTriangularDistribution(
                 nextCategory.getMinSpeed(),
                 nextCategory.getMaxSpeed(),
                 speedAnchor
