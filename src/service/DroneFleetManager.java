@@ -10,7 +10,7 @@ import java.util.Random;
  * A class that handles and manage all the drones in the simulation.
  * It is used by DroneMonitorApp to help and assist in the simulation logic and functionality.
  *
- * @version Autumn 2025
+ * @version Fall 2025
  */
 public final class DroneFleetManager {
     /*-- Constant --*/
@@ -18,11 +18,14 @@ public final class DroneFleetManager {
     /** Constant that represent the default numbers of drones in the fleet. */
     private static final int DEFAULT_DRONE_COUNT = 3;
 
+
     /*-- Dependency Injection *--/
 
-     */
     /** A TelemetryGenerator Object responsible for generating telemetry data. */
     private final TelemetryGenerator myTelemetryGen;
+
+    /** The Drone factory responsible for creating drones **/
+    private final DroneFactory myDroneFactory;
 
 
     /*-- Fields --*/
@@ -33,11 +36,8 @@ public final class DroneFleetManager {
     /** Represent the current number of drones in the fleet. */
     private int myDroneCount;
 
-    /** The Drone factory responsible for creating drones **/
-    final private DroneFactory myDroneFactory;
-
     /** Random Number Generator **/
-    private final Random rng = new Random();
+    private final Random myRng = new Random();
 
 
     /*-- Constructor --*/
@@ -49,9 +49,9 @@ public final class DroneFleetManager {
      */
     public DroneFleetManager(final TelemetryGenerator theTelemetryGen, final DroneFactory theFactory) {
         myTelemetryGen = Objects.requireNonNull(theTelemetryGen, "theTelemetryGen can't be null");
+        myDroneFactory = Objects.requireNonNull(theFactory, "theFactory can't be null");
         myDroneCount = DEFAULT_DRONE_COUNT;
         myDroneFleet = new Drone[myDroneCount];
-        myDroneFactory = theFactory;
 
         initializeFleet();
     }
@@ -77,7 +77,7 @@ public final class DroneFleetManager {
     }
 
 
-    /* GETTERS */
+    /*-- Getters --*/
 
     /**
      * Getter method that returns the drone fleet of the simulation.
@@ -87,6 +87,7 @@ public final class DroneFleetManager {
     public Drone[] getDroneFleet() {
         return myDroneFleet.clone();
     }
+
 
     /**
      * Method to find the id of a drone.
@@ -112,7 +113,7 @@ public final class DroneFleetManager {
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
             Drone newDrone;
-            if (rng.nextInt(1, 5) % 4 == 0) {
+            if (myRng.nextInt(1, 5) % 4 == 0) {
                 newDrone = DroneFactory.createDrone("B");
             } else {
                 newDrone = DroneFactory.createDrone("A");

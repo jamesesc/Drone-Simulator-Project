@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * A class that connects and ties all the connecting logic into the reoccurring tasks it needs to do.
  * It is used by DroneMonitorApp to help and assist in the simulation to run and start.
  *
- * @author Autumn 2025
+ * @author Fall 2025
  */
 public class SimulationEngine {
     /*-- Constant --*/
@@ -48,7 +48,6 @@ public class SimulationEngine {
 
     /** Represent the UpdateUIManager object that sends and update to the UI. */
     private SimulationListener myListener;
-
 
 
     /*-- Constructor --*/

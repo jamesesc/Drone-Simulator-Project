@@ -6,7 +6,7 @@ import view.SimulationListener;
  * A class that handles and manage the internal time system of the simulation.
  * It is used by DroneMonitorApp to help and assist in the simulation time management.
  *
- * @version Autumn 2025
+ * @version Fall 2025
  */
 public class TimerManager {
     /*-- Constant --*/
@@ -19,6 +19,7 @@ public class TimerManager {
 
     /** Conversion factor from milliseconds to seconds */
     private static final int MILLIS_TO_SECONDS = 1000;
+
 
     /*-- Listeners --*/
 
@@ -165,7 +166,6 @@ public class TimerManager {
 
         return elapsedTime;
     }
-
 
     /*-- Helper methods --*/
 
