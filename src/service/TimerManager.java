@@ -1,14 +1,12 @@
 package service;
 
 import view.SimulationListener;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * A class that handles and manage the internal time system of the simulation.
  * It is used by DroneMonitorApp to help and assist in the simulation time management.
  *
- * @version Autumn 2025
+ * @version Fall 2025
  */
 public class TimerManager {
     /*-- Constant --*/
@@ -21,6 +19,7 @@ public class TimerManager {
 
     /** Conversion factor from milliseconds to seconds */
     private static final int MILLIS_TO_SECONDS = 1000;
+
 
     /*-- Listeners --*/
 
@@ -86,15 +85,6 @@ public class TimerManager {
      */
     public int getTimerInterval() {
         return TIMER_INTERVAL_SECONDS;
-    }
-
-    /**
-     * Getter method that returns the current tick speed.
-     *
-     * @return the tick speed in seconds as a double.
-     */
-    public double getTickSpeed() {
-        return myTickSpeed;
     }
 
 
@@ -176,16 +166,6 @@ public class TimerManager {
 
         return elapsedTime;
     }
-
-    /**
-     * A method that calculates and returns the current time when the method is called.
-     *
-     * @return the current time in military time as a String.
-     */
-    public String getCurrentTime() {
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-    }
-
 
     /*-- Helper methods --*/
 
