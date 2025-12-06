@@ -49,9 +49,7 @@ public class UpdateUIManager implements SimulationListener {
             throw new IllegalArgumentException("theTime can't be less than 0");
         }
 
-        Platform.runLater(() -> {
-            myUI.updateTime(theTime);
-        });
+        Platform.runLater(() -> myUI.updateTime(theTime));
     }
 
     @Override
@@ -60,31 +58,23 @@ public class UpdateUIManager implements SimulationListener {
             throw new NullPointerException("Anomaly array cannot be null");
         }
 
-        Platform.runLater(() -> {
-            myUI.addAnomalyRecord(List.of(theAnomalies));
-        });
+        Platform.runLater(() -> myUI.addAnomalyRecord(List.of(theAnomalies)));
     }
 
     @Override
     public void onFleetReloaded(Drone[] theDroneFleet) {
         if (theDroneFleet != null) {
-            Platform.runLater(() -> {
-                myUI.reloadFleet(theDroneFleet);
-            });
+            Platform.runLater(() -> myUI.reloadFleet(theDroneFleet));
         }
     }
 
     @Override
     public void onStatusChanged(TimerManager.Status theStatus) {
-        Platform.runLater(() -> {
-            myUI.updateSimulationStatus(theStatus);
-        });
+        Platform.runLater(() -> myUI.updateSimulationStatus(theStatus));
     }
 
     @Override
     public void databaseManagerButtonPushed(List<String[]> theRecords) {
-        Platform.runLater(() -> {
-            myUI.showDatabasePopup(theRecords);
-        });
+        Platform.runLater(() -> myUI.showDatabasePopup(theRecords));
     }
 }

@@ -226,16 +226,6 @@ public class MonitorDash  {
     ========================*/
 
     /**
-     * Add an anomaly record to the table in the GUI.
-     *
-     * @param theRecord The anomaly record we'll be adding.
-     */
-    public void addAnomalyRecord(final AnomalyRecord theRecord) {
-        myBottomSide.addAnomalyRecord(theRecord);
-        mySoundManager.playNotificationSound();
-    }
-
-    /**
      * Add anomaly records to the table in the GUI.
      *
      * @param theRecords The anomaly records we'll be adding.
@@ -262,19 +252,6 @@ public class MonitorDash  {
         for (Drone drone : theDrones) {
             refreshDroneDisplay(drone);
         }
-    }
-
-    /**
-     * Clears the anomaly table in the GUI, then replaces its contents with the given List.
-     *
-     * @param theRecords What we want the contents to be.
-     */
-    public void refreshAnomalyRecords(final List<AnomalyRecord> theRecords) {
-        if (theRecords == null || theRecords.isEmpty()) { return; }
-
-        myBottomSide.getAnomalyTable().getItems().clear();
-        myBottomSide.refreshAnomalyRecords(theRecords);
-        mySoundManager.playNotificationSound();
     }
 
 

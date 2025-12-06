@@ -29,17 +29,21 @@ public class Simulation extends Application {
     public void start(Stage stage) {
         // Creating all the classes
         TelemetryGenerator telemetryGen = new TelemetryGenerator();
+        DroneMonitorApp controller = getDroneMonitorApp(telemetryGen);
+        MonitorDash monitorDash = new MonitorDash(controller);
+        UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
+
+        controller.setSimulationListener(updateUIManager);
+        monitorDash.initializeSimulation(stage);
+    }
+
+    private static DroneMonitorApp getDroneMonitorApp(TelemetryGenerator telemetryGen) {
         TimerManager timerManager = new TimerManager();
         AnomalyDB anomalyDB = new AnomalyDB();
         AnomalyDetector anomalyDetector = new AnomalyDetector();
         DroneFactory droneFactory = new DroneFactory();
         DroneFleetManager fleetManager = new DroneFleetManager(telemetryGen, droneFactory);
         SimulationEngine scheduler = new SimulationEngine(timerManager, fleetManager, anomalyDetector, anomalyDB);
-        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager, anomalyDB);
-        MonitorDash monitorDash = new MonitorDash(controller);
-        UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
-
-        controller.setSimulationListener(updateUIManager);
-        monitorDash.initializeSimulation(stage);
+        return new DroneMonitorApp(timerManager, scheduler, fleetManager, anomalyDB);
     }
 }
