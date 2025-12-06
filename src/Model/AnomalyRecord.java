@@ -31,20 +31,6 @@ public class AnomalyRecord {
         myTime = 0;
     }
 
-    public AnomalyRecord(String theType, double theTime) {
-        myType = theType;
-        myID = null;
-        myTime = theTime;
-        myDetails = EMPTY_STRING;
-    }
-
-    public AnomalyRecord(String theType, int theID, double theTime) {
-        myType = theType;
-        myID = theID;
-        myTime = theTime;
-        myDetails = EMPTY_STRING;
-    }
-
     public AnomalyRecord(String theType, int theID, double theTime,
                          String theDetails) {
         myType = theType;

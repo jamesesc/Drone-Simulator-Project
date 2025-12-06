@@ -20,30 +20,6 @@ public class AnomalyRecordTest {
     }
 
     @Test
-    void twoParamConstructor() {
-        AnomalyRecord a = new AnomalyRecord("Hello", 2.0);
-
-        assertAll(() -> {
-            assertEquals("Hello", a.getType());
-            assertNull(a.getID());
-            assertEquals(EMPTY_STRING, a.getDetails());
-            assertEquals(2.0, a.getTime());
-        });
-    }
-
-    @Test
-    void threeParamConstructor() {
-        AnomalyRecord a = new AnomalyRecord("Hello", 1,  2.0);
-
-        assertAll(() -> {
-            assertEquals("Hello", a.getType());
-            assertEquals(1, a.getID());
-            assertEquals(EMPTY_STRING, a.getDetails());
-            assertEquals(2.0, a.getTime());
-        });
-    }
-
-    @Test
     void fourParamConstructor() {
         AnomalyRecord a = new AnomalyRecord("Hello", 1, 2.0, "Bye");
 

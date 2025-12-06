@@ -31,8 +31,8 @@ public class AnomalyDB {
         /*
         id: increments automatically for each record
         drone id: which drone had anomaly
-        anomaly_method: mathod where anomaly happened
-        anomaly_time: time when anomaly occured
+        anomaly_method: method where anomaly happened
+        anomaly_time: time when anomaly occurred
         altitude: altitude at time of anomaly
         longitude: longitude at time of anomaly
         latitude: latitude at time of anomaly
@@ -41,7 +41,7 @@ public class AnomalyDB {
         type: type of anomaly
         severity: severity of anomaly
         details: anomaly details
-        timestamp: when anomaly occured
+        timestamp: when anomaly occurred
          */
         String sql = """
             CREATE TABLE IF NOT EXISTS drone_anomalies (

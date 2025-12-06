@@ -44,15 +44,6 @@ public class SoundManager {
     }
 
     /**
-     * Gets the muted status.
-     *
-     * @return the current mute status as a boolean.
-     */
-    public boolean isMuted() {
-        return myIsMuted;
-    }
-
-    /**
      * Sets the Mute status.
      *
      * @param theMuted represent whether the mute is true or false.

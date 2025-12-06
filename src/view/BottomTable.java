@@ -114,30 +114,6 @@ class BottomTable extends VBox {
     }
 
     /**
-     * Clears the anomaly table in the GUI, then replaces its contents with the given List.
-     *
-     * @param theRecords What we want the contents to be.
-     */
-    void refreshAnomalyRecords(List<AnomalyRecord> theRecords) {
-        if (theRecords == null || theRecords.isEmpty()) { return; }
-
-        myAnomalyTable.getItems().clear();
-
-        for (AnomalyRecord record : theRecords) {
-            addAnomalyRecord(record);
-        }
-    }
-
-    /**
-     * Getter for the table within the bottom part of the GUI, which stores anomalies.
-     *
-     * @return TableView of MonitorTableEntries used for the bottom part of the GUI.
-     */
-    TableView<MonitorTableEntry> getAnomalyTable() {
-        return myAnomalyTable;
-    }
-
-    /**
      * Popup for the user, so they can export the anomaly log table's contents
      * as a CSV to their computer without needing to call a method.
      *
@@ -256,12 +232,5 @@ class BottomTable extends VBox {
         this.getStylesheets().add(
                 Objects.requireNonNull(getClass().getResource(theCssName)).toExternalForm()
         );
-    }
-
-    /**
-     * Clear out the anomaly log.
-     */
-    void clearTable() {
-        myAnomalyTable.getItems().clear();
     }
 }

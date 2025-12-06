@@ -1,7 +1,5 @@
 package view;
 
-import Model.AnomalyRecord;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -125,34 +123,6 @@ class DatabasePopup {
      */
     void show() {
         myStage.show();
-    }
-
-    /**
-     * Adding an anomaly record to the table of the Database Popup.
-     *
-     * @param theRecord The anomaly record we are adding to the table of our popup
-     */
-    public void addAnomalyRecord(AnomalyRecord theRecord) {
-        if (theRecord == null) return;
-
-        //Whether or not the ID is null, otherwise turn it into a String
-        String idString = (theRecord.getID() == null) ? "—" : String.valueOf(theRecord.getID());
-
-        //Turn the time into a string
-        String timeString = Double.toString(theRecord.getTime());
-
-        //Make a new AnomalyEntry record for our table
-        MonitorTableEntry entry = new MonitorTableEntry(
-                timeString,
-                idString,
-                theRecord.getType(),
-                theRecord.getDetails()
-        );
-
-        Platform.runLater(() -> {
-            myObservableList.add(entry);
-            myTable.scrollTo(entry);
-        });
     }
 
     /**
