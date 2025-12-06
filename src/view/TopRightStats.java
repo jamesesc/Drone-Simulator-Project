@@ -101,7 +101,7 @@ public class TopRightStats extends StackPane {
     /** The text area showing Drone statistics. */
     private final VBox myLargeStatsView;
 
-    /** Represnt the box that contains all the drones stats. */
+    /** Represent the box that contains all the drones stats. */
     private final VBox myDroneHolder;
 
 
@@ -116,7 +116,7 @@ public class TopRightStats extends StackPane {
     /** Map of all the small RegionBoxes for displaying their stats in the top-right. */
     private final Map<Integer, VBox> myDroneBoxes = new ConcurrentHashMap<>();
 
-    /*-- Represnt the Selected Drone Listener --*/
+    /*-- Represent the Selected Drone Listener --*/
     private DroneSelectionListener mySelectionListener;
 
     /** Tracks the current simulation status */

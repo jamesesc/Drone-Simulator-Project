@@ -1,5 +1,6 @@
 package view;
 
+import Model.Drone;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -13,7 +14,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
-import Model.Drone;
 import service.TimerManager;
 
 /**

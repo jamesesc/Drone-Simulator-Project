@@ -1,6 +1,7 @@
 package service;
 
 import Model.Drone;
+import Model.DroneFactory;
 import Model.TelemetryData;
 import java.util.Objects;
 
@@ -32,6 +33,9 @@ public final class DroneFleetManager {
     /** Represent the current number of drones in the fleet. */
     private int myDroneCount;
 
+    /** The Drone factory responsible for creating drones **/
+    final private DroneFactory myDroneFactory;
+
 
     /*-- Constructor --*/
 
@@ -40,10 +44,11 @@ public final class DroneFleetManager {
      *
      * @param theTelemetryGen represents the telemetry generator being in used.
      */
-    public DroneFleetManager(final TelemetryGenerator theTelemetryGen) {
+    public DroneFleetManager(final TelemetryGenerator theTelemetryGen, final DroneFactory theFactory) {
         myTelemetryGen = Objects.requireNonNull(theTelemetryGen, "theTelemetryGen can't be null");
         myDroneCount = DEFAULT_DRONE_COUNT;
         myDroneFleet = new Drone[myDroneCount];
+        myDroneFactory = theFactory;
 
         initializeFleet();
     }
@@ -62,7 +67,7 @@ public final class DroneFleetManager {
             throw new IllegalArgumentException("Drone count must be greater than 0, got: " + theNewCount);
         }
 
-        Drone.resetIdCounter();
+        myDroneFactory.resetIdCounter();
         myDroneCount = theNewCount;
         myDroneFleet = new Drone[myDroneCount];
         initializeFleet();
@@ -129,7 +134,8 @@ public final class DroneFleetManager {
      */
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
-            myDroneFleet[i] = new Drone();
+            Drone newDrone = DroneFactory.createDrone("Basic");
+            myDroneFleet[i] = newDrone;
         }
     }
 
@@ -137,7 +143,7 @@ public final class DroneFleetManager {
      * Method to reset the entire fleet.
      */
     public void resetFleet() {
-        Drone.resetIdCounter();
+        myDroneFactory.resetIdCounter();
         initializeFleet();
         initializeFleetPosition();
         initializeFleetAltitude();

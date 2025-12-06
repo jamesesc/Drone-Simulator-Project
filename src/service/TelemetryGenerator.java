@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * A class that is purely and sole resposnbiel for generating telemetry data for the
+ * A class that is purely and sole responsible for generating telemetry data for the
  * drone object.
  * Generating values such as Latitude, Longitude, Velocity, Orientation, Altitude,
  * Starting position, starting height.
