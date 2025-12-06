@@ -4,6 +4,8 @@ import Model.AnomalyRecord;
 import Model.Drone;
 import service.TimerManager;
 
+import java.util.List;
+
 /**
  * Interface for listening to simulation events.
  *
@@ -44,4 +46,11 @@ public interface SimulationListener {
      * @param theStatus the new status of the timer manager.
      */
     void onStatusChanged(TimerManager.Status theStatus);
+
+    /**
+     * Called when the menu item "Database Manager" is pressed in the main GUI menu bar.
+     *
+     * @param theRecords The records that the database manager will show.
+     */
+    void databaseManagerButtonPushed(List<String[]> theRecords);
 }

@@ -69,4 +69,9 @@ public class UpdateUIManager implements SimulationListener {
     public void onStatusChanged(TimerManager.Status theStatus) {
         myUI.updateSimulationStatus(theStatus);
     }
+
+    @Override
+    public void databaseManagerButtonPushed(List<String[]> theRecords) {
+        myUI.showDatabasePopup(theRecords);
+    }
 }

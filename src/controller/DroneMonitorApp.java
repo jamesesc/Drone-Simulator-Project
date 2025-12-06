@@ -1,6 +1,6 @@
 package controller;
 
-import Model.Drone;
+import database.AnomalyDB;
 import service.SimulationEngine;
 import service.DroneFleetManager;
 import service.TimerManager;
@@ -29,6 +29,9 @@ public class DroneMonitorApp {
     /** A class that is used to push data to the front end. */
     private SimulationListener myListener;
 
+    /** Our simulation's database **/
+    private final AnomalyDB myAnomalyDB;
+
 
     /*-- Constructor --*/
 
@@ -41,10 +44,11 @@ public class DroneMonitorApp {
      * @throws NullPointerException if any of the parameters are null.
      */
     public DroneMonitorApp(final TimerManager theTimerManager, final SimulationEngine theSimulationController,
-                           final DroneFleetManager theDroneFleet) {
+                           final DroneFleetManager theDroneFleet, final AnomalyDB theAnomalyDatabase) {
         myTimerManager = Objects.requireNonNull(theTimerManager, "TimeManager can't be null");
         mySimulationController = Objects.requireNonNull(theSimulationController, "SimulationEngine can't be null");
         myDroneFleet = Objects.requireNonNull(theDroneFleet, "DroneFleet can't be null");
+        myAnomalyDB = Objects.requireNonNull(theAnomalyDatabase, "AnomalyDB can't be null");
     }
 
 
@@ -104,6 +108,13 @@ public class DroneMonitorApp {
 
 
     /*-- Configuration --*/
+
+    /**
+     * Called when the menu item "Database Manager" is pressed.
+     */
+    public void databaseManagerButtonPushed() {
+        myListener.databaseManagerButtonPushed(myAnomalyDB.getAnomalyDetails());
+    }
 
     /**
      * Helps allow the configuration and changing of the number of drones in the fleet.

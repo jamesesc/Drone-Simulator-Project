@@ -1,6 +1,5 @@
 package view;
 
-import database.AnomalyDB;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -32,10 +31,6 @@ public class MonitorDash  {
 
     /** Represents the Sound Manager for the UI */
     private final SoundManager mySoundManager;
-
-    /** Represents the Database used by this AnomalyDB **/
-    private final AnomalyDB myAnomalyDB;
-
 
     /* =============
     STATE
@@ -77,9 +72,8 @@ public class MonitorDash  {
      *
      * @param theController represents the back end controller.
      */
-    public MonitorDash(final DroneMonitorApp theController, final AnomalyDB theDB) {
+    public MonitorDash(final DroneMonitorApp theController) {
         myController = Objects.requireNonNull(theController, "Controller can't be null");
-        myAnomalyDB = theDB;
 
         mySoundManager = new SoundManager();
 
@@ -414,11 +408,20 @@ public class MonitorDash  {
     }
 
     /**
-     * Method that allow to show the database popup.
+     * When the "Database Manager" button is pushed in the menu bar.
      */
-    public void showDatabase() {
+    public void databaseManagerButtonPushed() {
+        myController.databaseManagerButtonPushed();
+    }
+
+    /**
+     * Shows the Database Manager, with its appropriate anomaly records.
+     *
+     * @param theRecords The anomaly records of the database manager, in String[] form.
+     */
+    public void showDatabasePopup(List<String[]> theRecords) {
+        myDatabase.refreshAnomalyRecords(theRecords);
         myDatabase.show();
-        myDatabase.refreshAnomalyRecords(myAnomalyDB.getAnomalyDetails());
     }
 
     /**

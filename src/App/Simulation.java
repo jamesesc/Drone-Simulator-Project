@@ -33,8 +33,8 @@ public class Simulation extends Application {
         AnomalyDetector anomalyDetector = new AnomalyDetector();
         DroneFleetManager fleetManager = new DroneFleetManager(telemetryGen);
         SimulationEngine scheduler = new SimulationEngine(timerManager, fleetManager, anomalyDetector, anomalyDB);
-        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
-        MonitorDash monitorDash = new MonitorDash(controller, anomalyDB);
+        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager, anomalyDB);
+        MonitorDash monitorDash = new MonitorDash(controller);
         UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
 
         controller.setSimulationListener(updateUIManager);
