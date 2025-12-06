@@ -4,6 +4,8 @@ package Model;
  * An interface that defines the external behavior of a Drone object.
  * Implementations must handle telemetry updates, battery interactions, and
  * state transitions.
+ *
+ * @version Fall 2025
  */
 public interface Drone {
     enum DroneState {
@@ -54,7 +56,7 @@ public interface Drone {
      * @param theDroneState represent whether the drone is on or not.
      * @throws NullPointerException if theDroneState is null.
      */
-    void setDroneState(Enum<DroneState> theDroneState);
+    void setDroneState(final Enum<DroneState> theDroneState);
 
     /**
      * A setter to set the Drone Battery Level.
@@ -62,7 +64,7 @@ public interface Drone {
      * @param theNewBatteryLevel represents the new drone battery level.
      * @throws IllegalArgumentException if theNewBatteryLevel is less than 0 or greater than 100.
      */
-    void setBatteryLevel(int theNewBatteryLevel);
+    void setBatteryLevel(final int theNewBatteryLevel);
 
     /**
      * A setter to update the drone Telemetry Data.
@@ -70,7 +72,7 @@ public interface Drone {
      * @param theNewTelemetryData represent the telemetry data that is going to update the drone telemetry data.
      * @throws NullPointerException if theNewTelemetryData is null.
      */
-    void updateDroneNextMove(TelemetryData theNewTelemetryData);
+    void updateDroneNextMove(final TelemetryData theNewTelemetryData);
 
     /*-- Logic --*/
 
