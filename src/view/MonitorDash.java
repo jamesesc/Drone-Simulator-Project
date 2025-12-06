@@ -1,5 +1,6 @@
 package view;
 
+import Model.Drone;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -13,7 +14,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import controller.DroneMonitorApp;
 import Model.AnomalyRecord;
-import Model.Drone;
 import service.TimerManager;
 
 /**
@@ -31,7 +31,6 @@ public class MonitorDash  {
 
     /** Represents the Sound Manager for the UI */
     private final SoundManager mySoundManager;
-
 
     /* =============
     STATE
@@ -122,6 +121,10 @@ public class MonitorDash  {
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(myScene);
         thePrimaryStage.show();
+        thePrimaryStage.setOnCloseRequest(_ -> {
+            Platform.exit();
+            System.exit(0);
+        });
 
         // Stuff the program runs after its build
         Platform.runLater(() -> {
@@ -243,7 +246,6 @@ public class MonitorDash  {
         for (AnomalyRecord record : theRecords) {
             mySoundManager.playNotificationSound();
             myBottomSide.addAnomalyRecord(record);
-            myDatabase.addAnomalyRecord(record);
         }
     }
 
@@ -410,9 +412,19 @@ public class MonitorDash  {
     }
 
     /**
-     * Method that allow to show the database popup.
+     * When the "Database Manager" button is pushed in the menu bar.
      */
-    public void showDatabase() {
+    public void databaseManagerButtonPushed() {
+        myController.databaseManagerButtonPushed();
+    }
+
+    /**
+     * Shows the Database Manager, with its appropriate anomaly records.
+     *
+     * @param theRecords The anomaly records of the database manager, in String[] form.
+     */
+    public void showDatabasePopup(List<String[]> theRecords) {
+        myDatabase.refreshAnomalyRecords(theRecords);
         myDatabase.show();
     }
 

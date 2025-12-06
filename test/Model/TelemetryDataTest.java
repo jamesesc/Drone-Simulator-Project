@@ -58,9 +58,7 @@ class TelemetryDataTest {
 
     @Test
     void testCopyConstructorNull() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new TelemetryData(null);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new TelemetryData(null));
     }
 
     @Test
@@ -198,7 +196,7 @@ class TelemetryDataTest {
     @Test
     void testNotSameObject() {
         TelemetryData t = new TelemetryData(1, 2, 3, 4, 5);
-        Drone d = new Drone();
+        AnomalyRecord d = new AnomalyRecord();
 
         assertNotEquals(d, t);
     }

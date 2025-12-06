@@ -1,5 +1,8 @@
 package Model;
 
+/**
+ * An object representing a record of an anomaly that took place.
+ */
 public class AnomalyRecord {
     /**
      * Type of anomaly we're getting

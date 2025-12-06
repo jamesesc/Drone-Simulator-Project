@@ -2,6 +2,7 @@ package view;
 
 import Model.AnomalyRecord;
 import Model.Drone;
+import javafx.application.Platform;
 import service.TimerManager;
 import java.util.List;
 import java.util.Objects;
@@ -34,10 +35,12 @@ public class UpdateUIManager implements SimulationListener {
 
     @Override
     public void onDroneUpdate(Drone[] theDroneFleet) {
-        // Updating the Big Stats
-        myUI.updateStatsText(theDroneFleet);
-        // Updating the Display
-        myUI.refreshDroneDisplay(theDroneFleet);
+        Platform.runLater(() -> {
+            // Updating the Big Stats
+            myUI.updateStatsText(theDroneFleet);
+            // Updating the Display
+            myUI.refreshDroneDisplay(theDroneFleet);
+        });
     }
 
     @Override
@@ -46,7 +49,9 @@ public class UpdateUIManager implements SimulationListener {
             throw new IllegalArgumentException("theTime can't be less than 0");
         }
 
-        myUI.updateTime(theTime);
+        Platform.runLater(() -> {
+            myUI.updateTime(theTime);
+        });
     }
 
     @Override
@@ -55,18 +60,31 @@ public class UpdateUIManager implements SimulationListener {
             throw new NullPointerException("Anomaly array cannot be null");
         }
 
-        myUI.addAnomalyRecord(List.of(theAnomalies));
+        Platform.runLater(() -> {
+            myUI.addAnomalyRecord(List.of(theAnomalies));
+        });
     }
 
     @Override
     public void onFleetReloaded(Drone[] theDroneFleet) {
         if (theDroneFleet != null) {
-            myUI.reloadFleet(theDroneFleet);
+            Platform.runLater(() -> {
+                myUI.reloadFleet(theDroneFleet);
+            });
         }
     }
 
     @Override
     public void onStatusChanged(TimerManager.Status theStatus) {
-        myUI.updateSimulationStatus(theStatus);
+        Platform.runLater(() -> {
+            myUI.updateSimulationStatus(theStatus);
+        });
+    }
+
+    @Override
+    public void databaseManagerButtonPushed(List<String[]> theRecords) {
+        Platform.runLater(() -> {
+            myUI.showDatabasePopup(theRecords);
+        });
     }
 }

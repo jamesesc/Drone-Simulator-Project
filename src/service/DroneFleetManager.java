@@ -1,8 +1,10 @@
 package service;
 
 import Model.Drone;
+import Model.DroneFactory;
 import Model.TelemetryData;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * A class that handles and manage all the drones in the simulation.
@@ -15,7 +17,6 @@ public final class DroneFleetManager {
 
     /** Constant that represent the default numbers of drones in the fleet. */
     private static final int DEFAULT_DRONE_COUNT = 3;
-
 
     /*-- Dependency Injection *--/
 
@@ -32,6 +33,12 @@ public final class DroneFleetManager {
     /** Represent the current number of drones in the fleet. */
     private int myDroneCount;
 
+    /** The Drone factory responsible for creating drones **/
+    final private DroneFactory myDroneFactory;
+
+    /** Random Number Generator **/
+    private final Random rng = new Random();
+
 
     /*-- Constructor --*/
 
@@ -40,10 +47,11 @@ public final class DroneFleetManager {
      *
      * @param theTelemetryGen represents the telemetry generator being in used.
      */
-    public DroneFleetManager(final TelemetryGenerator theTelemetryGen) {
+    public DroneFleetManager(final TelemetryGenerator theTelemetryGen, final DroneFactory theFactory) {
         myTelemetryGen = Objects.requireNonNull(theTelemetryGen, "theTelemetryGen can't be null");
         myDroneCount = DEFAULT_DRONE_COUNT;
         myDroneFleet = new Drone[myDroneCount];
+        myDroneFactory = theFactory;
 
         initializeFleet();
     }
@@ -62,7 +70,7 @@ public final class DroneFleetManager {
             throw new IllegalArgumentException("Drone count must be greater than 0, got: " + theNewCount);
         }
 
-        Drone.resetIdCounter();
+        myDroneFactory.resetIdCounter();
         myDroneCount = theNewCount;
         myDroneFleet = new Drone[myDroneCount];
         initializeFleet();
@@ -129,7 +137,13 @@ public final class DroneFleetManager {
      */
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
-            myDroneFleet[i] = new Drone();
+            Drone newDrone;
+            if (rng.nextInt(1, 5) % 4 == 0) {
+                newDrone = DroneFactory.createDrone("B");
+            } else {
+                newDrone = DroneFactory.createDrone("A");
+            }
+            myDroneFleet[i] = newDrone;
         }
     }
 
@@ -137,7 +151,7 @@ public final class DroneFleetManager {
      * Method to reset the entire fleet.
      */
     public void resetFleet() {
-        Drone.resetIdCounter();
+        myDroneFactory.resetIdCounter();
         initializeFleet();
         initializeFleetPosition();
         initializeFleetAltitude();

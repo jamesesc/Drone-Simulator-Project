@@ -1,5 +1,6 @@
 package App;
 
+import Model.DroneFactory;
 import controller.DroneMonitorApp;
 import service.SimulationEngine;
 import database.AnomalyDB;
@@ -31,9 +32,10 @@ public class Simulation extends Application {
         TimerManager timerManager = new TimerManager();
         AnomalyDB anomalyDB = new AnomalyDB();
         AnomalyDetector anomalyDetector = new AnomalyDetector();
-        DroneFleetManager fleetManager = new DroneFleetManager(telemetryGen);
+        DroneFactory droneFactory = new DroneFactory();
+        DroneFleetManager fleetManager = new DroneFleetManager(telemetryGen, droneFactory);
         SimulationEngine scheduler = new SimulationEngine(timerManager, fleetManager, anomalyDetector, anomalyDB);
-        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager);
+        DroneMonitorApp controller = new DroneMonitorApp(timerManager, scheduler, fleetManager, anomalyDB);
         MonitorDash monitorDash = new MonitorDash(controller);
         UpdateUIManager updateUIManager = new UpdateUIManager(monitorDash);
 

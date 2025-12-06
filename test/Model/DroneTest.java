@@ -5,17 +5,24 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 class DroneTest {
+    DroneFactory factory = new DroneFactory();
+
     @BeforeEach
     void setup() {
         // Reset only for test isolation
-        Drone.resetIdCounter();
+        factory.resetIdCounter();
+    }
+
+    @Test
+    void illegalFactoryArgument() {
+        assertThrows(IllegalStateException.class, () -> factory.createDroneNonStatic("Hi"));
     }
 
     @Test
     void droneIDIncrements() {
-        Drone d1 = new Drone();
-        Drone d2 = new Drone();
-        Drone d3 = new Drone();
+        Drone d1 = factory.createDroneNonStatic("A");
+        Drone d2 = factory.createDroneNonStatic("B");
+        Drone d3 = factory.createDroneNonStatic("A");
 
         assertAll(() -> {
             assertEquals(1, d1.getDroneID());
@@ -25,174 +32,337 @@ class DroneTest {
     }
 
     @Test
-    void testResetIdCounter() {
-        Drone d1 = new Drone();
-        Drone d2 = new Drone();
-
-        Drone.resetIdCounter();
-
-        Drone d3 = new Drone();
-
-        assertEquals(1, d3.getDroneID());
-    }
-
-    @Test
     void getDroneTelemetry() {
         TelemetryData telData = new TelemetryData(1, 1, 1, 1, 1);
-        Drone testDrone = new Drone();
+        Drone testDrone = factory.createDroneNonStatic("A");
+        Drone testDroneB = factory.createDroneNonStatic("B");
 
         testDrone.updateDroneNextMove(telData);
         testDrone.updateDroneNextMove(telData);
 
-        assertEquals(telData, testDrone.getDroneTelemetry());
+        testDroneB.updateDroneNextMove(telData);
+        testDroneB.updateDroneNextMove(telData);
+        testDroneB.updateDroneNextMove(telData);
+
+        assertAll(() -> {
+            assertEquals(telData, testDrone.getDroneTelemetry());
+            assertEquals(telData, testDroneB.getDroneTelemetry());
+        });
     }
 
     @Test
     void testDroneState() {
-        Drone droneTest = new Drone();
-        droneTest.setDroneState(Drone.DroneState.FLYING);
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
 
-        assertEquals(Drone.DroneState.FLYING, droneTest.isDroneOn());
+        droneTest.setDroneState(Drone.DroneState.FLYING);
+        droneTestB.setDroneState(Drone.DroneState.FLYING);
+
+        assertAll(() -> {
+            assertEquals(Drone.DroneState.FLYING, droneTest.isDroneOn());
+            assertEquals(Drone.DroneState.FLYING, droneTestB.isDroneOn());
+        });
     }
 
     @Test
     void testDroneStateNull() {
-        Drone droneTest = new Drone();
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
+
         assertThrows(NullPointerException.class, () -> droneTest.setDroneState(null));
+        assertThrows(NullPointerException.class, () -> droneTestB.setDroneState(null));
     }
 
     @Test
     void batteryLowThresholdFlyOperation() {
-        Drone droneTest = new Drone();
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
+
         droneTest.setDroneState(Drone.DroneState.FLYING);
         droneTest.setBatteryLevel(1);
         droneTest.updateDroneNextMove(
                 new TelemetryData(1, 1, 1, 1, 1));
-        assertEquals(Drone.DroneState.LANDING, droneTest.isDroneOn());
+
+        droneTestB.setDroneState(Drone.DroneState.FLYING);
+        droneTestB.setBatteryLevel(1);
+        droneTestB.updateDroneNextMove(
+                new TelemetryData(1, 1, 1, 1, 1));
+
+        assertAll(() -> {
+            assertEquals(Drone.DroneState.LANDING, droneTest.isDroneOn());
+            assertEquals(Drone.DroneState.LANDING, droneTestB.isDroneOn());
+        });
     }
 
     @Test
     void droneLandingToCharging(){
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.LANDING);
         drone.updateDroneNextMove(
                 new TelemetryData(0, 0, 0, 0, 0));
-        assertEquals(Drone.DroneState.CHARGING, drone.isDroneOn());
+
+        droneB.setDroneState(Drone.DroneState.LANDING);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0, 0, 0, 0, 0));
+
+        assertAll(() -> {
+            assertEquals(Drone.DroneState.CHARGING, drone.isDroneOn());
+            assertEquals(Drone.DroneState.CHARGING, droneB.isDroneOn());
+        });
     }
 
     @Test
     void droneLandingNewAlt() {
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.FLYING);
         drone.updateDroneNextMove(
                 new TelemetryData(0, 0, 30, 0, 0));
         drone.setDroneState(Drone.DroneState.LANDING);
         drone.updateDroneNextMove(
                 new TelemetryData(0, 0, -10, 0, 30));
-        assertEquals(new TelemetryData(0, 0, 0, 0, 0), drone.getDroneTelemetry());
+
+        droneB.setDroneState(Drone.DroneState.FLYING);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0, 0, 30, 0, 0));
+        droneB.setDroneState(Drone.DroneState.LANDING);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0, 0, -10, 0, 30));
+
+        assertAll(() -> {
+            assertEquals(new TelemetryData(0, 0, 0, 0, 0), drone.getDroneTelemetry());
+            assertEquals(new TelemetryData(0, 0, 0, 0, 0), droneB.getDroneTelemetry());
+        });
     }
 
     @Test
     void droneLandingAgain() {
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.FLYING);
         drone.updateDroneNextMove(
                 new TelemetryData(0, 0, 40, 0, 0));
         drone.setDroneState(Drone.DroneState.LANDING);
         drone.updateDroneNextMove(
                 new TelemetryData(0, 0, 10, 0, 0));
-        assertEquals(new TelemetryData(0, 0, 10, 0 ,0), drone.getDroneTelemetry());
+
+        droneB.setDroneState(Drone.DroneState.FLYING);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0, 0, 40, 0, 0));
+        droneB.setDroneState(Drone.DroneState.LANDING);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0, 0, 10, 0, 0));
+
+        assertAll(() -> {
+            assertEquals(new TelemetryData(0, 0, 10, 0 ,0), drone.getDroneTelemetry());
+            assertTrue(0 <= droneB.getDroneTelemetry().getAltitude() &&
+                    droneB.getDroneTelemetry().getAltitude() <= 25);
+        });
     }
 
     @Test
     void droneChargingToTakeoff() {
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.CHARGING);
         drone.setBatteryLevel(90);
         drone.updateDroneNextMove(
                 new TelemetryData(0, 0, 10, 0, 10));
+
+        droneB.setDroneState(Drone.DroneState.CHARGING);
+        droneB.setBatteryLevel(90);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0, 0, 10, 0, 10));
+
         assertAll(() -> {
             assertEquals(new TelemetryData(0, 0, 0, 0, 0), drone.getDroneTelemetry());
             assertEquals(Drone.DroneState.TAKEOFF, drone.isDroneOn());
+
+            assertEquals(new TelemetryData(0, 0, 0, 0, 0), droneB.getDroneTelemetry());
+            assertEquals(Drone.DroneState.TAKEOFF, droneB.isDroneOn());
         });
     }
 
     @Test
     void droneCharging() {
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.CHARGING);
         drone.setBatteryLevel(10);
         drone.updateDroneNextMove(
                 new TelemetryData(0,0,0,0,0));
-        assertEquals(Drone.DroneState.CHARGING, drone.isDroneOn());
+
+        droneB.setDroneState(Drone.DroneState.CHARGING);
+        droneB.setBatteryLevel(10);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0,0,0,0,0));
+
+        assertAll(() -> {
+            assertEquals(Drone.DroneState.CHARGING, drone.isDroneOn());
+            assertEquals(Drone.DroneState.CHARGING, droneB.isDroneOn());
+        });
     }
 
     @Test
     void droneTakeoff() {
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.TAKEOFF);
         drone.updateDroneNextMove(
                 new TelemetryData(0,0,0,0,0));
-        assertEquals(new TelemetryData(0, 0, 25, 0, 30), drone.getDroneTelemetry());
+
+        droneB.setDroneState(Drone.DroneState.TAKEOFF);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0,0,0,0,0));
+        droneB.updateDroneNextMove(
+                new TelemetryData(0,0,0,0,0));
+
+        assertAll(() -> {
+            assertEquals(new TelemetryData(0, 0, 25, 0, 30), drone.getDroneTelemetry());
+            assertEquals(new TelemetryData(0, 0, 15, 0, 15), droneB.getDroneTelemetry());
+        });
     }
 
     @Test
     void droneTakeoffBranch() {
-        Drone drone = new Drone();
+        Drone drone = factory.createDroneNonStatic("A");
+        Drone droneB = factory.createDroneNonStatic("B");
+
         drone.setDroneState(Drone.DroneState.FLYING);
         drone.updateDroneNextMove(new TelemetryData(0, 0, -10, 0, 0));
         drone.setDroneState(Drone.DroneState.TAKEOFF);
         drone.updateDroneNextMove(
                 new TelemetryData(0,0,0,0,0));
-        assertEquals(new TelemetryData(0, 0, 20, 0, 30), drone.getDroneTelemetry());
+
+        droneB.setDroneState(Drone.DroneState.FLYING);
+        droneB.updateDroneNextMove(new TelemetryData(0, 0, -10, 0, 0));
+        droneB.updateDroneNextMove(new TelemetryData(0, 0, -10, 0, 0));
+        droneB.setDroneState(Drone.DroneState.TAKEOFF);
+        droneB.updateDroneNextMove(
+                new TelemetryData(0,0,0,0,0));
+        droneB.updateDroneNextMove(
+                new TelemetryData(0,0,0,0,0));
+
+        assertAll(() -> {
+            assertEquals(new TelemetryData(0, 0, 20, 0, 30), drone.getDroneTelemetry());
+            assertEquals(new TelemetryData(0, 0, 5, 0, 15), droneB.getDroneTelemetry());
+        });
     }
 
 
 
     @Test
     void getBatteryLevelTest() {
-        Drone droneTest = new Drone();
-        droneTest.setBatteryLevel(50);
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
 
-        assertEquals(50, droneTest.getBatteryLevel());
+        droneTest.setBatteryLevel(50);
+        droneTestB.setBatteryLevel(50);
+
+        assertAll(() -> {
+            assertEquals(50, droneTest.getBatteryLevel());
+            assertEquals(50, droneTestB.getBatteryLevel());
+        });
     }
 
     @Test
     void setBatteryLevelTest() {
-        Drone droneTest = new Drone();
-        droneTest.setBatteryLevel(20);
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
 
-        assertEquals(20, droneTest.getBatteryLevel());
+        droneTest.setBatteryLevel(20);
+        droneTestB.setBatteryLevel(20);
+
+        assertAll(() -> {
+            assertEquals(20, droneTest.getBatteryLevel());
+            assertEquals(20, droneTestB.getBatteryLevel());
+        });
+
 
         droneTest.setBatteryLevel(50);
+        droneTestB.setBatteryLevel(50);
 
-        assertEquals(50, droneTest.getBatteryLevel());
+        assertAll(() -> {
+            assertEquals(50, droneTest.getBatteryLevel());
+            assertEquals(50, droneTestB.getBatteryLevel());
+        });
     }
 
     @Test
     void setBatteryLevelIllegal() {
-        Drone droneTest = new Drone();
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
 
         assertAll(() -> {
             assertThrows(IllegalArgumentException.class, () -> droneTest.setBatteryLevel(-1));
             assertThrows(IllegalArgumentException.class, () -> droneTest.setBatteryLevel(101));
+            assertThrows(IllegalArgumentException.class, () -> droneTestB.setBatteryLevel(-1));
+            assertThrows(IllegalArgumentException.class, () -> droneTestB.setBatteryLevel(101));
         });
     }
 
 
     @Test
     void isDroneOnTest() {
-        Drone droneTest = new Drone();
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
 
-        assertSame(Drone.DroneState.INACTIVE, droneTest.isDroneOn());
+        assertAll(() -> {
+            assertSame(Drone.DroneState.INACTIVE, droneTest.isDroneOn());
+            assertSame(Drone.DroneState.INACTIVE, droneTestB.isDroneOn());
+        });
     }
 
     @Test
     void decreaseBatteryTest() {
-        Drone droneTest = new Drone();
+        Drone droneTest = factory.createDroneNonStatic("A");
+        Drone droneTestB = factory.createDroneNonStatic("B");
+
         droneTest.setBatteryLevel(100);
         droneTest.simulateBatteryDrain();
 
-        assertEquals(99, droneTest.getBatteryLevel());
+        droneTestB.setBatteryLevel(100);
+        droneTestB.simulateBatteryDrain();
+
+        assertAll(() -> {
+            assertEquals(99, droneTest.getBatteryLevel());
+            assertEquals(99, droneTestB.getBatteryLevel());
+        });
+    }
+
+    @Test
+    void takeoffWithHesitationBranch() {
+        Drone d = factory.createDroneNonStatic("B");
+        d.setDroneState(Drone.DroneState.TAKEOFF);
+
+        d.updateDroneNextMove(new TelemetryData(0,0,0,0,0));
+        d.updateDroneNextMove(new TelemetryData(0,0,0,0,0));
+
+        assertEquals(15.0, d.getDroneTelemetry().getAltitude());
+    }
+
+    @Test
+    void takeoffReachesSafeAltitudeWithHesitationTrue() {
+        Drone d = factory.createDroneNonStatic("B");
+        d.setDroneState(Drone.DroneState.TAKEOFF);
+
+        d.getDroneTelemetry().setAltitude(30.0 - 15.0);
+
+        d.updateDroneNextMove(new TelemetryData(0,0,0,0,0));
+        d.updateDroneNextMove(new TelemetryData(0,0,0,0,0));
+        d.updateDroneNextMove(new TelemetryData(0,0,0,0,0));
+        d.updateDroneNextMove(new TelemetryData(0,0,0,0,0));
+
+        assertAll(() -> {
+            assertEquals(30.0, d.getDroneTelemetry().getAltitude());
+            assertEquals(Drone.DroneState.FLYING, d.isDroneOn());
+        });
     }
 }

@@ -3,13 +3,13 @@
     <properties maven-id="org.openjfx:jfx-incubator-input:26-ea+18" />
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-input/26-ea+18/jfx-incubator-input-26-ea+18.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-input/26-ea+18/jfx-incubator-input-26-ea+18-mac-aarch64.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-input/26-ea+18/jfx-incubator-input-26-ea+18-win.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/26-ea+18/javafx-controls-26-ea+18.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/26-ea+18/javafx-controls-26-ea+18-mac-aarch64.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/26-ea+18/javafx-controls-26-ea+18-win.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18-mac-aarch64.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/26-ea+18/javafx-graphics-26-ea+18-win.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18-mac-aarch64.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/javafx-base/26-ea+18/javafx-base-26-ea+18-win.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$MAVEN_REPOSITORY$/org/openjfx/jfx-incubator-input/26-ea+18/jfx-incubator-input-26-ea+18-javadoc.jar!/" />

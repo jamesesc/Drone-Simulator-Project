@@ -6,7 +6,6 @@ import javafx.beans.property.StringProperty;
 /**
  * An entry in a table (so far used in BottomTable and DatabasePopup)
  * used to represent an AnomalyRecord.
- *
  * This has been made a separate class for JavaFX reasons (we cannot
  * put the AnomalyRecords themselves into a JavaFX table)
  *
