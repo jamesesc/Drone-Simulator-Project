@@ -121,6 +121,10 @@ public class MonitorDash  {
         thePrimaryStage.setTitle("Drone Simulation");
         thePrimaryStage.setScene(myScene);
         thePrimaryStage.show();
+        thePrimaryStage.setOnCloseRequest(_ -> {
+            Platform.exit();
+            System.exit(0);
+        });
 
         // Stuff the program runs after its build
         Platform.runLater(() -> {
