@@ -56,7 +56,7 @@ public interface Drone {
      * @param theDroneState represent whether the drone is on or not.
      * @throws NullPointerException if theDroneState is null.
      */
-    void setDroneState(Enum<BasicDrone.DroneState> theDroneState);
+    void setDroneState(Enum<DroneA.DroneState> theDroneState);
 
     /**
      * A setter to set the Drone Battery Level.

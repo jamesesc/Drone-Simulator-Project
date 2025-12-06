@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @version Fall 2025
  */
-public class BasicDrone implements Drone {
+public class DroneA implements Drone {
     /*-- Fields --*/
 
     /** A Telemetry Data object class used to store all the drone Telemetry data */
@@ -47,7 +47,7 @@ public class BasicDrone implements Drone {
     /**
      * A non-arg constructor that initializes the drone id, and set the drone status to on.
      */
-    public BasicDrone(final int theID) {
+    public DroneA(final int theID) {
         // Using Java atomic increments that ensures each drone get unique ID in multi-thread simulation
         myDroneState = DroneState.INACTIVE;
         myBattery = new Battery();

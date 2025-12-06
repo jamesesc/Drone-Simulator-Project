@@ -4,6 +4,7 @@ import Model.Drone;
 import Model.DroneFactory;
 import Model.TelemetryData;
 import java.util.Objects;
+import java.util.Random;
 
 /**
  * A class that handles and manage all the drones in the simulation.
@@ -16,7 +17,6 @@ public final class DroneFleetManager {
 
     /** Constant that represent the default numbers of drones in the fleet. */
     private static final int DEFAULT_DRONE_COUNT = 3;
-
 
     /*-- Dependency Injection *--/
 
@@ -35,6 +35,9 @@ public final class DroneFleetManager {
 
     /** The Drone factory responsible for creating drones **/
     final private DroneFactory myDroneFactory;
+
+    /** Random Number Generator **/
+    private final Random rng = new Random();
 
 
     /*-- Constructor --*/
@@ -134,7 +137,12 @@ public final class DroneFleetManager {
      */
     private void initializeFleet() {
         for (int i = 0; i < myDroneCount; i++) {
-            Drone newDrone = DroneFactory.createDrone("Basic");
+            Drone newDrone;
+            if (rng.nextInt(1, 5) % 4 == 0) {
+                newDrone = DroneFactory.createDrone("B");
+            } else {
+                newDrone = DroneFactory.createDrone("A");
+            }
             myDroneFleet[i] = newDrone;
         }
     }

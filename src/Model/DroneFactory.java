@@ -8,7 +8,9 @@ public class DroneFactory {
     public static Drone createDrone(String type) {
         int newID = DRONE_COUNTER.getAndIncrement();
         return switch (type) {
-            default -> new BasicDrone(newID);
+            case "A" -> new DroneA(newID);
+            case "B" -> new DroneB(newID);
+            default -> throw new IllegalStateException("Unexpected value: " + type);
         };
     }
 
