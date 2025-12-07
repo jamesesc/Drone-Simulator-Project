@@ -399,7 +399,7 @@ public class TelemetryGenerator {
         double altitudeChange = velocity * Math.sin(Math.toRadians(angleDegrees));
         double newAltitude = thePrevTelemetry.getAltitude() + altitudeChange;
 
-        theNextTelemetry.setAltitude(newAltitude);
+        theNextTelemetry.setAltitude(Math.max(0, newAltitude));
     }
 
     /**
