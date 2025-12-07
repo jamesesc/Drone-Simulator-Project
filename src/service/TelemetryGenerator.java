@@ -109,12 +109,12 @@ public class TelemetryGenerator {
     private enum TurnAngle {
         /*-- Different Turn category --*/
 
-        /** Represent the small turn category, with an angle of 0-45, and a 70% probability */
-        SMALL(0, 45, 70),
-        /** Represent the medium turn category, with an angle of 46-135, and a 25% probability */
-        MEDIUM(46, 135, 25),
-        /** Represent the large turn category, with an angle of 136-180, and a 5% probability */
-        LARGE(136, 180, 5);
+        /** Represent the small turn category, with an angle of 0-90, and a 90% probability */
+        SMALL(0, 90, 90),
+        /** Represent the medium turn category, with an angle of 91-135, and a 7% probability */
+        MEDIUM(91, 135, 7),
+        /** Represent the large turn category, with an angle of 136-180, and a 3% probability */
+        LARGE(136, 180, 3);
 
 
         /*-- Fields --*/
