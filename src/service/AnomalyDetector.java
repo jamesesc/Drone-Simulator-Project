@@ -26,7 +26,7 @@ public class AnomalyDetector  {
     /**
      * The threshold for what constitutes a "too sharp turn"
      */
-    final double TURN_THRESHOLD = 50.0;
+    final double TURN_THRESHOLD = 100.0;
     /**
      * Determines what constitutes going "way too fast"
      */

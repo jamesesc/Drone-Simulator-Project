@@ -110,11 +110,11 @@ public class TelemetryGenerator {
         /*-- Different Turn category --*/
 
         /** Represent the small turn category, with an angle of 0-45, and a 70% probability */
-        SMALL(0, 45, 70),
+        SMALL(0, 90, 90),
         /** Represent the medium turn category, with an angle of 46-135, and a 25% probability */
-        MEDIUM(46, 135, 25),
+        MEDIUM(91, 135, 7),
         /** Represent the large turn category, with an angle of 136-180, and a 5% probability */
-        LARGE(136, 180, 5);
+        LARGE(136, 180, 3);
 
 
         /*-- Fields --*/
