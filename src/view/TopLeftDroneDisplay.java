@@ -141,6 +141,8 @@ public class TopLeftDroneDisplay extends VBox {
         myWorld = new Pane();
         // Handling the layout manually by transformation
         myWorld.setManaged(false);
+        // Drawing the grid
+        drawGrid();
         myViewport.getChildren().add(myWorld);
 
         // Setting up the UI Container
@@ -511,8 +513,10 @@ public class TopLeftDroneDisplay extends VBox {
      * Removes all drone images from the world but KEEPS the world pane intact.
      */
     public void clearAllDrones() {
-        // Clear the visual nodes from the "World" pane
-        myWorld.getChildren().clear();
+        // Remove the drone shapes, except for grid elements
+        myWorld.getChildren().removeIf(node ->
+                node.getUserData() == null || !node.getUserData().equals("grid")
+        );
         // Clear the map tracking them
         myDroneViews.clear();
         // Clearing our animation timeline
@@ -537,4 +541,32 @@ public class TopLeftDroneDisplay extends VBox {
                 Objects.requireNonNull(getClass().getResource(theCSSName)).toExternalForm()
         );
     }
+
+    private void drawGrid() {
+        myWorld.getChildren().removeIf(node -> node.getUserData() != null &&
+                node.getUserData().equals("grid"));
+
+        double gridSpacing = 50;
+        Color neonBlue = Color.rgb(0, 200, 255, 0.4);
+
+        for (double x = -1000; x <= 1000; x += gridSpacing) {
+            javafx.scene.shape.Line line = new javafx.scene.shape.Line(x, -1000, x, 1000);
+            line.setStroke(neonBlue);
+            line.setStrokeWidth(x % 250 == 0 ? 1.5 : 0.5); // Thicker every 250m
+            line.setUserData("grid");
+            line.setMouseTransparent(true);
+            line.getStyleClass().add("grid-line");
+            myWorld.getChildren().add(0, line);
+        }
+
+        for (double y = -1000; y <= 1000; y += gridSpacing) {
+            javafx.scene.shape.Line line = new javafx.scene.shape.Line(-1000, y, 1000, y);
+            line.setStroke(neonBlue);
+            line.setStrokeWidth(y % 250 == 0 ? 1.5 : 0.5);
+            line.setUserData("grid");
+            line.setMouseTransparent(true);
+            myWorld.getChildren().add(0, line);
+        }
+    }
+
 }
