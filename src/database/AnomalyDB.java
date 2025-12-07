@@ -3,9 +3,13 @@ package database;
 import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
+
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Handles SQLite database operations for storing and retrieving drone anomalies.
@@ -13,9 +17,7 @@ import java.util.List;
  * getting anomaly details, and clearing or closing the database connection.
  */
 public class AnomalyDB {
-    //database file location
-    //to do: put this into a db.property file, or configuration file for db lite
-    private static final String DB_URL = "jdbc:sqlite:drone_anomalies.db";
+
     /** Connection to the SQLite database. */
     private static Connection conn;
 
@@ -25,12 +27,31 @@ public class AnomalyDB {
      */
     public AnomalyDB() {
         try {
-            Class.forName("org.sqlite.JDBC"); //load sqlite driver
-            conn = DriverManager.getConnection(DB_URL); //connect to database
-            createTable(); //create table structure
+            // Load database properties
+            Properties props = new Properties();
+            try (FileInputStream fis = new FileInputStream("db.properties")) {
+                props.load(fis);
+            }
+
+            String dbUrl = props.getProperty("db.url");
+            String dbDriver = props.getProperty("db.driver");
+
+            // Load the JDBC driver
+            Class.forName(dbDriver);
+
+            // Connect to database
+            conn = DriverManager.getConnection(dbUrl);
+
+            // Create table if not exists
+            createTable();
+
             System.out.println("Database initialized successfully");
-        } catch (Exception e) {
-            System.err.println("Error: " + e.getMessage()); //msg if something goes wrong
+        } catch (IOException e) {
+            System.err.println("Error reading db.properties: " + e.getMessage());
+        } catch (ClassNotFoundException e) {
+            System.err.println("Driver class not found: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("SQL error: " + e.getMessage());
         }
     }
 
@@ -183,11 +204,12 @@ public class AnomalyDB {
      * Deletes all records from the anomaly database.
      */
     public static void clearDatabase() {
-        // SQL command to delete all rows
-        String sql = "DELETE FROM drone_anomalies";
-
         try (Statement stmt = conn.createStatement()) {
-            stmt.execute(sql); // Execute delete command
+            // delete all rows
+            stmt.execute("DELETE FROM drone_anomalies");
+            // Reset auto-increment
+            stmt.execute("DELETE FROM sqlite_sequence WHERE name='drone_anomalies'");
+
             System.out.println("Database cleared successfully");
         } catch (SQLException e) {
             // Print error if something goes wrong
