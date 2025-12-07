@@ -359,7 +359,14 @@ public class AnomalyDetector  {
             throw new IllegalArgumentException("Illegal Argument Exception: " +
                     "detectSharpTurns() got a null TelemetryData");
         }
-        return Math.abs(theCurrentState.getOrientation() - thePriorState.getOrientation()) >= TURN_THRESHOLD;
+
+        double prev = thePriorState.getOrientation();
+        double curr = theCurrentState.getOrientation();
+
+        double diff = Math.abs(curr - prev) % 360;
+        double adjusted_diff = diff > 180 ? 360 - diff : diff;
+
+        return adjusted_diff >= TURN_THRESHOLD;
     }
 
     /**
