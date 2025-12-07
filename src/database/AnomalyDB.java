@@ -4,8 +4,8 @@ import Model.AnomalyRecord;
 import Model.Drone;
 import Model.TelemetryData;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +29,15 @@ public class AnomalyDB {
         try {
             // Load database properties
             Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream("db.properties")) {
-                props.load(fis);
+            InputStream input = getClass().getClassLoader().getResourceAsStream("db.properties");
+
+            if (input == null) {
+                System.err.println("Unable to find db.properties in resources");
+                return;
             }
+
+            props.load(input);
+            input.close();
 
             String dbUrl = props.getProperty("db.url");
             String dbDriver = props.getProperty("db.driver");
@@ -46,12 +52,12 @@ public class AnomalyDB {
             createTable();
 
             System.out.println("Database initialized successfully");
-        } catch (IOException e) {
-            System.err.println("Error reading db.properties: " + e.getMessage());
         } catch (ClassNotFoundException e) {
             System.err.println("Driver class not found: " + e.getMessage());
         } catch (SQLException e) {
             System.err.println("SQL error: " + e.getMessage());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
